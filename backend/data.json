@@ -1,0 +1,52 @@
+[
+  {
+    "id": "123",
+    "client": "Brayan Smith",
+    "device": "Phone",
+    "status": false,
+    "entryDate": "2025-04-28",
+    "exitDate": "2025-05-28",
+    "warrantLimit": "2025-06-28",
+    "price": 15000000
+  },
+  {
+    "id": "124",
+    "client": "Alice Johnson",
+    "device": "Laptop",
+    "status": true,
+    "entryDate": "2025-03-15",
+    "exitDate": "2025-03-25",
+    "warrantLimit": "2025-04-25",
+    "price": 25000000
+  },
+  {
+    "id": "125",
+    "client": "Carlos Rivera",
+    "device": "Tablet",
+    "status": false,
+    "entryDate": "2025-02-10",
+    "exitDate": "2025-02-20",
+    "warrantLimit": "2025-03-20",
+    "price": 12000000
+  },
+  {
+    "id": "126",
+    "client": "Diana Lopez",
+    "device": "Smartwatch",
+    "status": true,
+    "entryDate": "2025-01-05",
+    "exitDate": "2025-01-15",
+    "warrantLimit": "2025-02-15",
+    "price": 8000000
+  },
+  {
+    "id": "127",
+    "client": "Ethan Brown",
+    "device": "Desktop",
+    "status": false,
+    "entryDate": "2025-05-01",
+    "exitDate": "2025-05-11",
+    "warrantLimit": "2025-06-11",
+    "price": 30000000
+  }
+]

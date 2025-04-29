@@ -1,0 +1,10 @@
+{
+    // Configuration for REST API
+    "api": {
+        "baseUrl": "http://localhost:3000", // Replace with your API base URL
+        "timeout": 5000, // Request timeout in milliseconds
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
+}

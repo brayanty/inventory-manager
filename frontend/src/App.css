@@ -1,0 +1,95 @@
+@font-face {
+    font-family: Roboto;
+    src: "@fontsource/roboto/400.css";
+}
+
+@import "tailwindcss";
+
+
+body{
+    font-family: Roboto;
+    background-color: black;
+}
+/*Ocultar barra de desplazamiento*/
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* Para Internet Explorer y Edge */
+      scrollbar-width: none;  /* Para Firefox */
+    }
+  }
+  
+/*estilos para el navbar izquierdo*/
+
+.navbar {
+  background-color: rgba(36, 40, 50, 1);
+  padding: 15px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.navbar .separator {
+  border-top: 1.5px solid #42434a;
+}
+
+.navbar .list {
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0px 10px;
+}
+
+.navbar .list .element {
+  display: flex;
+  align-items: center;
+  color: #7e8590;
+  gap: 10px;
+  transition: all 0.3s ease-out;
+  padding: 4px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.navbar .list .element svg {
+  width: 19px;
+  height: 19px;
+  transition: all 0.3s ease-out;
+}
+
+.navbar .list .element .label {
+  font-weight: 600;
+}
+
+.navbar .list .element:hover {
+  background-color: #5353ff;
+  color: #ffffff;
+  transform: translate(1px, -1px);
+}
+.navbar .list .delete:hover {
+  background-color: #8e2a2a;
+}
+
+.navbar .list .element:active {
+  transform: scale(0.99);
+}
+
+.navbar .list:not(:last-child) .element:hover svg {
+  stroke: #ffffff;
+}
+
+.navbar .list:last-child svg {
+  stroke: #bd89ff;
+}
+.navbar .list:last-child .element {
+  color: #bd89ff;
+}
+
+.navbar .list:last-child .element:hover {
+  background-color: rgba(56, 45, 71, 0.836);
+}
