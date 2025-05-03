@@ -45,28 +45,7 @@ async function readData() {
 // Escribir archivo de forma asíncrona
 async function writeData(newData) {
   try {
-    // Leer el contenido existente del archivo
-    let existingData = [];
-    try {
-      const fileContent = await fs.readFile(dataFile, "utf8");
-      existingData = JSON.parse(fileContent);
-      // Asegurarse de que existingData sea un arreglo
-      if (!Array.isArray(existingData)) {
-        existingData = [];
-      }
-    } catch (err) {
-      // Si el archivo no existe o está vacío, inicializar con un arreglo vacío
-      if (err.code !== "ENOENT") {
-        console.error("Error al leer el archivo:", err);
-        throw err;
-      }
-    }
-
-    // Agregar el nuevo dato al arreglo
-    existingData.push(newData);
-
-    // Escribir el arreglo actualizado al archivo
-    await fs.writeFile(dataFile, JSON.stringify(existingData, null, 2), "utf8");
+    await fs.writeFile(dataFile, JSON.stringify(newData), "utf8");
     console.log("Datos escritos correctamente");
   } catch (err) {
     console.error("Error al escribir datos:", err);
@@ -95,9 +74,17 @@ function validateEntryData({ client, device, status, entryDate, price }) {
 }
 
 // ✅ CREATE
-app.post("/entries", async (req, res) => {
-  const { client, device, status, entryDate, exitDate, warrantLimit, price } =
-    req.body;
+app.post("/devices", async (req, res) => {
+  const {
+    client,
+    device,
+    status,
+    entryDate,
+    exitDate,
+    warrantLimit,
+    price,
+    detail,
+  } = req.body;
 
   const validationError = validateEntryData({
     client,
@@ -107,6 +94,7 @@ app.post("/entries", async (req, res) => {
     exitDate,
     warrantLimit,
     price,
+    detail,
   });
   if (validationError) {
     return sendError(res, 400, validationError);
@@ -122,6 +110,7 @@ app.post("/entries", async (req, res) => {
     warrantLimit:
       warrantLimit && !isNaN(Date.parse(warrantLimit)) ? warrantLimit : null,
     price,
+    detail: detail && typeof detail === "string" ? detail.trim() : null,
   };
 
   try {
@@ -135,7 +124,7 @@ app.post("/entries", async (req, res) => {
 });
 
 // 📄 READ ALL
-app.get("/entries", async (req, res) => {
+app.get("/devices", async (req, res) => {
   try {
     const entries = await readData();
     const { search } = req.query;
@@ -158,7 +147,7 @@ app.get("/entries", async (req, res) => {
 });
 
 // 🔍 READ ONE
-app.get("/entries/:id", async (req, res) => {
+app.get("/devices/:id", async (req, res) => {
   try {
     const entries = await readData();
     const entry = entries.find((e) => e.id === req.params.id);
@@ -170,7 +159,7 @@ app.get("/entries/:id", async (req, res) => {
 });
 
 // ✏️ UPDATE
-app.put("/entries/:id", async (req, res) => {
+app.put("/devices/:id", async (req, res) => {
   try {
     const entries = await readData();
     const index = entries.findIndex((e) => e.id === req.params.id);
@@ -195,6 +184,17 @@ app.put("/entries/:id", async (req, res) => {
         req.body.warrantLimit && !isNaN(Date.parse(req.body.warrantLimit))
           ? req.body.warrantLimit
           : entries[index].warrantLimit,
+      detail:
+        req.body.detail && typeof req.body.detail === "string"
+          ? req.body.detail.trim()
+          : entries[index].detail,
+      price:
+        req.body.price != null &&
+        typeof req.body.price === "number" &&
+        !isNaN(req.body.price) &&
+        req.body.price >= 0
+          ? req.body.price
+          : entries[index].price,
     };
 
     entries[index] = updated;
@@ -206,15 +206,13 @@ app.put("/entries/:id", async (req, res) => {
 });
 
 // ❌ DELETE
-app.delete("/entries/:id", async (req, res) => {
+app.delete("/devices/:id", async (req, res) => {
   try {
-    const entries = await readData();
-    const index = entries.findIndex((e) => e.id === req.params.id);
-    if (index === -1) return sendError(res, 404, "Entrada no encontrada");
-
-    const [deleted] = entries.splice(index, 1);
-    await writeData(entries);
-    res.json(deleted);
+    const device = await readData();
+    const newDevices = device.filter((e) => e.id !== req.params.id);
+    console.log(newDevices);
+    await writeData(newDevices);
+    res.json({ result: "Entrada eliminada" });
   } catch (err) {
     sendError(res, 404, "Error al eliminar la entrada");
   }
