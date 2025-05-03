@@ -27,11 +27,11 @@ function Modal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50"
+      className="p-4 fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50"
       onClick={handleOverlayClick}
     >
       <div
-        className={`bg-white rounded-lg shadow-lg p-6 relative w-full ${width}`}
+        className={`p-2 bg-white rounded-lg shadow-lg relative w-full ${width}`}
       >
         {showCloseButton && (
           <button
