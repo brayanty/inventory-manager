@@ -4,7 +4,11 @@ import React, { useEffect, useState } from "react";
 import formatCOP from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
 import models from "@/components/constants/models.ts";
-import { searchDevices, deleteDevice } from "@/components/services/devices.js";
+import {
+  searchDevices,
+  deleteDevice,
+  createDevice,
+} from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 
 const TechnicalService = () => {
@@ -16,8 +20,8 @@ const TechnicalService = () => {
     client: "",
     device: "",
     models: "",
-    IMEI: "",
-    price: "",
+    IMEI: 0,
+    price: 0,
     detail: "",
   });
 
@@ -61,42 +65,42 @@ const TechnicalService = () => {
     }));
   };
 
-  // const handleAddDevice = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (
-  //     !formData.client.trim() ||
-  //     !formData.device.trim() ||
-  //     formData.price <= 0 ||
-  //     isNaN(formData.price)
-  //   ) {
-  //     alert("Please fill in all fields with valid values.");
-  //     return;
-  //   }
+  const handleAddDevice = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !devicesForm.client.trim() ||
+      !devicesForm.device.trim() ||
+      devicesForm.price <= 0 ||
+      isNaN(devicesForm.price)
+    ) {
+      alert("Please fill in all fields with valid values.");
+      return;
+    }
 
-  //   const newDevice: TechnicalServiceEntry = {
-  //     id: Date.now().toString(),
-  //     client: formData.client.trim(),
-  //     device: formData.device.trim(),
-  //     models: formData.models.trim(),
-  //     IMEI: formData.IMEI,
-  //     status: "En reparación",
-  //     entryDate: new Date().toISOString().split("T")[0],
-  //     exitDate: null,
-  //     warrantLimit: null,
-  //     price: formData.price,
-  //     detail: formData.detail,
-  //   };
-  //   createDevice(newDevice);
-  //   setDevices((prev) => [...prev, newDevice]);
-  //   setFormData({
-  //     client: "",
-  //     device: "",
-  //     detail: "",
-  //     models: "",
-  //     IMEI: 0,
-  //     price: 0,
-  //   });
-  // };
+    const newDevice: TechnicalServiceEntry = {
+      id: Date.now().toString(),
+      client: devicesForm.client.trim(),
+      device: devicesForm.device.trim(),
+      models: devicesForm.models.trim(),
+      IMEI: devicesForm.IMEI,
+      status: "En reparación",
+      entryDate: new Date().toISOString().split("T")[0],
+      exitDate: null,
+      warrantLimit: null,
+      price: devicesForm.price,
+      detail: devicesForm.detail,
+    };
+    createDevice(newDevice);
+    setDevices((prev) => [...prev, newDevice]);
+    setDevicesForm({
+      client: "",
+      device: "",
+      detail: "",
+      models: "",
+      IMEI: 0,
+      price: 0,
+    });
+  };
 
   const handleStatusChange = (
     id: string,
@@ -330,6 +334,8 @@ const TechnicalService = () => {
             type="submit"
             onClick={(e) => {
               e.preventDefault();
+              handleAddDevice(e);
+              setisFormTechnical(false);
             }}
             className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
           >
