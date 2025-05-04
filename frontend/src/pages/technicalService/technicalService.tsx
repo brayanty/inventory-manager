@@ -1,6 +1,6 @@
 import { useCategoryListStore } from "@/components/store/category";
 import { useSearchStore } from "@/components/store/filters";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import formatCOP from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
 import models from "@/components/constants/models.ts";
@@ -8,64 +8,72 @@ import {
   searchDevices,
   deleteDevice,
   createDevice,
+  updateDevice,
 } from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
+import { toast } from "react-toastify";
+
+const FAKE_CATEGORIES = [
+  { category: "Todos" },
+  { category: "En reparación" },
+  { category: "Reparado" },
+  { category: "No reparado" },
+];
 
 const TechnicalService = () => {
   const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
+  const [isDetail, setIsDetail] = useState<boolean>(false);
+  const [isSelectDetail, setSelectDetail] =
+    useState<TechnicalServiceEntry | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { categorySelect, setCategoryList } = useCategoryListStore();
+  const { search } = useSearchStore();
 
   const [devicesForm, setDevicesForm] = useState({
     client: "",
     device: "",
     models: "",
-    IMEI: 0,
+    IMEI: "",
     price: 0,
     detail: "",
   });
 
-  const [isSelectDetail, setSelectDetail] = useState<TechnicalServiceEntry>();
-  const [isDetail, setIsDetail] = useState<boolean>(false);
-
-  const handlerSetDetail = (device: TechnicalServiceEntry) => {
-    if (!device) return;
-    setIsDetail(true);
-    setSelectDetail(device);
-  };
-
-  const { search } = useSearchStore();
-
   useEffect(() => {
     const getDevices = async () => {
-      const devices = await searchDevices(search);
-      if (devices) {
-        setDevices(devices);
+      setIsLoading(true);
+      try {
+        const devices = await searchDevices(search);
+        if (devices) {
+          setDevices(devices);
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
     getDevices();
-    const fakeCategories = [
-      { category: "Todos" },
-      { category: "En reparación" },
-      { category: "Reparado" },
-      { category: "No reparado" },
-    ];
-    setCategoryList(fakeCategories);
-  }, [search, setDevices]);
+    setCategoryList(FAKE_CATEGORIES);
+  }, [search, setCategoryList]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    console.log(devicesForm);
     const { name, value } = e.target;
-
+    if (name === "IMEI" && value.toString().length > 15) {
+      return;
+    }
     setDevicesForm((f) => ({
       ...f,
-      [name]: name === "price" ? parseFloat(value) || 0 : value,
+      [name]:
+        name === "price" || name === "IMEI" ? parseFloat(value) || 0 : value,
     }));
   };
 
-  const handleAddDevice = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !devicesForm.client.trim() ||
@@ -73,67 +81,135 @@ const TechnicalService = () => {
       devicesForm.price <= 0 ||
       isNaN(devicesForm.price)
     ) {
-      alert("Please fill in all fields with valid values.");
+      toast.warning("No se permiten campos vacíos o precio inválido.");
+      return;
+    }
+    if (devicesForm.IMEI.toString().length > 15) {
+      toast.warn("El IMEI debe tener al menos 15 dígitos.");
       return;
     }
 
-    const newDevice: TechnicalServiceEntry = {
-      id: Date.now().toString(),
+    const deviceData: TechnicalServiceEntry = {
       client: devicesForm.client.trim(),
       device: devicesForm.device.trim(),
       models: devicesForm.models.trim(),
       IMEI: devicesForm.IMEI,
-      status: "En reparación",
-      entryDate: new Date().toISOString().split("T")[0],
-      exitDate: null,
-      warrantLimit: null,
+      status: isEditing
+        ? devices.find((d) => d.id === editingDeviceId)?.status ||
+          "En reparación"
+        : "En reparación",
+      entryDate: isEditing
+        ? devices.find((d) => d.id === editingDeviceId)?.entryDate ||
+          new Date().toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      exitDate: isEditing
+        ? devices.find((d) => d.id === editingDeviceId)?.exitDate || null
+        : null,
+      warrantLimit: isEditing
+        ? devices.find((d) => d.id === editingDeviceId)?.warrantLimit || null
+        : null,
       price: devicesForm.price,
       detail: devicesForm.detail,
     };
-    createDevice(newDevice);
-    setDevices((prev) => [...prev, newDevice]);
-    setDevicesForm({
-      client: "",
-      device: "",
-      detail: "",
-      models: "",
-      IMEI: 0,
-      price: 0,
-    });
+
+    try {
+      if (isEditing && editingDeviceId) {
+        deviceData.id = editingDeviceId;
+        await updateDevice(editingDeviceId, deviceData);
+        setDevices((prev) =>
+          prev.map((d) => (d.id === editingDeviceId ? deviceData : d))
+        );
+        setIsEditing(false);
+        setEditingDeviceId(null);
+      } else {
+        const createdDevice = await createDevice(deviceData);
+        setDevices((prev) => [...prev, createdDevice]);
+      }
+      setDevicesForm({
+        client: "",
+        device: "",
+        detail: "",
+        models: "",
+        IMEI: "",
+        price: 0,
+      });
+      setisFormTechnical(false);
+    } catch (error) {
+      console.error("Failed to save device:", error);
+      toast("Fallo a guardar el dispositivo. Intente de nuevo");
+    }
   };
 
-  const handleStatusChange = (
+  const handleDeleteDevice = async (id: string) => {
+    try {
+      await deleteDevice(id);
+      setDevices((prev) => prev.filter((dev) => dev.id !== id));
+    } catch (error) {
+      console.error("Failed to delete device:", error);
+      toast("Fallo a eliminar el dispositivo. Intente de nuevo.");
+    }
+  };
+
+  const handleStatusChange = async (
     id: string,
     status: "Reparado" | "No reparado"
   ) => {
-    setDevices((prev) => {
-      const exitDate = new Date();
-      const warrantLimit = new Date(exitDate);
-      warrantLimit.setDate(warrantLimit.getDate() + 30);
-      return prev.map((dev) =>
-        dev.id === id
-          ? {
-              ...dev,
-              status,
-              exitDate: exitDate.toISOString().split("T")[0],
-              warrantLimit:
-                status === "Reparado"
-                  ? warrantLimit.toISOString().split("T")[0]
-                  : null,
-            }
-          : dev
+    const exitDate = new Date();
+    const warrantLimit = new Date(exitDate);
+    warrantLimit.setDate(warrantLimit.getDate() + 30);
+
+    const updatedDevice = devices.find((dev) => dev.id === id);
+    if (!updatedDevice) return;
+
+    const newDevice = {
+      ...updatedDevice,
+      status,
+      exitDate: exitDate.toISOString().split("T")[0],
+      warrantLimit:
+        status === "Reparado" ? warrantLimit.toISOString().split("T")[0] : null,
+    };
+
+    try {
+      await updateDevice(id, newDevice);
+      setDevices((prev) =>
+        prev.map((dev) => (dev.id === id ? newDevice : dev))
       );
-    });
+    } catch (error) {
+      console.error("Failed to update device status:", error);
+      toast.warning("Fallo a actualizar el estado. Intente de nuevo.");
+    }
   };
 
-  const filteredDevices = devices.filter((device) => {
-    if (categorySelect === "Todos") return true; //si "todos" se selecciona, no filtra nada
-    return device.status === categorySelect; //filtra por el estado seleccionado
-  });
+  const handlerEditDevice = (d: TechnicalServiceEntry) => {
+    setDevicesForm({
+      client: d.client,
+      device: d.device,
+      models: d.models,
+      IMEI: d.IMEI,
+      price: d.price,
+      detail: d.detail || "",
+    });
+    setIsEditing(true);
+    setEditingDeviceId(d.id);
+    setisFormTechnical(true);
+  };
+
+  const handlerSetDetail = (device: TechnicalServiceEntry) => {
+    if (!device) return;
+    setSelectDetail(device);
+    setIsDetail(true);
+  };
+
+  const filteredDevices = useMemo(() => {
+    return devices.filter((device) => {
+      if (categorySelect === "Todos") return true;
+      return device.status === categorySelect;
+    });
+  }, [devices, categorySelect]);
 
   return (
     <div className="p-4 text-white">
-      <h2 className="te xt-xl font-bold mb-4">Servicio Técnico</h2>
+      <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
       <button
         onClick={() => setisFormTechnical(true)}
         type="button"
@@ -142,7 +218,6 @@ const TechnicalService = () => {
         Formulario de Ingreso
       </button>
 
-      {/* Tabla */}
       <div className="overflow-x-auto overflow-y-auto">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="bg-gray-700 text-xs uppercase">
@@ -159,94 +234,107 @@ const TechnicalService = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredDevices?.map((d) => (
-              <tr key={d.id} className="border-b border-gray-600">
-                <td className="p-2">{d.client}</td>
-                <td className="p-2">{d.device}</td>
-                <td className="p-2">{d.IMEI}</td>
-                <td className="p-2">{formatCOP(d.price)}</td>
-                <td className="p-2">{d.status ? "Reparado" : "Muerto"}</td>
-                <td className="p-2">{d.entryDate}</td>
-                <td className="p-2">{d.warrantLimit}</td>
-                <td className="p-2">{d.exitDate || "-"}</td>
-                <td className="p-2">
-                  <div className="flex flex-row gap-2  items-center justify-between">
-                    <button
-                      onClick={() => {
-                        setDevices(devices.filter((dev) => dev.id !== d.id));
-                        deleteDevice(d.id);
-                      }}
-                      className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
-                    >
-                      Eliminar
-                    </button>
-                    <button
-                      onClick={() => setIsDetail(true)}
-                      className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
-                    >
-                      Ver más
-                    </button>
-
-                    {d.status === "En reparación" && (
-                      <>
-                        <button
-                          onClick={() => handleStatusChange(d.id, "Reparado")}
-                          className="bg-green-600 px-2 py-1 rounded hover:bg-green-700"
-                        >
-                          Reparado
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusChange(d.id, "No reparado")
-                          }
-                          className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
-                        >
-                          No reparado
-                        </button>
-                      </>
-                    )}
-                  </div>
+            {isLoading ? (
+              <tr>
+                <td colSpan={9} className="p-4 text-center text-gray-500">
+                  Loading...
                 </td>
               </tr>
-            ))}
-            {filteredDevices.length === 0 && (
+            ) : filteredDevices.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-4 text-center text-gray-500">
+                <td colSpan={9} className="p-4 text-center text-gray-500">
                   No se encontraron resultados.
                 </td>
               </tr>
+            ) : (
+              filteredDevices.map((d) => (
+                <tr key={d.id} className="border-b border-gray-600">
+                  <td className="p-2">{d.client}</td>
+                  <td className="p-2">{d.device}</td>
+                  <td className="p-2">{d.IMEI}</td>
+                  <td className="p-2">{formatCOP(d.price)}</td>
+                  <td className="p-2">{d.status}</td>
+                  <td className="p-2">{d.entryDate}</td>
+                  <td className="p-2">{d.warrantLimit || "-"}</td>
+                  <td className="p-2">{d.exitDate || "-"}</td>
+                  <td className="p-2">
+                    <div className="flex flex-row gap-2 items-center justify-between">
+                      <button
+                        onClick={() => handleDeleteDevice(d.id)}
+                        className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                      >
+                        Eliminar
+                      </button>
+                      <button
+                        onClick={() => handlerSetDetail(d)}
+                        className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                      >
+                        Ver más
+                      </button>
+                      <button
+                        onClick={() => handlerEditDevice(d)}
+                        className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                      >
+                        Editar
+                      </button>
+                      {d.status === "En reparación" && (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(d.id, "Reparado")}
+                            className="bg-green-600 px-2 py-1 rounded hover:bg-green-700"
+                          >
+                            Reparado
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(d.id, "No reparado")
+                            }
+                            className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                          >
+                            No reparado
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
-      {/*datos adicionales*/}
+
       <Modal
         title="Detalles del dispositivo"
         isOpen={isDetail}
         onClose={() => setIsDetail(false)}
       >
-        {!isSelectDetail && <p>No details available.</p>}
-
-        <div className="flex flex-col gap-4 text-black">
-          <h3 className="text-lg font-bold">Detalles del dispositivo</h3>
-          <p>Cliente: {isSelectDetail?.client}</p>
-          <p>Dispositivo: {isSelectDetail?.device}</p>
-          <p>detalles: {isSelectDetail?.detail}</p>
-          <p>Precio: {isSelectDetail?.price}</p>
-          <p>Estado: {isSelectDetail?.status}</p>
-          <p>Fecha de ingreso: {isSelectDetail?.entryDate}</p>
-          <p>Fecha de salida: {isSelectDetail?.exitDate}</p>
-          <p>Fecha de garantia: {isSelectDetail?.warrantLimit}</p>
-        </div>
+        {isSelectDetail && (
+          <div className="flex flex-col gap-4 text-black">
+            <h3 className="text-lg font-bold">Detalles del dispositivo</h3>
+            <p>Cliente: {isSelectDetail.client}</p>
+            <p>Dispositivo: {isSelectDetail.device}</p>
+            <p>Detalles: {isSelectDetail.detail || "Sin observaciones"}</p>
+            <p>Precio: {formatCOP(isSelectDetail.price)}</p>
+            <p>Estado: {isSelectDetail.status}</p>
+            <p>Fecha de ingreso: {isSelectDetail.entryDate}</p>
+            <p>Fecha de salida: {isSelectDetail.exitDate || "-"}</p>
+            <p>Fecha de garantía: {isSelectDetail.warrantLimit || "-"}</p>
+          </div>
+        )}
       </Modal>
-      {/* Formulario de ingreso */}
+
       <Modal
-        title="Fomulario de Ingreso"
+        title={isEditing ? "Editar dispositivo" : "Formulario de Ingreso"}
         isOpen={isFormTechnical}
-        onClose={() => setisFormTechnical(false)}
+        onClose={() => {
+          setisFormTechnical(false);
+          setIsEditing(false);
+          setEditingDeviceId(null);
+        }}
       >
         <form className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4">
-          <div className="flex flex-wrap ga-2">
+          <div className="flex flex-wrap gap-2">
             <div className="flex flex-row items-center gap-2">
               <label className="flex flex-col" htmlFor="client">
                 <span>Cliente: </span>
@@ -258,6 +346,7 @@ const TechnicalService = () => {
                   className="p-2 rounded border"
                   value={devicesForm.client}
                   onChange={handleInputChange}
+                  aria-label="Nombre del cliente"
                 />
               </label>
               <label className="flex flex-col" htmlFor="device">
@@ -270,11 +359,12 @@ const TechnicalService = () => {
                   className="p-2 rounded border"
                   value={devicesForm.device}
                   onChange={handleInputChange}
+                  aria-label="Nombre del dispositivo"
                 />
               </label>
             </div>
             <div className="flex flex-row items-center gap-2">
-              <label className="flex flex-col" htmlFor="Price">
+              <label className="flex flex-col" htmlFor="price">
                 <span>Price: </span>
                 <input
                   type="text"
@@ -283,6 +373,7 @@ const TechnicalService = () => {
                   className="p-2 rounded border"
                   value={devicesForm.price}
                   onChange={handleInputChange}
+                  aria-label="Precio del servicio"
                 />
               </label>
               <label className="flex flex-col" htmlFor="models">
@@ -291,12 +382,13 @@ const TechnicalService = () => {
                   className="p-2 w-full text-[1rem] border"
                   name="models"
                   id="models"
+                  value={devicesForm.models}
+                  onChange={handleInputChange}
+                  aria-label="Modelo del dispositivo"
                 >
+                  <option value="">Seleccione un modelo</option>
                   {models.map((i) => (
-                    <option
-                      className="flex flex-col justify-center font-bold text-[1rem]"
-                      value={i.nombre}
-                    >
+                    <option key={i.nombre} value={i.nombre}>
                       {i.nombre}
                     </option>
                   ))}
@@ -304,15 +396,18 @@ const TechnicalService = () => {
               </label>
             </div>
             <div>
-              <label className="flex flex-col" htmlFor="Price">
+              <label className="flex flex-col" htmlFor="IMEI">
                 <span>IMEI: </span>
                 <input
                   type="text"
                   name="IMEI"
                   id="IMEI"
-                  className="p-2 rounded border"
+                  className={`p-2 rounded border ${
+                    devicesForm.IMEI.toString().length < 14 ? "bg-gray-300" : ""
+                  } `}
                   value={devicesForm.IMEI}
                   onChange={handleInputChange}
+                  aria-label="Número IMEI"
                 />
               </label>
             </div>
@@ -322,24 +417,21 @@ const TechnicalService = () => {
                 <textarea
                   name="detail"
                   id="detail"
-                  placeholder="El dispositivo esta apagado, con rayas a los constados "
+                  placeholder="El dispositivo está apagado, con rayas a los costados"
                   className="p-2 w-full max-w-full min-h-[100px] max-h-[100px] rounded border"
                   value={devicesForm.detail}
                   onChange={handleInputChange}
+                  aria-label="Observaciones del dispositivo"
                 ></textarea>
               </label>
             </div>
           </div>
           <button
             type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              handleAddDevice(e);
-              setisFormTechnical(false);
-            }}
+            onClick={handleFormSubmit}
             className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
           >
-            Registrar ingreso
+            {isEditing ? "Actualizar dispositivo" : "Registrar ingreso"}
           </button>
         </form>
       </Modal>
