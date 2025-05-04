@@ -20,8 +20,8 @@ app.use(
 );
 // Límite de solicitudes: m áximo 100 solicitudes por IP en 15 minutos
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 10, // 15 minutos
-  max: 10, // Máximo 100 solicitudes por IP
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 200, // Máximo 100 solicitudes por IP
   message: { error: "Demasiadas solicitudes, intenta de nuevo más tarde" },
 });
 app.use(limiter);
@@ -195,6 +195,7 @@ app.put("/devices/:id", async (req, res) => {
         req.body.price >= 0
           ? req.body.price
           : entries[index].price,
+      entryDate: new Date().toISOString().split("T")[0],
     };
 
     entries[index] = updated;
