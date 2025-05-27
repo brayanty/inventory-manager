@@ -75,6 +75,7 @@ const TechnicalService = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
@@ -84,8 +85,11 @@ const TechnicalService = () => {
       toast.warning("No se permiten campos vacíos o precio inválido.");
       return;
     }
-    if (devicesForm.IMEI.toString().length > 15) {
-      toast.warn("El IMEI debe tener al menos 15 dígitos.");
+
+    if (devicesForm.IMEI.toString().length < 15) {
+      toast.warn(
+        "El IMEI debe tener al menos 15 dígitos, y no puede estar vacío."
+      );
       return;
     }
 
