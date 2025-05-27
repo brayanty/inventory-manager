@@ -54,12 +54,15 @@ async function writeData(newData) {
 }
 
 // Validar entrada para POST y PUT
-function validateEntryData({ client, device, status, entryDate, price }) {
+function validateEntryData({ client, device, IMEI, status, entryDate, price }) {
   if (!client || typeof client !== "string" || client.trim() === "") {
     return "El campo 'client' debe ser una cadena no vacía";
   }
   if (!device || typeof device !== "string" || device.trim() === "") {
     return "El campo 'device' debe ser una cadena no vacía";
+  }
+  if (IMEI < 15) {
+    return "El IMEI debe tener 15 caracteres y no estar vacío";
   }
   if (!status || typeof status !== "string" || status.trim() === "") {
     return "El campo 'status' debe ser una cadena no vacía";
@@ -78,6 +81,7 @@ app.post("/devices", async (req, res) => {
   const {
     client,
     device,
+    IMEI,
     status,
     entryDate,
     exitDate,
@@ -89,6 +93,7 @@ app.post("/devices", async (req, res) => {
   const validationError = validateEntryData({
     client,
     device,
+    IMEI,
     status,
     entryDate,
     exitDate,
@@ -104,6 +109,7 @@ app.post("/devices", async (req, res) => {
     id: uuidv4(9),
     client: client.trim(),
     device: device.trim(),
+    IMEI: IMEI.toString().trim(),
     status: status.trim(),
     entryDate,
     exitDate: exitDate && !isNaN(Date.parse(exitDate)) ? exitDate : null,
