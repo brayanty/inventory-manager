@@ -1,21 +1,44 @@
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { IconNote, IconSmartPhone } from "./ui/imgs";
+import { LucideMoreHorizontal } from "lucide-react";
+import { useState } from "react";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebar, setSidebar] = useState(false);
 
   const handleRouter = (path: string) => {
     if (path === location.pathname) return;
     navigate(path);
   };
 
+  const handleSidebarOpen = () => {
+    setSidebar((preEven) => !preEven);
+  };
+
   return (
-    <header className="h-full navbar">
-      <h2 className="text-xl text-center text-white font-bold mb-2">
-        Navegacion
-      </h2>
-      <nav>
+    <header className="transition duration-600 ease-in-out h-full navbar">
+      <div className="w-full max-md:flex justify-between pl-4 pr-4">
+        <h2 className="text-xl text-center text-white font-bold mb-2">
+          Navegacion
+        </h2>
+        <div
+          className={`md:hidden transition-all ${
+            isSidebar ? "rotate-90" : "-rotate-180"
+          }`}
+          onClick={handleSidebarOpen}
+        >
+          <LucideMoreHorizontal />
+        </div>
+      </div>
+      <nav
+        className={`transition-all duration-300 ease-in-out ${
+          isSidebar
+            ? "max-md:absolute max-md:-translate-y-[1000px]"
+            : "translate-0"
+        }`}
+      >
         <ul className="list">
           <NavLink
             to="/product"
