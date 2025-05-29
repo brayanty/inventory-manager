@@ -212,7 +212,7 @@ const TechnicalService = () => {
   }, [devices, categorySelect]);
 
   return (
-    <div className="p-4 text-white">
+    <div className="w-full h-full  p-4 text-white">
       <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
       <button
         onClick={() => setisFormTechnical(true)}
@@ -222,7 +222,7 @@ const TechnicalService = () => {
         Formulario de Ingreso
       </button>
 
-      <div className="overflow-x-auto overflow-y-auto">
+      <div className="overflow-x-auto overflow-y-auto min-h-[50vh] max-h-[50vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="bg-gray-700 text-xs uppercase">
             <tr>
@@ -262,33 +262,47 @@ const TechnicalService = () => {
                   <td className="p-2">{d.warrantLimit || "-"}</td>
                   <td className="p-2">{d.exitDate || "-"}</td>
                   <td className="p-2">
-                    <div className="flex flex-row gap-2 items-center justify-between">
-                      <button
-                        onClick={() => handleDeleteDevice(d.id)}
-                        className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                    <div className="dropdown dropdown-left">
+                      <div tabIndex={0} role="button" className="btn m-1">
+                        Click ⬆️
+                      </div>
+                      <ul
+                        tabIndex={0}
+                        className="absolute dropdown-content menu bg-base-100 rounded-box z-[100] w-52 p-2 shadow-sm"
                       >
-                        Eliminar
-                      </button>
-                      <button
-                        onClick={() => handlerSetDetail(d)}
-                        className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
-                      >
-                        Ver más
-                      </button>
-                      <button
-                        onClick={() => handlerEditDevice(d)}
-                        className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
-                      >
-                        Editar
-                      </button>
-                      {d.status === "En reparación" && (
-                        <>
+                        <li>
+                          <button
+                            onClick={() => handleDeleteDevice(d.id)}
+                            className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                          >
+                            Eliminar
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() => handlerSetDetail(d)}
+                            className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                          >
+                            Ver más
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() => handlerEditDevice(d)}
+                            className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                          >
+                            Editar
+                          </button>
+                        </li>
+                        <li>
                           <button
                             onClick={() => handleStatusChange(d.id, "Reparado")}
                             className="bg-green-600 px-2 py-1 rounded hover:bg-green-700"
                           >
                             Reparado
                           </button>
+                        </li>
+                        <li>
                           <button
                             onClick={() =>
                               handleStatusChange(d.id, "No reparado")
@@ -297,8 +311,8 @@ const TechnicalService = () => {
                           >
                             No reparado
                           </button>
-                        </>
-                      )}
+                        </li>
+                      </ul>
                     </div>
                   </td>
                 </tr>
