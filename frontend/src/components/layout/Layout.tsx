@@ -4,15 +4,16 @@ import Sidebar from "./Sidebar";
 import ShoppingCart from "../common/shoppingCart";
 import { ShoppingCartIcon, X } from "lucide-react";
 import { useState } from "react";
+import Button from "../common/button";
 
 export default function Layout() {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
     <div
-      className="h-screen max-h-screen overflow-hidden grid gap-2 p-2 bg-[#1e1e1e]
-    grid-cols-1 grid-rows-[auto_auto_1fr_auto]
-    md:grid-cols-[200px_1fr_350px] md:grid-rows-[auto_1fr]"
+      className="h-screen max-h-screen grid gap-2 p-2 bg-[#1e1e1e]
+    grid-cols-1 grid-rows-auto
+    md:grid-cols-[200px_1fr] "
     >
       {/* Navegation */}
       <div className="row-start-1 md:row-span-2 md:col-start-1">
@@ -22,14 +23,10 @@ export default function Layout() {
       <div className="row-start-2 md:row-start-1 md:col-start-2">
         <Header />
       </div>
-      {/* ShoppingCart (desktop only) */}
-      <aside className="hidden md:block md:row-span-2 md:col-start-3">
-        <ShoppingCart />
-      </aside>
       {/* Mobile floating button */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 z-50 bg-green-600 p-3 rounded-full shadow-lg"
+        className="fixed bottom-4 right-4 z-50 bg-green-600 p-3 rounded-full shadow-lg"
       >
         <ShoppingCartIcon className="text-white w-5 h-5" />
       </button>
@@ -44,12 +41,15 @@ export default function Layout() {
       `}
       >
         {/* Close button */}
-        <button
-          onClick={() => setIsCartOpen(false)}
-          className="absolute top-4 right-4 z-50 text-white"
-        >
-          <X />
-        </button>
+        <div className="absolute flex top-4 right-4 z-50 text-white">
+          <Button
+            className="bg-gray-500 hover:bg-red-600"
+            onClick={() => setIsCartOpen(false)}
+          >
+            Salir
+            <X />
+          </Button>
+        </div>
         <ShoppingCart />
       </div>
 

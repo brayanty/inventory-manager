@@ -213,16 +213,18 @@ const TechnicalService = () => {
 
   return (
     <div className="w-full h-full  p-4 text-white">
-      <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
-      <button
-        onClick={() => setisFormTechnical(true)}
-        type="button"
-        className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-      >
-        Formulario de Ingreso
-      </button>
+      <div className="flex justify-between p-3 items-center">
+        <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
+        <button
+          onClick={() => setisFormTechnical(true)}
+          type="button"
+          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Formulario de Ingreso
+        </button>
+      </div>
 
-      <div className="overflow-x-auto overflow-y-auto min-h-[50vh] max-h-[50vh]">
+      <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="bg-gray-700 text-xs uppercase">
             <tr>
