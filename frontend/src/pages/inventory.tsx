@@ -1,4 +1,4 @@
-import Product from "../../components/inventory";
+import Product from "../components/inventory";
 
 function ProductsInventory() {
   return <Product />;

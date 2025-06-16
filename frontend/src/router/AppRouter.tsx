@@ -1,6 +1,6 @@
 import Product from "@/components/inventory";
 import Layout from "../components/layout/Layout";
-import TechnicalService from "../pages/technicalService/technicalService";
+import TechnicalService from "../pages/technicalService";
 import { Route, Routes } from "react-router";
 
 export default function AppRoutes() {

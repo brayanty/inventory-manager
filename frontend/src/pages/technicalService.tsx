@@ -168,7 +168,6 @@ const TechnicalService = () => {
     const newDevice = {
       ...updatedDevice,
       status,
-      exitDate: exitDate.toISOString().split("T")[0],
       warrantLimit:
         status === "Reparado" ? warrantLimit.toISOString().split("T")[0] : null,
     };
@@ -226,17 +225,35 @@ const TechnicalService = () => {
 
       <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
-          <thead className="bg-gray-700 text-xs uppercase">
+          <thead className="sticky top-0 z-10 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
-              <th className="p-2">Cliente</th>
-              <th className="p-2">Dispositivo</th>
-              <th className="p-2">IMEI</th>
-              <th className="p-2">Precio</th>
-              <th className="p-2">Estado</th>
-              <th className="p-2">Ingreso</th>
-              <th className="p-2">Garantia</th>
-              <th className="p-2">Salida</th>
-              <th className="p-2">Acciones</th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Cliente
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Dispositivo
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                IMEI
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Precio
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Estado
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Ingreso
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Garantia
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Salida
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -266,7 +283,7 @@ const TechnicalService = () => {
                   <td className="p-2">
                     <div className="dropdown dropdown-left">
                       <div tabIndex={0} role="button" className="btn m-1">
-                        Click ⬆️
+                        Acciones ⬆️
                       </div>
                       <ul
                         tabIndex={0}
@@ -275,7 +292,7 @@ const TechnicalService = () => {
                         <li>
                           <button
                             onClick={() => handleDeleteDevice(d.id)}
-                            className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                            className="px-2 py-1 rounded hover:bg-red-700"
                           >
                             Eliminar
                           </button>
@@ -283,7 +300,7 @@ const TechnicalService = () => {
                         <li>
                           <button
                             onClick={() => handlerSetDetail(d)}
-                            className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                            className="px-2 py-1 rounded hover:bg-yellow-700"
                           >
                             Ver más
                           </button>
@@ -291,7 +308,7 @@ const TechnicalService = () => {
                         <li>
                           <button
                             onClick={() => handlerEditDevice(d)}
-                            className="bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700"
+                            className="px-2 py-1 rounded hover:bg-yellow-700"
                           >
                             Editar
                           </button>
@@ -299,7 +316,7 @@ const TechnicalService = () => {
                         <li>
                           <button
                             onClick={() => handleStatusChange(d.id, "Reparado")}
-                            className="bg-green-600 px-2 py-1 rounded hover:bg-green-700"
+                            className="px-2 py-1 rounded hover:bg-green-700"
                           >
                             Reparado
                           </button>
@@ -309,7 +326,7 @@ const TechnicalService = () => {
                             onClick={() =>
                               handleStatusChange(d.id, "No reparado")
                             }
-                            className="bg-red-600 px-2 py-1 rounded hover:bg-red-700"
+                            className="px-2 py-1 rounded hover:bg-red-700"
                           >
                             No reparado
                           </button>

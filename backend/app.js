@@ -1,51 +1,56 @@
 const express = require("express");
-const fs = require("fs").promises; // Usamos fs.promises para operaciones asíncronas
+const fs = require("fs").promises;
 const path = require("path");
 const cors = require("cors");
-const { v4: uuidv4, v4 } = require("uuid");
-const morgan = require("morgan"); // Para logging de solicitudes
-const rateLimit = require("express-rate-limit"); // Para límite de solicitudes
+const { v4: uuidv4 } = require("uuid");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
 const Fuse = require("fuse.js");
 
 const app = express();
 const port = 3000;
 
-app.use(express.json());
-app.use(morgan("short")); // Logging de solicitudes HTTP
+// Archivos JSON usados
+const DEVICES_FILE = "data.json";
+const PRODUCTS_FILE = "products.json";
 
+// Middlewares
+app.use(express.json());
+app.use(morgan("short"));
 app.use(
   cors({
     origin: "http://localhost:5173", // Allow only this origin
   })
 );
-// Límite de solicitudes: m áximo 100 solicitudes por IP en 15 minutos
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 200, // Máximo 100 solicitudes por IP
+  windowMs: 15 * 60 * 1000,
+  max: 200,
   message: { error: "Demasiadas solicitudes, intenta de nuevo más tarde" },
 });
 app.use(limiter);
 
-const dataFile = path.join(__dirname, "data.json");
-// Función para enviar respuestas de error estandarizadas
+// Función para errores
 const sendError = (res, status, message) =>
   res.status(status).json({ error: message });
 
-// Leer archivo de forma asíncrona
-async function readData() {
+// Funciones de archivo
+async function readData(nameFile) {
+  const filePath = path.join(__dirname, nameFile);
   try {
-    const data = await fs.readFile(dataFile, "utf-8");
+    const data = await fs.readFile(filePath, "utf-8");
     return JSON.parse(data);
-  } catch (err) {
-    console.error("Error al leer o parsear datos:", err);
+  } catch {
     return [];
   }
 }
 
-// Escribir archivo de forma asíncrona
-async function writeData(newData) {
+async function writeData(newData, nameFile) {
   try {
-    await fs.writeFile(dataFile, JSON.stringify(newData), "utf8");
+    await fs.writeFile(
+      path.join(__dirname, nameFile),
+      JSON.stringify(newData, null, 2)
+    );
     console.log("Datos escritos correctamente");
   } catch (err) {
     console.error("Error al escribir datos:", err);
@@ -53,26 +58,20 @@ async function writeData(newData) {
   }
 }
 
-// Validar entrada para POST y PUT
+// Validaciones
 function validateEntryData({ client, device, IMEI, status, entryDate, price }) {
-  if (!client || typeof client !== "string" || client.trim() === "") {
+  if (!client || typeof client !== "string" || client.trim() === "")
     return "El campo 'client' debe ser una cadena no vacía";
-  }
-  if (!device || typeof device !== "string" || device.trim() === "") {
+  if (!device || typeof device !== "string" || device.trim() === "")
     return "El campo 'device' debe ser una cadena no vacía";
-  }
-  if (IMEI < 15) {
-    return "El IMEI debe tener 15 caracteres y no estar vacío";
-  }
-  if (!status || typeof status !== "string" || status.trim() === "") {
+  if (!IMEI || IMEI.toString().trim().length !== 15)
+    return "El IMEI debe tener 15 caracteres";
+  if (!status || typeof status !== "string" || status.trim() === "")
     return "El campo 'status' debe ser una cadena no vacía";
-  }
-  if (!entryDate || isNaN(Date.parse(entryDate))) {
+  if (!entryDate || isNaN(Date.parse(entryDate)))
     return "El campo 'entryDate' debe ser una fecha válida";
-  }
-  if (price == null || typeof price !== "number" || isNaN(price) || price < 0) {
+  if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
     return "El campo 'price' debe ser un número válido y no negativo";
-  }
   return null;
 }
 
@@ -96,17 +95,12 @@ app.post("/devices", async (req, res) => {
     IMEI,
     status,
     entryDate,
-    exitDate,
-    warrantLimit,
     price,
-    detail,
   });
-  if (validationError) {
-    return sendError(res, 400, validationError);
-  }
+  if (validationError) return sendError(res, 400, validationError);
 
   const newEntry = {
-    id: uuidv4(9),
+    id: uuidv4(),
     client: client.trim(),
     device: device.trim(),
     IMEI: IMEI.toString().trim(),
@@ -120,19 +114,19 @@ app.post("/devices", async (req, res) => {
   };
 
   try {
-    const entries = await readData();
+    const entries = await readData(DEVICES_FILE);
     entries.push(newEntry);
-    await writeData(entries);
+    await writeData(entries, DEVICES_FILE);
     res.status(201).json(newEntry);
-  } catch (err) {
-    sendError(res, 404, "Error al guardar la entrada");
+  } catch {
+    sendError(res, 500, "Error al guardar la entrada");
   }
 });
 
 // 📄 READ ALL
 app.get("/devices", async (req, res) => {
   try {
-    const entries = await readData();
+    const entries = await readData(DEVICES_FILE);
     const { search } = req.query;
 
     if (search) {
@@ -142,39 +136,36 @@ app.get("/devices", async (req, res) => {
         threshold: 0.3,
       });
       const results = fuse.search(search);
-      const filteredEntries = results.map((result) => result.item);
-      return res.json(filteredEntries);
+      return res.json(results.map((r) => r.item));
     }
-  } catch (err) {
-    sendError(res, 404, "Error al leer las entradas");
-  } finally {
-    res.json(await readData());
+
+    res.json(entries);
+  } catch {
+    sendError(res, 500, "Error al leer las entradas");
   }
 });
 
 // 🔍 READ ONE
 app.get("/devices/:id", async (req, res) => {
   try {
-    const entries = await readData();
+    const entries = await readData(DEVICES_FILE);
     const entry = entries.find((e) => e.id === req.params.id);
     if (!entry) return sendError(res, 404, "Entrada no encontrada");
     res.json(entry);
-  } catch (err) {
-    sendError(res, 404, "Error al leer la entrada");
+  } catch {
+    sendError(res, 500, "Error al leer la entrada");
   }
 });
 
 // ✏️ UPDATE
 app.put("/devices/:id", async (req, res) => {
   try {
-    const entries = await readData();
+    const entries = await readData(DEVICES_FILE);
     const index = entries.findIndex((e) => e.id === req.params.id);
     if (index === -1) return sendError(res, 404, "Entrada no encontrada");
 
     const validationError = validateEntryData(req.body);
-    if (validationError) {
-      return sendError(res, 400, validationError);
-    }
+    if (validationError) return sendError(res, 400, validationError);
 
     const updated = {
       ...entries[index],
@@ -182,46 +173,95 @@ app.put("/devices/:id", async (req, res) => {
       client: req.body.client.trim(),
       device: req.body.device.trim(),
       status: req.body.status.trim(),
+      entryDate: entries[index].entryDate,
       exitDate:
         req.body.exitDate && !isNaN(Date.parse(req.body.exitDate))
           ? req.body.exitDate
-          : entries[index].exitDate,
+          : null,
       warrantLimit:
         req.body.warrantLimit && !isNaN(Date.parse(req.body.warrantLimit))
           ? req.body.warrantLimit
-          : entries[index].warrantLimit,
-      detail:
-        req.body.detail && typeof req.body.detail === "string"
-          ? req.body.detail.trim()
-          : entries[index].detail,
-      price:
-        req.body.price != null &&
-        typeof req.body.price === "number" &&
-        !isNaN(req.body.price) &&
-        req.body.price >= 0
-          ? req.body.price
-          : entries[index].price,
-      entryDate: new Date().toISOString().split("T")[0],
+          : null,
+      detail: req.body.detail?.trim() || null,
     };
 
     entries[index] = updated;
-    await writeData(entries);
+    await writeData(entries, DEVICES_FILE);
     res.json(updated);
-  } catch (err) {
-    sendError(res, 404, "Error al actualizar la entrada");
+  } catch {
+    sendError(res, 500, "Error al actualizar la entrada");
   }
 });
 
 // ❌ DELETE
 app.delete("/devices/:id", async (req, res) => {
   try {
-    const device = await readData();
-    const newDevices = device.filter((e) => e.id !== req.params.id);
-    console.log(newDevices);
-    await writeData(newDevices);
+    const entries = await readData(DEVICES_FILE);
+    const newEntries = entries.filter((e) => e.id !== req.params.id);
+    await writeData(newEntries, DEVICES_FILE);
     res.json({ result: "Entrada eliminada" });
-  } catch (err) {
-    sendError(res, 404, "Error al eliminar la entrada");
+  } catch {
+    sendError(res, 500, "Error al eliminar la entrada");
+  }
+});
+
+// 📦 PRODUCTS
+
+// 🔎 Obtener productos
+app.get("/products", async (req, res) => {
+  try {
+    const entries = await readData(PRODUCTS_FILE);
+    const { search, page = 1 } = req.query;
+
+    if (search) {
+      const fuse = new Fuse(entries, {
+        keys: ["name"],
+        includeScore: true,
+        threshold: 0.3,
+      });
+      const results = fuse.search(search);
+      return res.json(results.map((r) => r.item));
+    }
+
+    const pageNum = parseInt(page);
+    const start = (pageNum - 1) * 10;
+    const paginated = entries.slice(start, start + 10);
+    res.json(paginated);
+  } catch {
+    sendError(res, 500, "Error al leer los productos");
+  }
+});
+
+// 📝 Actualizar producto
+app.put("/products/:id", async (req, res) => {
+  const { name, price, stock } = req.body;
+
+  if (!name || typeof name !== "string" || name.trim() === "")
+    return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
+  if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
+    return sendError(
+      res,
+      400,
+      "El campo 'price' debe ser un número válido y no negativo"
+    );
+  if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
+    return sendError(
+      res,
+      400,
+      "El campo 'stock' debe ser un número válido y no negativo"
+    );
+
+  try {
+    const products = await readData(PRODUCTS_FILE);
+    const index = products.findIndex((p) => p.id === req.params.id);
+    if (index === -1) return sendError(res, 404, "Producto no encontrado");
+
+    const updated = { ...products[index], name: name.trim(), price, stock };
+    products[index] = updated;
+    await writeData(products, PRODUCTS_FILE);
+    res.json(updated);
+  } catch {
+    sendError(res, 500, "Error al actualizar el producto");
   }
 });
 

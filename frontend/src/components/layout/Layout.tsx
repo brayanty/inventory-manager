@@ -16,7 +16,7 @@ export default function Layout() {
     md:grid-cols-[200px_1fr] "
     >
       {/* Navegation */}
-      <div className="row-start-1 md:row-span-2 md:col-start-1">
+      <div className="max-h-16 row-start-1 md:row-span-2 md:col-start-1">
         <Sidebar />
       </div>
       {/* Components Search and filtered */}
@@ -31,7 +31,7 @@ export default function Layout() {
         <ShoppingCartIcon className="text-white w-5 h-5" />
       </button>
       {/* Main */}
-      <main className="row-start-3 md:row-start-2 md:col-start-2">
+      <main className="overflow-hidden row-start-3 md:row-start-2 md:col-start-2">
         <Outlet /> {/* Aquí se renderiza la página actual */}
       </main>
       {/* Mobile slide-in cart */}

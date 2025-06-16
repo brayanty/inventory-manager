@@ -14,7 +14,7 @@ interface Product {
 // Definición del estado global
 interface ProductsState {
   products: Product[];
-  addProduct: (product: Product) => void;
+  addProducts: (product: Product[]) => void;
   removeProduct: (id: string) => void;
   clearProduct: () => void;
 }
@@ -22,8 +22,7 @@ interface ProductsState {
 // Uso de create para crear el store
 const useProductsStore = create<ProductsState>((set) => ({
   products: [],
-  addProduct: (product) =>
-    set((state) => ({ products: [...state.products, product] })),
+  addProducts: (newproducts) => set({ products: newproducts }),
   removeProduct: (id) =>
     set((state) => ({
       products: state.products.filter((product) => product.id !== id),

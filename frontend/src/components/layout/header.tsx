@@ -7,7 +7,7 @@ function Header() {
   const { search, setSearch } = useSearchStore();
 
   return (
-    <header className="mx-auto w-full h-full flex justify-between items-center p-5 dark:text-white bg-white dark:bg-[#1f232b]">
+    <header className="mx-auto w-full h-full max-h-16 flex justify-between items-center p-5 dark:text-white bg-white dark:bg-[#1f232b]">
       <label htmlFor="searh">
         <input
           id="searh"
