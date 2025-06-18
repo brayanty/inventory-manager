@@ -7,21 +7,9 @@
     "status": "Reparado",
     "entryDate": "2025-05-29",
     "exitDate": "2025-05-29",
-    "warrantLimit": "2025-07-15",
+    "warrantLimit": "2025-07-17",
     "price": 43242342343244344,
     "detail": "4343243434244"
-  },
-  {
-    "id": "7fe48620-5394-4d09-a939-6c03930c1a6f",
-    "client": "rf4234",
-    "device": "434234",
-    "IMEI": "434324234342343",
-    "status": "Reparado",
-    "entryDate": "2025-05-28",
-    "exitDate": null,
-    "warrantLimit": "2025-07-15",
-    "price": 434234234,
-    "detail": "43242343243"
   },
   {
     "id": "05a24f7a-089e-43fc-81c5-1c7c33d568a3",
@@ -40,10 +28,10 @@
     "client": "5453545",
     "device": "545454",
     "IMEI": "545453545453545",
-    "status": "No reparado",
+    "status": "Reparado",
     "entryDate": "2025-05-28",
     "exitDate": "2025-06-15",
-    "warrantLimit": null,
+    "warrantLimit": "2025-07-17",
     "price": 54545,
     "detail": "5345435435"
   },
