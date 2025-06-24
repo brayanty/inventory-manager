@@ -63,7 +63,8 @@ const TechnicalService = () => {
     >
   ) => {
     const { name, value } = e.target;
-    if (name === "IMEI" && value.toString().length > 15) {
+    if (!/^\d{15,}$/.test(devicesForm.IMEI.toString())) {
+      toast.warn("El IMEI debe tener al menos 15 dígitos numéricos.");
       return;
     }
     setDevicesForm((f) => ({
@@ -73,45 +74,42 @@ const TechnicalService = () => {
     }));
   };
 
+  const clearForm = () => {
+  setDevicesForm({
+    client: "",
+    device: "",
+    detail: "",
+    models: "",
+    IMEI: "",
+    price: 0,
+  });
+  setisFormTechnical(false);
+};
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
+      !devicesForm.models ||
       devicesForm.price <= 0 ||
-      isNaN(devicesForm.price)
+      isNaN(devicesForm.price) ||
+      devicesForm.IMEI.toString().trim().length < 15
     ) {
-      toast.warning("No se permiten campos vacíos o precio inválido.");
+      toast.warning("Verifica los campos: cliente, dispositivo, modelo, precio o IMEI.");
       return;
     }
-
-    if (devicesForm.IMEI.toString().length < 15) {
-      toast.warn(
-        "El IMEI debe tener al menos 15 dígitos, y no puede estar vacío."
-      );
-      return;
-    }
+    const editingDevice = isEditing ? devices.find((d) => d.id === editingDeviceId) : null;
 
     const deviceData: TechnicalServiceEntry = {
       client: devicesForm.client.trim(),
       device: devicesForm.device.trim(),
-      models: devicesForm.models.trim(),
+      models: devicesForm.models,
       IMEI: devicesForm.IMEI,
-      status: isEditing
-        ? devices.find((d) => d.id === editingDeviceId)?.status ||
-          "En reparación"
-        : "En reparación",
-      entryDate: isEditing
-        ? devices.find((d) => d.id === editingDeviceId)?.entryDate ||
-          new Date().toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
-      exitDate: isEditing
-        ? devices.find((d) => d.id === editingDeviceId)?.exitDate || null
-        : null,
-      warrantLimit: isEditing
-        ? devices.find((d) => d.id === editingDeviceId)?.warrantLimit || null
-        : null,
+      status: editingDevice?.status || "En reparación",
+      entryDate: editingDevice?.entryDate || new Date().toISOString().split("T")[0],
+      exitDate: editingDevice?.exitDate || null,
+      warrantLimit: editingDevice?.warrantLimit || null,
       price: devicesForm.price,
       detail: devicesForm.detail,
     };
@@ -129,18 +127,10 @@ const TechnicalService = () => {
         const createdDevice = await createDevice(deviceData);
         setDevices((prev) => [...prev, createdDevice]);
       }
-      setDevicesForm({
-        client: "",
-        device: "",
-        detail: "",
-        models: "",
-        IMEI: "",
-        price: 0,
-      });
-      setisFormTechnical(false);
+  clearForm()
     } catch (error) {
-      console.error("Failed to save device:", error);
-      toast("Fallo a guardar el dispositivo. Intente de nuevo");
+  console.error("Error al guardar el dispositivo:", error);
+  toast.error("Fallo al guardar el dispositivo. Intente de nuevo.");
     }
   };
 
@@ -422,6 +412,7 @@ const TechnicalService = () => {
                   value={devicesForm.models}
                   onChange={handleInputChange}
                   aria-label="Modelo del dispositivo"
+                  required
                 >
                   <option value="">Seleccione un modelo</option>
                   {models.map((i) => (
@@ -439,9 +430,8 @@ const TechnicalService = () => {
                   type="text"
                   name="IMEI"
                   id="IMEI"
-                  className={`p-2 rounded border ${
-                    devicesForm.IMEI.toString().length < 14 ? "bg-gray-300" : ""
-                  } `}
+                  className={`p-2 rounded border ${devicesForm.IMEI.toString().length < 14 ? "bg-gray-300" : ""
+                    } `}
                   value={devicesForm.IMEI}
                   onChange={handleInputChange}
                   aria-label="Número IMEI"
