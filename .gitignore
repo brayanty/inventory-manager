@@ -24,3 +24,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+package-lock.json
+package-lock.json
+package.json
+backend/pnpm-lock.yaml
+backend/data.json
+pnpm-lock.yaml
+package.json
+package-lock.json
