@@ -4,7 +4,7 @@ export type TechnicalServiceEntry = {
   device: string;
   models: string;
   IMEI: string;
-  status: "En reparación" | "Reparado" | "No reparado";
+  status: "En reparación" | "Reparado" | "No reparado" | "Entregado";
   entryDate: string;
   exitDate: string | null;
   warrantLimit: string | null;
