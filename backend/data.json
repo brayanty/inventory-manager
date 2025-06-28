@@ -7,80 +7,10 @@
     "status": "Reparado",
     "entryDate": "2025-05-29",
     "exitDate": "2025-05-29",
-    "warrantLimit": "2025-07-17",
+    "delivered": "2025-05-29",
+    "warrantLimit": "2025-07-28",
     "price": 43242342343244344,
-    "detail": "4343243434244"
-  },
-  {
-    "id": "05a24f7a-089e-43fc-81c5-1c7c33d568a3",
-    "client": "543545",
-    "device": "5435345",
-    "IMEI": "545545454545454",
-    "status": "No reparado",
-    "entryDate": "2025-05-28",
-    "exitDate": "2025-06-15",
-    "warrantLimit": null,
-    "price": 45435430,
-    "detail": "54545"
-  },
-  {
-    "id": "e2a60682-4c4d-4c72-952e-4bac293f2497",
-    "client": "5453545",
-    "device": "545454",
-    "IMEI": "545453545453545",
-    "status": "Reparado",
-    "entryDate": "2025-05-28",
-    "exitDate": "2025-06-15",
-    "warrantLimit": "2025-07-17",
-    "price": 54545,
-    "detail": "5345435435"
-  },
-  {
-    "id": "c4678ee3-cebf-4932-bd6c-d0629ba22cc3",
-    "client": "54354535345435",
-    "device": "45454354",
-    "IMEI": "454354354345344",
-    "status": "Reparado",
-    "entryDate": "2025-05-28",
-    "exitDate": null,
-    "warrantLimit": "2025-07-15",
-    "price": 5454545,
-    "detail": "54543534543545"
-  },
-  {
-    "id": "e15cfc62-a9a4-40ce-a71c-38e491f1b8e1",
-    "client": "rf4234242344",
-    "device": "e434234244",
-    "IMEI": "434324234342343",
-    "status": "Reparado",
-    "entryDate": "2025-05-29",
-    "exitDate": null,
-    "warrantLimit": "2025-07-15",
-    "price": 434234234424,
-    "detail": "43242343243"
-  },
-  {
-    "id": "3df11779-54fe-4ecf-a613-8412984764c0",
-    "client": "e32r",
-    "device": "r234",
-    "IMEI": "432423423423423",
-    "status": "En reparación",
-    "entryDate": "2025-05-29",
-    "exitDate": null,
-    "warrantLimit": null,
-    "price": 4324,
-    "detail": "4324"
-  },
-  {
-    "id": "0137e588-f992-4729-a820-c5698ec5ce65",
-    "client": "El viejo raro ese",
-    "device": "Iphone 19 Pro Max Ultra Instinto",
-    "IMEI": "543476536775434",
-    "status": "En reparación",
-    "entryDate": "2025-06-15",
-    "exitDate": null,
-    "warrantLimit": null,
-    "price": 300000,
-    "detail": "trwte543253434234"
+    "detail": "4343243434244",
+    "models": "Google"
   }
 ]
