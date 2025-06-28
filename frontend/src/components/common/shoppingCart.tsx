@@ -1,6 +1,6 @@
 import Button from "@/components/common/button";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
-import formatCOP from "@/components/utils/format";
+import {formatCOP} from "@/components/utils/format";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 

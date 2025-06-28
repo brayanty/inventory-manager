@@ -1,7 +1,7 @@
 import { useCategoryListStore } from "@/components/store/category";
 import { useSearchStore } from "@/components/store/filters";
 import React, { useEffect, useState, useMemo } from "react";
-import formatCOP from "@/components/utils/format";
+import { formatCOP, PriceInput } from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
 import models from "@/components/constants/models.ts";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
+import {  NumericFormat } from "react-number-format";
 
 const FAKE_CATEGORIES = [
   { category: "Todos" },
@@ -21,6 +22,7 @@ const FAKE_CATEGORIES = [
 ];
 
 const TechnicalService = () => {
+
   const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -57,44 +59,49 @@ const TechnicalService = () => {
     setCategoryList(FAKE_CATEGORIES);
   }, [search, setCategoryList]);
 
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
+
     const { name, value } = e.target;
+    setDevicesForm((f) => ({
+      ...f,
+
+      [name]: value,
+    }));
+  };
+
+
+
+  const clearForm = () => {
+    setDevicesForm({
+      client: "",
+      device: "",
+      detail: "",
+      models: "",
+      IMEI: "",
+      price: 0,
+    });
+    setisFormTechnical(false);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log(devicesForm)
     if (!/^\d{15,}$/.test(devicesForm.IMEI.toString())) {
       toast.warn("El IMEI debe tener al menos 15 dígitos numéricos.");
       return;
     }
-    setDevicesForm((f) => ({
-      ...f,
-      [name]:
-        name === "price" || name === "IMEI" ? parseFloat(value) || 0 : value,
-    }));
-  };
-
-  const clearForm = () => {
-  setDevicesForm({
-    client: "",
-    device: "",
-    detail: "",
-    models: "",
-    IMEI: "",
-    price: 0,
-  });
-  setisFormTechnical(false);
-};
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
       !devicesForm.models ||
       devicesForm.price <= 0 ||
       isNaN(devicesForm.price) ||
-      devicesForm.IMEI.toString().trim().length < 15
+      devicesForm.IMEI.toString().trim().length != 15
     ) {
       toast.warning("Verifica los campos: cliente, dispositivo, modelo, precio o IMEI.");
       return;
@@ -125,12 +132,13 @@ const TechnicalService = () => {
         setEditingDeviceId(null);
       } else {
         const createdDevice = await createDevice(deviceData);
+        console.log(createDevice)
         setDevices((prev) => [...prev, createdDevice]);
       }
-  clearForm()
+      clearForm()
     } catch (error) {
-  console.error("Error al guardar el dispositivo:", error);
-  toast.error("Fallo al guardar el dispositivo. Intente de nuevo.");
+      console.error("Error al guardar el dispositivo:", error);
+      toast.error("Fallo al guardar el dispositivo. Intente de nuevo.");
     }
   };
 
@@ -145,8 +153,8 @@ const TechnicalService = () => {
   };
 
   const handleStatusChange = async (
-    id: string,
-    status: "Reparado" | "No reparado"
+    id: string, 
+    status: "Reparado" | "No reparado" | "Entregado"
   ) => {
     const exitDate = new Date();
     const warrantLimit = new Date(exitDate);
@@ -155,11 +163,13 @@ const TechnicalService = () => {
     const updatedDevice = devices.find((dev) => dev.id === id);
     if (!updatedDevice) return;
 
+    
+
     const newDevice = {
       ...updatedDevice,
       status,
       warrantLimit:
-        status === "Reparado" ? warrantLimit.toISOString().split("T")[0] : null,
+        status === "Entregado" ? warrantLimit.toISOString().split("T")[0] : null,
     };
 
     try {
@@ -183,7 +193,7 @@ const TechnicalService = () => {
       detail: d.detail || "",
     });
     setIsEditing(true);
-    setEditingDeviceId(d.id);
+    setEditingDeviceId(d.id || "");
     setisFormTechnical(true);
   };
 
@@ -239,7 +249,7 @@ const TechnicalService = () => {
                 Garantia
               </th>
               <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Salida
+                Entregado
               </th>
               <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
                 Acciones
@@ -273,20 +283,12 @@ const TechnicalService = () => {
                   <td className="p-2">
                     <div className="dropdown dropdown-left">
                       <div tabIndex={0} role="button" className="btn m-1">
-                        Acciones ⬆️
+                        Acciones
                       </div>
                       <ul
                         tabIndex={0}
-                        className="absolute dropdown-content menu bg-base-100 rounded-box z-[100] w-52 p-2 shadow-sm"
+                        className="absolute dropdown-content drop menu bg-base-100 rounded-box z-[100] w-52 p-2 shadow-sm"
                       >
-                        <li>
-                          <button
-                            onClick={() => handleDeleteDevice(d.id)}
-                            className="px-2 py-1 rounded hover:bg-red-700"
-                          >
-                            Eliminar
-                          </button>
-                        </li>
                         <li>
                           <button
                             onClick={() => handlerSetDetail(d)}
@@ -319,6 +321,24 @@ const TechnicalService = () => {
                             className="px-2 py-1 rounded hover:bg-red-700"
                           >
                             No reparado
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(d.id, "Entregado")
+                            }
+                            className="px-2 py-1 rounded hover:bg-red-700"
+                          >
+                            Entregado
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            onClick={() => handleDeleteDevice(d.id)}
+                            className="px-2 py-1 rounded hover:bg-red-700"
+                          >
+                            Eliminar
                           </button>
                         </li>
                       </ul>
@@ -393,14 +413,18 @@ const TechnicalService = () => {
             <div className="flex flex-row items-center gap-2">
               <label className="flex flex-col" htmlFor="price">
                 <span>Price: </span>
-                <input
-                  type="text"
-                  name="price"
+                <NumericFormat
                   id="price"
-                  className="p-2 rounded border"
+                  name="price"
                   value={devicesForm.price}
-                  onChange={handleInputChange}
-                  aria-label="Precio del servicio"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  decimalScale={2}
+                  fixedDecimalScale
+                  allowNegative={false}
+                  onChange={(v)=> handleInputChange(v)}
+                  className="p-2 rounded border"
+                  placeholder="40.000"
                 />
               </label>
               <label className="flex flex-col" htmlFor="models">
@@ -430,7 +454,8 @@ const TechnicalService = () => {
                   type="text"
                   name="IMEI"
                   id="IMEI"
-                  className={`p-2 rounded border ${devicesForm.IMEI.toString().length < 14 ? "bg-gray-300" : ""
+                  maxLength={15}
+                  className={`p-2 rounded border ${devicesForm.IMEI.toString().length <= 14 ? "bg-gray-300" : ""
                     } `}
                   value={devicesForm.IMEI}
                   onChange={handleInputChange}
