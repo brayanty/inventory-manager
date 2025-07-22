@@ -6,13 +6,20 @@ const { v4: uuidv4 } = require("uuid");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const Fuse = require("fuse.js");
-
 const app = express();
 const port = 3000;
+const { validateEntryData } = require("./utils/validateData.js");
+
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const users = require("./users/user.js");
+const authenticateToken = require("./middleware/auth.js");
+const { readData, writeData } = require("./utils/file.js");
+require("dotenv").config();
 
 // Archivos JSON usados
-const DEVICES_FILE = "data.json";
-const PRODUCTS_FILE = "products.json";
+const DEVICES_FILE =  path.join(__dirname, "data.json");
+const PRODUCTS_FILE = path.join(__dirname,"products.json");
 
 // Middlewares
 app.use(express.json());
@@ -34,46 +41,26 @@ app.use(limiter);
 const sendError = (res, status, message) =>
   res.status(status).json({ error: message });
 
-// Funciones de archivo
-async function readData(nameFile) {
-  const filePath = path.join(__dirname, nameFile);
-  try {
-    const data = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
 
-async function writeData(newData, nameFile) {
-  try {
-    await fs.writeFile(
-      path.join(__dirname, nameFile),
-      JSON.stringify(newData, null, 2)
-    );
-    console.log("Datos escritos correctamente");
-  } catch (err) {
-    console.error("Error al escribir datos:", err);
-    throw err;
-  }
-}
 
-// Validaciones
-function validateEntryData({ client, device, IMEI, status, entryDate, price }) {
-  if (!client || typeof client !== "string" || client.trim() === "")
-    return "El campo 'client' debe ser una cadena no vacía";
-  if (!device || typeof device !== "string" || device.trim() === "")
-    return "El campo 'device' debe ser una cadena no vacía";
-  if (!IMEI || IMEI.toString().trim().length !== 15)
-    return "El IMEI debe tener 15 caracteres";
-  if (!status || typeof status !== "string" || status.trim() === "")
-    return "El campo 'status' debe ser una cadena no vacía";
-  if (!entryDate || isNaN(Date.parse(entryDate)))
-    return "El campo 'entryDate' debe ser una fecha válida";
-  if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
-    return "El campo 'price' debe ser un número válido y no negativo";
-  return null;
-}
+
+// Login
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find((u) => u.username === username);
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(403).json({ message: "Credenciales inválidas" });
+  }
+
+  const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  res.json({ token });
+});
+
+// Ruta protegida
+app.get("/protected", authenticateToken, (req, res) => {
+  res.json({ message: "Acceso concedido", user: req.user });
+});
 
 // ✅ CREATE
 app.post("/devices", async (req, res) => {
