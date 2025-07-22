@@ -34,3 +34,4 @@ package.json
 package-lock.json
 backend/data.json
 backend/data.json
+backend/.env
