@@ -1,16 +1,26 @@
 [
   {
-    "id": "1b1dcaea-4d97-44ab-98f9-1d113a500c84",
-    "client": "dewd2er23",
-    "device": "234324324324",
-    "IMEI": "434324234242344",
+    "id": "67ac9f90-dbfa-40c7-854c-76881dca4136",
+    "client": "434234",
+    "device": "4234234",
+    "IMEI": "434444444444444",
+    "status": "En reparación",
+    "entryDate": "2025-07-20",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 342423,
+    "detail": "44444444444444444444444444"
+  },
+  {
+    "id": "71422873-5449-42e8-99fd-ce4d63786666",
+    "client": "42434",
+    "device": "434234",
+    "IMEI": "443434344343434",
     "status": "Reparado",
-    "entryDate": "2025-05-29",
-    "exitDate": "2025-05-29",
-    "delivered": "2025-05-29",
-    "warrantLimit": "2025-07-28",
-    "price": 43242342343244344,
-    "detail": "4343243434244",
-    "models": "Google"
+    "entryDate": "2025-07-22",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 43434,
+    "detail": null
   }
 ]
