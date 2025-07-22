@@ -36,24 +36,24 @@ function RenderProducts() {
     console.log(products);
   }, [search]);
 
-  // const filtered = products.filter((product) => {
-  //   const matchName = product.name.toLowerCase().includes(search.toLowerCase());
-  //   const matchCategory = category === "" || product.category === category;
-  //   return matchName && matchCategory;
-  // });
+  const filtered = products.filter((product) => {
+    const matchName = product.name.toLowerCase().includes(search.toLowerCase());
+    const matchCategory = category === "" || product.category === category;
+    return matchName && matchCategory;
+  });
 
-  // if (filtered.length === 0) {
-  //   return (
-  //     <tr>
-  //       <td colSpan={6} className="text-center py-6">
-  //         <IconVoid className="mx-auto w-100 h-40" />
-  //         <p className="mt-2 text-gray-500 dark:text-gray-400">
-  //           No hay productos.
-  //         </p>
-  //       </td>
-  //     </tr>
-  //   );
-  // }
+  if (filtered.length === 0) {
+    return (
+      <tr>
+        <td colSpan={6} className="text-center py-6">
+          <IconVoid className="mx-auto w-100 h-40" />
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            No hay productos.
+          </p>
+        </td>
+      </tr>
+    );
+  }
 
   if (products.length <= 0) {
     return <tr className="col-span-full">No hay productos </tr>;

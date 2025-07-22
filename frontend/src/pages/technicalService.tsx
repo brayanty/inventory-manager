@@ -13,6 +13,7 @@ import {
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
 import {  NumericFormat } from "react-number-format";
+import { parseLAPrice } from "@/components/utils/ParsePrice";
 
 const FAKE_CATEGORIES = [
   { category: "Todos" },
@@ -39,7 +40,7 @@ const TechnicalService = () => {
     device: "",
     models: "",
     IMEI: "",
-    price: 0,
+    price: "",
     detail: "",
   });
 
@@ -83,14 +84,15 @@ const TechnicalService = () => {
       detail: "",
       models: "",
       IMEI: "",
-      price: 0,
+      price: "",
     });
     setisFormTechnical(false);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
+    const newPrice = parseLAPrice(devicesForm.price)
+
     e.preventDefault();
-    console.log(devicesForm)
     if (!/^\d{15,}$/.test(devicesForm.IMEI.toString())) {
       toast.warn("El IMEI debe tener al menos 15 dígitos numéricos.");
       return;
@@ -99,8 +101,7 @@ const TechnicalService = () => {
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
       !devicesForm.models ||
-      devicesForm.price <= 0 ||
-      isNaN(devicesForm.price) ||
+      newPrice <= 0 ||
       devicesForm.IMEI.toString().trim().length != 15
     ) {
       toast.warning("Verifica los campos: cliente, dispositivo, modelo, precio o IMEI.");
@@ -117,7 +118,7 @@ const TechnicalService = () => {
       entryDate: editingDevice?.entryDate || new Date().toISOString().split("T")[0],
       exitDate: editingDevice?.exitDate || null,
       warrantLimit: editingDevice?.warrantLimit || null,
-      price: devicesForm.price,
+      price: newPrice,
       detail: devicesForm.detail,
     };
 
