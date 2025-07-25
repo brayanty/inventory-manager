@@ -22,5 +22,65 @@
     "warrantLimit": null,
     "price": 43434,
     "detail": null
+  },
+  {
+    "id": "511fe979-ff7a-43c1-a618-2eb36889ac09",
+    "client": "343244",
+    "device": "4343",
+    "IMEI": "432423444444444",
+    "status": "En reparación",
+    "entryDate": "2025-07-24",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 43434,
+    "detail": "423432"
+  },
+  {
+    "id": "66227ff7-910d-48c9-a220-9cb9f32d8340",
+    "client": "44444",
+    "device": "44444",
+    "IMEI": "444444444444444",
+    "status": "En reparación",
+    "entryDate": "2025-07-24",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 444444444444444400,
+    "detail": "4"
+  },
+  {
+    "id": "652eafdd-4cb0-450c-b7fc-26eb58035f46",
+    "client": "4242342",
+    "device": "43244",
+    "IMEI": "432423444444444",
+    "status": "En reparación",
+    "entryDate": "2025-07-24",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 42342,
+    "detail": "423"
+  },
+  {
+    "id": "b911e126-9a35-460f-b5d1-50351888e51b",
+    "client": "4234234",
+    "device": "242423",
+    "IMEI": "423423423423432",
+    "status": "En reparación",
+    "entryDate": "2025-07-24",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 42342342,
+    "detail": null
+  },
+  {
+    "id": "47cc1eb4-1d19-4f6d-871d-6136b317fced",
+    "client": "4234234",
+    "device": "242423",
+    "IMEI": "423423423423432",
+    "status": "En reparación",
+    "entryDate": "2025-07-24",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 42342342,
+    "detail": null
   }
 ]
