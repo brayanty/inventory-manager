@@ -11,18 +11,24 @@ export default function Layout() {
 
   return (
     <div
-      className="h-screen max-h-screen grid gap-2 p-2 bg-[#1e1e1e]
-    grid-cols-1 grid-rows-auto
-    md:grid-cols-[200px_1fr] "
+      className="h-screen max-h-screen flex flex-row"
     >
       {/* Navegation */}
-      <div className="max-h-16 row-start-1 md:row-span-2 md:col-start-1">
+      <div  id="navegation" className="z-50 transition-all absolute h-full -translate-x-[500px]">
         <Sidebar />
       </div>
-      {/* Components Search and filtered */}
-      <div className="row-start-2 md:row-start-1 md:col-start-2">
-        <Header />
+      <div className="w-full flex flex-col">
+
+        {/* Components Search and filtered */}
+        <div className="w-full">
+          <Header/>
+        </div>
+        {/* Main */}
+        <main className="h-full">
+          <Outlet /> {/* Aquí se renderiza la página actual */}
+        </main>
       </div>
+
       {/* Mobile floating button */}
       <button
         onClick={() => setIsCartOpen(true)}
@@ -30,10 +36,6 @@ export default function Layout() {
       >
         <ShoppingCartIcon className="text-white w-5 h-5" />
       </button>
-      {/* Main */}
-      <main className="overflow-hidden row-start-3 md:row-start-2 md:col-start-2">
-        <Outlet /> {/* Aquí se renderiza la página actual */}
-      </main>
       {/* Mobile slide-in cart */}
       <div
         className={`fixed top-0 right-0 h-full w-4/5 max-w-sm bg-[rgba(36,40,50,1)] z-50 transform transition-transform duration-300 ease-in-out
