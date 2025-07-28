@@ -12,8 +12,9 @@ import {
 } from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
-import {  NumericFormat } from "react-number-format";
+import { NumericFormat } from "react-number-format";
 import { parseLAPrice } from "@/components/utils/ParsePrice";
+import { DropDown } from "@/components/common/dropdown";
 
 const FAKE_CATEGORIES = [
   { category: "Todos" },
@@ -22,8 +23,9 @@ const FAKE_CATEGORIES = [
   { category: "No reparado" },
 ];
 
-const TechnicalService = () => {
+const DEVICES_STATUS = ["Reparado", "Sin Solución", "En Revisión"];
 
+const TechnicalService = () => {
   const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -60,13 +62,11 @@ const TechnicalService = () => {
     setCategoryList(FAKE_CATEGORIES);
   }, [search, setCategoryList]);
 
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-
     const { name, value } = e.target;
     setDevicesForm((f) => ({
       ...f,
@@ -74,8 +74,6 @@ const TechnicalService = () => {
       [name]: value,
     }));
   };
-
-
 
   const clearForm = () => {
     setDevicesForm({
@@ -90,7 +88,7 @@ const TechnicalService = () => {
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    const newPrice = parseLAPrice(devicesForm.price)
+    const newPrice = parseLAPrice(devicesForm.price);
 
     e.preventDefault();
     if (!/^\d{15,}$/.test(devicesForm.IMEI.toString())) {
@@ -104,10 +102,14 @@ const TechnicalService = () => {
       newPrice <= 0 ||
       devicesForm.IMEI.toString().trim().length != 15
     ) {
-      toast.warning("Verifica los campos: cliente, dispositivo, modelo, precio o IMEI.");
+      toast.warning(
+        "Verifica los campos: cliente, dispositivo, modelo, precio o IMEI."
+      );
       return;
     }
-    const editingDevice = isEditing ? devices.find((d) => d.id === editingDeviceId) : null;
+    const editingDevice = isEditing
+      ? devices.find((d) => d.id === editingDeviceId)
+      : null;
 
     const deviceData: TechnicalServiceEntry = {
       client: devicesForm.client.trim(),
@@ -115,7 +117,8 @@ const TechnicalService = () => {
       models: devicesForm.models,
       IMEI: devicesForm.IMEI,
       status: editingDevice?.status || "En reparación",
-      entryDate: editingDevice?.entryDate || new Date().toISOString().split("T")[0],
+      entryDate:
+        editingDevice?.entryDate || new Date().toISOString().split("T")[0],
       exitDate: editingDevice?.exitDate || null,
       warrantLimit: editingDevice?.warrantLimit || null,
       price: newPrice,
@@ -133,10 +136,10 @@ const TechnicalService = () => {
         setEditingDeviceId(null);
       } else {
         const createdDevice = await createDevice(deviceData);
-        console.log(createDevice)
+        console.log(createDevice);
         setDevices((prev) => [...prev, createdDevice]);
       }
-      clearForm()
+      clearForm();
     } catch (error) {
       console.error("Error al guardar el dispositivo:", error);
       toast.error("Fallo al guardar el dispositivo. Intente de nuevo.");
@@ -154,7 +157,7 @@ const TechnicalService = () => {
   };
 
   const handleStatusChange = async (
-    id: string, 
+    id: string,
     status: "Reparado" | "No reparado" | "Entregado"
   ) => {
     const exitDate = new Date();
@@ -164,13 +167,13 @@ const TechnicalService = () => {
     const updatedDevice = devices.find((dev) => dev.id === id);
     if (!updatedDevice) return;
 
-    
-
     const newDevice = {
       ...updatedDevice,
       status,
       warrantLimit:
-        status === "Entregado" ? warrantLimit.toISOString().split("T")[0] : null,
+        status === "Entregado"
+          ? warrantLimit.toISOString().split("T")[0]
+          : null,
     };
 
     try {
@@ -224,9 +227,9 @@ const TechnicalService = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
+      <div className="overflow-x-auto overflow-y-auto min-h-[500px] max-h-[60vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
-          <thead className="sticky top-0 z-10 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
+          <thead className="sticky top-0 z-5 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
               <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
                 Cliente
@@ -277,7 +280,17 @@ const TechnicalService = () => {
                   <td className="p-2">{d.device}</td>
                   <td className="p-2">{d.IMEI}</td>
                   <td className="p-2">{formatCOP(d.price)}</td>
-                  <td className="p-2">{d.status}</td>
+                  <td className="p-2">
+                    {
+                      <DropDown
+                        items={DEVICES_STATUS}
+                        select={d.status}
+                        onSelect={(newStatus) =>
+                          handleStatusChange(newStatus, d.id)
+                        }
+                      />
+                    }
+                  </td>
                   <td className="p-2">{d.entryDate}</td>
                   <td className="p-2">{d.warrantLimit || "-"}</td>
                   <td className="p-2">{d.exitDate || "-"}</td>
@@ -423,7 +436,7 @@ const TechnicalService = () => {
                   decimalScale={2}
                   fixedDecimalScale
                   allowNegative={false}
-                  onChange={(v)=> handleInputChange(v)}
+                  onChange={(v) => handleInputChange(v)}
                   className="p-2 rounded border"
                   placeholder="40.000"
                 />
@@ -456,8 +469,11 @@ const TechnicalService = () => {
                   name="IMEI"
                   id="IMEI"
                   maxLength={15}
-                  className={`p-2 rounded border ${devicesForm.IMEI.toString().length <= 14 ? "bg-gray-300" : ""
-                    } `}
+                  className={`p-2 rounded border ${
+                    devicesForm.IMEI.toString().length <= 14
+                      ? "bg-gray-300"
+                      : ""
+                  } `}
                   value={devicesForm.IMEI}
                   onChange={handleInputChange}
                   aria-label="Número IMEI"
