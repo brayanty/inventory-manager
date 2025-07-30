@@ -13,7 +13,7 @@ export const DropDown: React.FC<DropDownProps> = ({
 }) => {
   return (
     <div className="relative dropdown dropdown-end dropdown-center">
-      <div tabIndex={0} role="button" className="btn m-1">
+      <div tabIndex={0} role="button" className="btn w-32 m-1">
         {select}
       </div>
       <ul
