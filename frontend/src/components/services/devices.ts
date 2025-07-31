@@ -1,4 +1,4 @@
-import { TechnicalServiceEntry } from "../types/technicalService";
+import { TechnicalServiceEntryNoID } from "../types/technicalService";
 
 const DEVICE_ENDPOINT = "http://localhost:3000/devices";
 
@@ -7,7 +7,7 @@ export async function getDevice(id: string) {
   const data = await response.json();
   return data;
 }
-export async function createDevice(device: TechnicalServiceEntry) {
+export async function createDevice(device: TechnicalServiceEntryNoID) {
   const response = await fetch(DEVICE_ENDPOINT, {
     method: "POST",
     headers: {
@@ -18,7 +18,10 @@ export async function createDevice(device: TechnicalServiceEntry) {
   const data = await response.json();
   return data;
 }
-export async function updateDevice(id: string, device: TechnicalServiceEntry) {
+export async function updateDevice(
+  id: string,
+  device: TechnicalServiceEntryNoID
+) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
@@ -29,7 +32,7 @@ export async function updateDevice(id: string, device: TechnicalServiceEntry) {
   const data = await response.json();
   return data;
 }
-export async function deleteDevice(id) {
+export async function deleteDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "DELETE",
     headers: {
@@ -39,22 +42,22 @@ export async function deleteDevice(id) {
   const data = await response.json();
   return data;
 }
-export async function searchDevices(search) {
-  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + search);
+export async function searchDevices(query: string) {
+  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + query);
   const data = await response.json();
   return data;
 }
-export async function getDeviceByName(name) {
+export async function getDeviceByName(name: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "name=" + name);
   const data = await response.json();
   return data;
 }
-export async function getDeviceById(id) {
+export async function getDeviceById(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "id=" + id);
   const data = await response.json();
   return data;
 }
-export async function getDeviceByStatus(status) {
+export async function getDeviceByStatus(status: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "status=" + status);
   const data = await response.json();
   return data;
