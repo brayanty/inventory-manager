@@ -1,7 +1,7 @@
 import { useCategoryListStore } from "@/components/store/category";
 import { useSearchStore } from "@/components/store/filters";
 import React, { useEffect, useState, useMemo } from "react";
-import { formatCOP, PriceInput } from "@/components/utils/format";
+import { formatCOP } from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
 import models from "@/components/constants/models.ts";
 import {
@@ -15,7 +15,6 @@ import { toast } from "react-toastify";
 import { NumericFormat } from "react-number-format";
 import { parseLAPrice } from "@/components/utils/ParsePrice";
 import { DropDown } from "@/components/common/dropdown";
-
 const FAKE_CATEGORIES = [
   { category: "Todos" },
   { category: "En reparación" },
@@ -40,7 +39,7 @@ const TechnicalService = () => {
   const [devicesForm, setDevicesForm] = useState({
     client: "",
     device: "",
-    models: "",
+    model: "",
     IMEI: "",
     price: "",
     detail: "",
@@ -80,7 +79,7 @@ const TechnicalService = () => {
       client: "",
       device: "",
       detail: "",
-      models: "",
+      model: "",
       IMEI: "",
       price: "",
     });
@@ -98,7 +97,7 @@ const TechnicalService = () => {
     if (
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
-      !devicesForm.models ||
+      !devicesForm.model ||
       newPrice <= 0 ||
       devicesForm.IMEI.toString().trim().length != 15
     ) {
@@ -111,12 +110,13 @@ const TechnicalService = () => {
       ? devices.find((d) => d.id === editingDeviceId)
       : null;
 
-    const deviceData: TechnicalServiceEntry = {
+    const deviceData = {
       client: devicesForm.client.trim(),
       device: devicesForm.device.trim(),
-      models: devicesForm.models,
+      model: devicesForm.model,
       IMEI: devicesForm.IMEI,
-      status: editingDevice?.status || "En reparación",
+      status: (editingDevice?.status ||
+        "En revisión") as TechnicalServiceEntry["status"],
       entryDate:
         editingDevice?.entryDate || new Date().toISOString().split("T")[0],
       exitDate: editingDevice?.exitDate || null,
@@ -127,10 +127,16 @@ const TechnicalService = () => {
 
     try {
       if (isEditing && editingDeviceId) {
-        deviceData.id = editingDeviceId;
         await updateDevice(editingDeviceId, deviceData);
         setDevices((prev) =>
-          prev.map((d) => (d.id === editingDeviceId ? deviceData : d))
+          prev.map((d) =>
+            d.id === editingDeviceId
+              ? ({
+                  ...deviceData,
+                  id: editingDeviceId,
+                } as TechnicalServiceEntry)
+              : d
+          )
         );
         setIsEditing(false);
         setEditingDeviceId(null);
@@ -158,7 +164,7 @@ const TechnicalService = () => {
 
   const handleStatusChange = async (
     id: string,
-    status: "Reparado" | "No reparado" | "Entregado"
+    status: TechnicalServiceEntry["status"]
   ) => {
     const exitDate = new Date();
     const warrantLimit = new Date(exitDate);
@@ -171,9 +177,7 @@ const TechnicalService = () => {
       ...updatedDevice,
       status,
       warrantLimit:
-        status === "Entregado"
-          ? warrantLimit.toISOString().split("T")[0]
-          : null,
+        status === "Reparado" ? warrantLimit.toISOString().split("T")[0] : null,
     };
 
     try {
@@ -191,9 +195,9 @@ const TechnicalService = () => {
     setDevicesForm({
       client: d.client,
       device: d.device,
-      models: d.models,
+      model: d.model,
       IMEI: d.IMEI,
-      price: d.price,
+      price: d.price.toString(),
       detail: d.detail || "",
     });
     setIsEditing(true);
@@ -281,15 +285,16 @@ const TechnicalService = () => {
                   <td className="p-2">{d.IMEI}</td>
                   <td className="p-2">{formatCOP(d.price)}</td>
                   <td className="p-2">
-                    {
-                      <DropDown
-                        items={DEVICES_STATUS}
-                        select={d.status}
-                        onSelect={(newStatus) =>
-                          handleStatusChange(newStatus, d.id)
-                        }
-                      />
-                    }
+                    <DropDown
+                      items={DEVICES_STATUS}
+                      select={d.status}
+                      onSelect={(newStatus) =>
+                        handleStatusChange(
+                          d.id,
+                          newStatus as TechnicalServiceEntry["status"]
+                        )
+                      }
+                    />
                   </td>
                   <td className="p-2">{d.entryDate}</td>
                   <td className="p-2">{d.warrantLimit || "-"}</td>
@@ -441,13 +446,13 @@ const TechnicalService = () => {
                   placeholder="40.000"
                 />
               </label>
-              <label className="flex flex-col" htmlFor="models">
+              <label className="flex flex-col" htmlFor="model">
                 <span>Modelo: </span>
                 <select
                   className="p-2 w-full text-[1rem] border"
-                  name="models"
-                  id="models"
-                  value={devicesForm.models}
+                  name="model"
+                  id="model"
+                  value={devicesForm.model}
                   onChange={handleInputChange}
                   aria-label="Modelo del dispositivo"
                   required
