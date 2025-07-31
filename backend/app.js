@@ -1,5 +1,4 @@
 const express = require("express");
-const fs = require("fs").promises;
 const path = require("path");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
@@ -18,8 +17,8 @@ const { readData, writeData } = require("./utils/file.js");
 require("dotenv").config();
 
 // Archivos JSON usados
-const DEVICES_FILE =  path.join(__dirname, "data.json");
-const PRODUCTS_FILE = path.join(__dirname,"products.json");
+const DEVICES_FILE = path.join(__dirname, "data.json");
+const PRODUCTS_FILE = path.join(__dirname, "products.json");
 
 // Middlewares
 app.use(express.json());
@@ -41,9 +40,6 @@ app.use(limiter);
 const sendError = (res, status, message) =>
   res.status(status).json({ error: message });
 
-
-
-
 // Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
@@ -53,7 +49,11 @@ app.post("/login", async (req, res) => {
     return res.status(403).json({ message: "Credenciales inválidas" });
   }
 
-  const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  const token = jwt.sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
   res.json({ token });
 });
 
@@ -67,8 +67,10 @@ app.post("/devices", async (req, res) => {
   const {
     client,
     device,
+    model,
     IMEI,
     status,
+    output,
     entryDate,
     exitDate,
     warrantLimit,
@@ -79,8 +81,10 @@ app.post("/devices", async (req, res) => {
   const validationError = validateEntryData({
     client,
     device,
+    model,
     IMEI,
     status,
+    output,
     entryDate,
     price,
   });
@@ -90,8 +94,10 @@ app.post("/devices", async (req, res) => {
     id: uuidv4(),
     client: client.trim(),
     device: device.trim(),
+    model: model && typeof model === "string" ? model.trim() : null,
     IMEI: IMEI.toString().trim(),
     status: status.trim(),
+    output: false,
     entryDate,
     exitDate: exitDate && !isNaN(Date.parse(exitDate)) ? exitDate : null,
     warrantLimit:
@@ -110,7 +116,7 @@ app.post("/devices", async (req, res) => {
   }
 });
 
-// 📄 READ ALL
+// READ ALL
 app.get("/devices", async (req, res) => {
   try {
     const entries = await readData(DEVICES_FILE);
@@ -132,7 +138,7 @@ app.get("/devices", async (req, res) => {
   }
 });
 
-// 🔍 READ ONE
+// READ ONE
 app.get("/devices/:id", async (req, res) => {
   try {
     const entries = await readData(DEVICES_FILE);
@@ -144,11 +150,18 @@ app.get("/devices/:id", async (req, res) => {
   }
 });
 
-// ✏️ UPDATE
+// UPDATE
 app.put("/devices/:id", async (req, res) => {
   try {
     const entries = await readData(DEVICES_FILE);
     const index = entries.findIndex((e) => e.id === req.params.id);
+    if (req.body.output) {
+      return sendError(
+        res,
+        400,
+        "No se puede actualizar un dispositivo entregado"
+      );
+    }
     if (index === -1) return sendError(res, 404, "Entrada no encontrada");
 
     const validationError = validateEntryData(req.body);
@@ -180,7 +193,7 @@ app.put("/devices/:id", async (req, res) => {
   }
 });
 
-// ❌ DELETE
+// DELETE
 app.delete("/devices/:id", async (req, res) => {
   try {
     const entries = await readData(DEVICES_FILE);
@@ -192,9 +205,9 @@ app.delete("/devices/:id", async (req, res) => {
   }
 });
 
-// 📦 PRODUCTS
+// PRODUCTS
 
-// 🔎 Obtener productos
+// Obtener productos
 app.get("/products", async (req, res) => {
   try {
     const entries = await readData(PRODUCTS_FILE);
@@ -219,7 +232,7 @@ app.get("/products", async (req, res) => {
   }
 });
 
-// 📝 Actualizar producto
+// Actualizar producto
 app.put("/products/:id", async (req, res) => {
   const { name, price, stock } = req.body;
 
