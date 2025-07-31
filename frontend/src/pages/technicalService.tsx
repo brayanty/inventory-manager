@@ -15,23 +15,22 @@ import { toast } from "react-toastify";
 import { NumericFormat } from "react-number-format";
 import { parseLAPrice } from "@/components/utils/ParsePrice";
 import { DropDown } from "@/components/common/dropdown";
+
 const FAKE_CATEGORIES = [
   { category: "Todos" },
-  { category: "En reparación" },
+  { category: "Sin Solución" },
   { category: "Reparado" },
-  { category: "No reparado" },
+  { category: "En Revisión" },
 ];
 
 const DEVICES_STATUS = ["Reparado", "Sin Solución", "En Revisión"];
+const LIST_OPCIONES = ["Editar", "Entregado", "Eliminar"];
 
 const TechnicalService = () => {
   const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
-  const [isDetail, setIsDetail] = useState<boolean>(false);
-  const [isSelectDetail, setSelectDetail] =
-    useState<TechnicalServiceEntry | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
@@ -116,7 +115,7 @@ const TechnicalService = () => {
       model: devicesForm.model,
       IMEI: devicesForm.IMEI,
       status: (editingDevice?.status ||
-        "En revisión") as TechnicalServiceEntry["status"],
+        "En Revisión") as TechnicalServiceEntry["status"],
       entryDate:
         editingDevice?.entryDate || new Date().toISOString().split("T")[0],
       exitDate: editingDevice?.exitDate || null,
@@ -162,10 +161,43 @@ const TechnicalService = () => {
     }
   };
 
+  const handleOutput = async (id: string, output: boolean) => {
+    const updatedDevice = devices.find((dev) => dev.id === id);
+
+    if (!updatedDevice) return;
+    if (output && updatedDevice.output) {
+      toast.warning("El dispositivo ya está entregado.");
+      return;
+    }
+
+    const newDevice = {
+      ...updatedDevice,
+      output,
+      exitDate: output ? new Date().toISOString().split("T")[0] : null,
+    };
+    try {
+      await updateDevice(id, newDevice);
+      setDevices((prev) =>
+        prev.map((dev) => (dev.id === id ? newDevice : dev))
+      );
+      toast.success("Dispositivo actualizado correctamente.");
+    } catch (error) {
+      console.error("Failed to update device output:", error);
+      toast.warning("Fallo a actualizar el dispositivo. Intente de nuevo.");
+    }
+  };
+
   const handleStatusChange = async (
     id: string,
+    output: boolean,
     status: TechnicalServiceEntry["status"]
   ) => {
+    if (output) {
+      toast.warning(
+        "No se puede cambiar el estado de un dispositivo entregado."
+      );
+      return;
+    }
     const exitDate = new Date();
     const warrantLimit = new Date(exitDate);
     warrantLimit.setDate(warrantLimit.getDate() + 30);
@@ -192,6 +224,10 @@ const TechnicalService = () => {
   };
 
   const handlerEditDevice = (d: TechnicalServiceEntry) => {
+    if (d.output) {
+      toast.warning("No se puede editar un dispositivo entregado.");
+      return;
+    }
     setDevicesForm({
       client: d.client,
       device: d.device,
@@ -203,12 +239,6 @@ const TechnicalService = () => {
     setIsEditing(true);
     setEditingDeviceId(d.id || "");
     setisFormTechnical(true);
-  };
-
-  const handlerSetDetail = (device: TechnicalServiceEntry) => {
-    if (!device) return;
-    setSelectDetail(device);
-    setIsDetail(true);
   };
 
   const filteredDevices = useMemo(() => {
@@ -260,7 +290,10 @@ const TechnicalService = () => {
                 Entregado
               </th>
               <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Acciones
+                Salida
+              </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Opciones
               </th>
             </tr>
           </thead>
@@ -291,6 +324,7 @@ const TechnicalService = () => {
                       onSelect={(newStatus) =>
                         handleStatusChange(
                           d.id,
+                          d.output,
                           newStatus as TechnicalServiceEntry["status"]
                         )
                       }
@@ -298,70 +332,22 @@ const TechnicalService = () => {
                   </td>
                   <td className="p-2">{d.entryDate}</td>
                   <td className="p-2">{d.warrantLimit || "-"}</td>
+                  <td className="p-2">{d.output ? "Si" : "No"}</td>
                   <td className="p-2">{d.exitDate || "-"}</td>
                   <td className="p-2">
-                    <div className="dropdown dropdown-left">
-                      <div tabIndex={0} role="button" className="btn m-1">
-                        Acciones
-                      </div>
-                      <ul
-                        tabIndex={0}
-                        className="absolute dropdown-content drop menu bg-base-100 rounded-box z-[100] w-52 p-2 shadow-sm"
-                      >
-                        <li>
-                          <button
-                            onClick={() => handlerSetDetail(d)}
-                            className="px-2 py-1 rounded hover:bg-yellow-700"
-                          >
-                            Ver más
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => handlerEditDevice(d)}
-                            className="px-2 py-1 rounded hover:bg-yellow-700"
-                          >
-                            Editar
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => handleStatusChange(d.id, "Reparado")}
-                            className="px-2 py-1 rounded hover:bg-green-700"
-                          >
-                            Reparado
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(d.id, "No reparado")
-                            }
-                            className="px-2 py-1 rounded hover:bg-red-700"
-                          >
-                            No reparado
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(d.id, "Entregado")
-                            }
-                            className="px-2 py-1 rounded hover:bg-red-700"
-                          >
-                            Entregado
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => handleDeleteDevice(d.id)}
-                            className="px-2 py-1 rounded hover:bg-red-700"
-                          >
-                            Eliminar
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
+                    <DropDown
+                      items={LIST_OPCIONES}
+                      title="Opciones"
+                      onSelect={(newStatus) =>
+                        newStatus === "Editar"
+                          ? handlerEditDevice(d)
+                          : newStatus === "Entregado"
+                          ? handleOutput(d.id, true)
+                          : newStatus === "Eliminar"
+                          ? handleDeleteDevice(d.id)
+                          : null
+                      }
+                    />
                   </td>
                 </tr>
               ))
@@ -369,26 +355,6 @@ const TechnicalService = () => {
           </tbody>
         </table>
       </div>
-
-      <Modal
-        title="Detalles del dispositivo"
-        isOpen={isDetail}
-        onClose={() => setIsDetail(false)}
-      >
-        {isSelectDetail && (
-          <div className="flex flex-col gap-4 text-black">
-            <h3 className="text-lg font-bold">Detalles del dispositivo</h3>
-            <p>Cliente: {isSelectDetail.client}</p>
-            <p>Dispositivo: {isSelectDetail.device}</p>
-            <p>Detalles: {isSelectDetail.detail || "Sin observaciones"}</p>
-            <p>Precio: {formatCOP(isSelectDetail.price)}</p>
-            <p>Estado: {isSelectDetail.status}</p>
-            <p>Fecha de ingreso: {isSelectDetail.entryDate}</p>
-            <p>Fecha de salida: {isSelectDetail.exitDate || "-"}</p>
-            <p>Fecha de garantía: {isSelectDetail.warrantLimit || "-"}</p>
-          </div>
-        )}
-      </Modal>
 
       <Modal
         title={isEditing ? "Editar dispositivo" : "Formulario de Ingreso"}
