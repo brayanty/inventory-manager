@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm run dev:frontend & pnpm run dev:backend",
+    "dev": "concurrently \"pnpm run dev:frontend\" \"pnpm run dev:backend\"",
     "dev:frontend": "cd frontend && pnpm run dev",
-    "dev:backend": "cd backend && pnpm run dev"
+    "dev:backend": "cd backend && pnpm run dev",
+    "install": "concurrently \"pnpm run install:frontend\" \"pnpm run install:backend\"",
+    "install:frontend": "cd frontend && pnpm install",
+    "install:backend": "cd backend && pnpm install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
-  "dependencies": {
+  "devDependencies": {
+    "concurrently": "^8.2.2",
     "pnpm": "^10.12.2"
   }
 }
