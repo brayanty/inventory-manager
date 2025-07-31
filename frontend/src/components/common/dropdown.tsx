@@ -2,19 +2,21 @@ import React from "react";
 
 interface DropDownProps {
   items: string[];
-  select: string;
+  select?: string;
+  title?: string;
   onSelect: (item: string) => void;
 }
 
 export const DropDown: React.FC<DropDownProps> = ({
   items,
   select,
+  title = "Seleccionar",
   onSelect,
 }) => {
   return (
     <div className="relative dropdown dropdown-end dropdown-center">
       <div tabIndex={0} role="button" className="btn w-32 m-1">
-        {select}
+        {select || title}
       </div>
       <ul
         tabIndex={0}
