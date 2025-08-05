@@ -5,11 +5,7 @@ export type TechnicalServiceEntry = {
   model: string;
   IMEI: string;
   status:
-    | "En reparación"
-    | "Reparado"
-    | "No reparado"
-    | "Entregado"
-    | "En revisión";
+  | "Reparado" | "Sin Solución" | "En Revisión";
   output: boolean;
   entryDate: string;
   exitDate: string | null;
