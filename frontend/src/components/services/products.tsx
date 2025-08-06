@@ -37,7 +37,7 @@ export async function deleteProduct(id) {
   const data = await response.json();
   return data;
 }
-export async function searchProcuct(search) {
+export async function getProducts(search: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + search);
   const data = await response.json();
   return data;
