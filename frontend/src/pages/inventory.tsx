@@ -1,9 +1,11 @@
+import FormRender from "@/components/common/form";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { useState } from "react";
 
 function ProductsInventory() {
   const [pagina, setPagina] = useState(1);
+
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -43,6 +45,7 @@ function ProductsInventory() {
         </table>
       </div>
       <Paginator selectPage={pagina} onPageChange={setPagina} />
+      <FormRender />
     </div>
   );
 }
