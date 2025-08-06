@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useSearchStore, useCategoryStore } from "@/components/store/filters";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
-import { searchProcuct } from "@/components/services/products";
+import { getProducts } from "@/components/services/products";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
@@ -28,12 +28,10 @@ function RenderProducts() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      const response = await searchProcuct(search);
+      const response = await getProducts(search);
       addProducts(response);
     };
     loadProducts();
-
-    console.log(products);
   }, [search]);
 
   const filtered = products.filter((product) => {
