@@ -1,6 +1,7 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { parseLAPrice } from "../utils/ParsePrice";
 
 type FieldType = 'text' | 'number' | 'price';
 
@@ -22,6 +23,15 @@ interface FormRenderProps {
 
 function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
   const [dataForm, setDataForm] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    if (isForm) {
+      setDataForm(fields.reduce((acc, field) => {
+        acc[field.name] = '';
+        return acc;
+      }, {} as Record<string, any>));
+    }
+  }, [isForm, fields]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
