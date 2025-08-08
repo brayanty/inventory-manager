@@ -5,13 +5,13 @@ export async function getProduct(id: string) {
   const data = await response.json();
   return data;
 }
-export async function createProduct(device) {
+export async function createProduct(product) {
   const response = await fetch(DEVICE_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(device),
+    body: JSON.stringify(product),
   });
   const data = await response.json();
   return data;
