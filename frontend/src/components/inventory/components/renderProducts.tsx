@@ -40,7 +40,7 @@ function RenderProducts() {
     return matchName && matchCategory;
   });
 
-  if (filtered.length === 0) {
+  if (filtered.length === 0 || !products) {
     return (
       <tr>
         <td colSpan={6} className="text-center py-6">
@@ -70,10 +70,11 @@ function RenderProducts() {
             className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
           >
             {product.name}
+
           </th>
           <td className="px-6 py-4">{product.category}</td>
           <td className="px-6 py-4">{product.sales}</td>
-          <td className="px-6 py-4">{product.entire}</td>
+          <td className="px-6 py-4">{product.total}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
         </tr>
       ))}
