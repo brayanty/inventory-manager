@@ -107,12 +107,10 @@ app.post("/devices", async (req, res) => {
   };
 
   try {
-    const entries = await readData(DEVICES_FILE);
-    entries.push(newEntry);
     await writeData(entries, DEVICES_FILE);
     res.status(201).json(newEntry);
   } catch {
-    sendError(res, 500, "Error al guardar la entrada");
+    sendError(res, 500, "Error al guardar el producto");
   }
 });
 
@@ -231,6 +229,29 @@ app.get("/products", async (req, res) => {
     sendError(res, 500, "Error al leer los productos");
   }
 });
+
+// Crear un nuevo producto
+app.post("/products", async (req, res) => {
+  const { name, category, total, price } = req.body
+  console.log("name" + name,"category" +  category, "total" + total, "price" + price)
+  if (
+    !name || name.length <= 5 ||
+    !category ||
+    parseFloat(total) <= 1 ||
+    parseFloat(price) <= 1000
+  ) {
+    return res.status(400).json({ error: "Invalid input data" });
+  }
+
+  const newProduct = { id: uuidv4(), sales: 0, name: name, category: category, total: total, price: price }
+
+  try {
+    writeData(newProduct, PRODUCTS_FILE)
+    res.json(newProduct)
+  } catch {
+    sendError(res, 404)
+  }
+})
 
 // Actualizar producto
 app.put("/products/:id", async (req, res) => {

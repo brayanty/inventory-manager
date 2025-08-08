@@ -10,11 +10,13 @@ export async function readData(file) {
 }
 
 export async function writeData(newData, file) {
-  console.log(file)
+   const newDataFile = await readData(file);
+    newDataFile.push(newData);
+
   try {
     await fs.writeFile(
       file,
-      JSON.stringify(newData, null, 2)
+      JSON.stringify(newDataFile, null, 2)
     );
     console.log("Datos escritos correctamente");
   } catch (err) {
