@@ -1,11 +1,17 @@
 import FormRender from "@/components/common/form";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
+import { createProduct } from "@/components/services/products";
 import { useState } from "react";
 
 function ProductsInventory() {
   const [pagina, setPagina] = useState(1);
+  const [isOpenAddProduct, setOpenAddProduct] = useState(false)
 
+  const handleSubmit = async (data: Record<string, any>) =>{
+    const response = await createProduct(data)
+    console.log(data)
+  }
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -14,6 +20,7 @@ function ProductsInventory() {
         <button
           type="button"
           className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+          onClick={(e)=>{setOpenAddProduct(true)}}
         >
           Agregar Producto
         </button>
@@ -45,7 +52,14 @@ function ProductsInventory() {
         </table>
       </div>
       <Paginator selectPage={pagina} onPageChange={setPagina} />
-      <FormRender />
+      <FormRender isForm={isOpenAddProduct} closeForm={() => setOpenAddProduct(false)} 
+        onSubmit={(data) => handleSubmit(data)}
+        fields={[
+          { label: "Producto", name: "name", type: "text", placeholder: "Petrolino Sinforoso" },
+          { label: "Categoria", name: "category", type: "text", placeholder: "Iphone 14" },
+          { label: "Total", name: "total", type: "number" },
+          { label: "Precio", name: "price", type: "price", placeholder: "40.000" },
+        ]} />
     </div>
   );
 }
