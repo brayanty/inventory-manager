@@ -19,5 +19,5 @@ export function useDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  return { open, toggle, close, ref };
+  return [ open, toggle, close, ref ];
 }
