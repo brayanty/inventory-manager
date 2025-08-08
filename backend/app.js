@@ -237,8 +237,8 @@ app.post("/products", async (req, res) => {
   if (
     !name || name.length <= 5 ||
     !category ||
-    parseFloat(total) <= 1 ||
-    parseFloat(price) <= 1000
+    isNaN(total) <= 1 ||
+    isNaN(price) <= 1000 
   ) {
     return res.status(400).json({ error: "Invalid input data" });
   }
@@ -247,7 +247,7 @@ app.post("/products", async (req, res) => {
 
   try {
     writeData(newProduct, PRODUCTS_FILE)
-    res.json(newProduct)
+    res.json(newProduct,201)
   } catch {
     sendError(res, 404)
   }
