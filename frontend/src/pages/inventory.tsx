@@ -3,6 +3,7 @@ import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { createProduct } from "@/components/services/products";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 function ProductsInventory() {
   const [pagina, setPagina] = useState(1);
@@ -10,8 +11,11 @@ function ProductsInventory() {
 
   const handleSubmit = async (data: Record<string, any>) =>{
     const response = await createProduct(data)
-    console.log(data)
-  }
+    if(response){ {
+      setOpenAddProduct(false);
+      toast.success("Producto agregado correctamente");
+    }
+  }}
 
   return (
     <div className="h-full w-full flex flex-col">
