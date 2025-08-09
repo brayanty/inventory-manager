@@ -205,43 +205,58 @@ app.delete("/devices/:id", async (req, res) => {
 
 // PRODUCTS
 
-// Obtener productos
+// Obtener productos con paginación y búsqueda
 app.get("/products", async (req, res) => {
   try {
     const entries = await readData(PRODUCTS_FILE);
-    const { search, page = 1 } = req.query;
+    const { search, page = 1, limit = 10 } = req.query;
 
+    let filtered = entries;
+
+    // Filtrar si hay búsqueda
     if (search) {
       const fuse = new Fuse(entries, {
         keys: ["name"],
         includeScore: true,
         threshold: 0.3,
       });
-      const results = fuse.search(search);
-      return res.json(results.map((r) => r.item));
+      filtered = fuse.search(search).map(r => r.item);
     }
 
-    const pageNum = parseInt(page);
-    const start = (pageNum - 1) * 10;
-    const paginated = entries.slice(start, start + 10);
-    res.json(paginated);
-  } catch {
+    // Calcular paginado
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / limitNum);
+    const start = (pageNum - 1) * limitNum;
+    const paginated = filtered.slice(start, start + limitNum);
+
+    res.json({
+      page: pageNum,
+      limit: limitNum,
+      totalItems,
+      totalPages,
+      data: paginated
+    });
+  } catch (error) {
     sendError(res, 500, "Error al leer los productos");
   }
 });
 
+
 // Crear un nuevo producto
 app.post("/products", async (req, res) => {
   const { name, category, total, price } = req.body
-  console.log("name" + name,"category" +  category, "total" + total, "price" + price)
-  if (
-    !name || name.length <= 5 ||
-    !category ||
-    isNaN(total) <= 1 ||
-    isNaN(price) <= 1000 
-  ) {
-    return res.status(400).json({ error: "Invalid input data" });
+  const newPrice = parseFloat(price);
+  if (isNaN(newPrice) || newPrice < 0) {
+    return res.status(400).json({ error: "El precio debe ser un número válido y no negativo" });
   }
+  if (!name || typeof name !== "string" || name.trim() === "")
+    return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
+  if (!category || typeof category !== "string" || category.trim() === "")
+    return sendError(res, 400, "El campo 'category' debe ser una cadena no vacía");
+  if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
+    return sendError(res, 400, "El campo 'total' debe ser un número válido y no negativo");
 
   const newProduct = { id: uuidv4(), sales: 0, name: name, category: category, total: total, price: price }
 
