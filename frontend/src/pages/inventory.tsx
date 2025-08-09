@@ -2,20 +2,23 @@ import FormRender from "@/components/common/form";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { createProduct } from "@/components/services/products";
+import usePage from "@/components/store/page.tsx";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 function ProductsInventory() {
-  const [pagina, setPagina] = useState(1);
-  const [isOpenAddProduct, setOpenAddProduct] = useState(false)
+  const { page, setPage } = usePage();
+  const [isOpenAddProduct, setOpenAddProduct] = useState(false);
 
-  const handleSubmit = async (data: Record<string, any>) =>{
-    const response = await createProduct(data)
-    if(response){ {
-      setOpenAddProduct(false);
-      toast.success("Producto agregado correctamente");
+  const handleSubmit = async (data: Record<string, any>) => {
+    const response = await createProduct(data);
+    if (response) {
+      {
+        setOpenAddProduct(false);
+        toast.success("Producto agregado correctamente");
+      }
     }
-  }}
+  };
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -24,7 +27,9 @@ function ProductsInventory() {
         <button
           type="button"
           className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-          onClick={(e)=>{setOpenAddProduct(true)}}
+          onClick={() => {
+            setOpenAddProduct(true);
+          }}
         >
           Agregar Producto
         </button>
@@ -55,15 +60,33 @@ function ProductsInventory() {
           </tbody>
         </table>
       </div>
-      <Paginator selectPage={pagina} onPageChange={setPagina} />
-      <FormRender isForm={isOpenAddProduct} closeForm={() => setOpenAddProduct(false)} 
+      <Paginator selectPage={page} onPageChange={setPage} />
+      <FormRender
+        isForm={isOpenAddProduct}
+        closeForm={() => setOpenAddProduct(false)}
         onSubmit={(data) => handleSubmit(data)}
         fields={[
-          { label: "Producto", name: "name", type: "text", placeholder: "Petrolino Sinforoso" },
-          { label: "Categoria", name: "category", type: "text", placeholder: "Iphone 14" },
+          {
+            label: "Producto",
+            name: "name",
+            type: "text",
+            placeholder: "Petrolino Sinforoso",
+          },
+          {
+            label: "Categoria",
+            name: "category",
+            type: "text",
+            placeholder: "Iphone 14",
+          },
           { label: "Total", name: "total", type: "number" },
-          { label: "Precio", name: "price", type: "price", placeholder: "40.000" },
-        ]} />
+          {
+            label: "Precio",
+            name: "price",
+            type: "price",
+            placeholder: "40.000",
+          },
+        ]}
+      />
     </div>
   );
 }
