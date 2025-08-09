@@ -1,9 +1,8 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { ChangeEvent, useEffect, useState } from "react";
-import { parseLAPrice } from "../utils/ParsePrice";
+import { ChangeEvent, useState } from "react";
 
-type FieldType = 'text' | 'number' | 'price';
+type FieldType = "text" | "number" | "price";
 
 interface FormField {
   label: string;
@@ -12,7 +11,6 @@ interface FormField {
   type: FieldType;
 }
 
-
 interface FormRenderProps {
   isForm: boolean;
   closeForm: () => void;
@@ -20,18 +18,8 @@ interface FormRenderProps {
   onSubmit: (formData: Record<string, any>) => void;
 }
 
-
 function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
   const [dataForm, setDataForm] = useState<Record<string, any>>({});
-
-  useEffect(() => {
-    if (isForm) {
-      setDataForm(fields.reduce((acc, field) => {
-        acc[field.name] = '';
-        return acc;
-      }, {} as Record<string, any>));
-    }
-  }, [isForm, fields]);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,6 +33,12 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
   const handlerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(dataForm);
+    setDataForm(
+      fields.reduce((acc, field) => {
+        acc[field.name] = "";
+        return acc;
+      }, {} as Record<string, any>)
+    );
   };
 
   return (
@@ -55,10 +49,14 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
       >
         <div className="flex flex-wrap gap-2">
           {fields.map((field) => (
-            <label key={field.name} className="flex flex-col" htmlFor={field.name}>
+            <label
+              key={field.name}
+              className="flex flex-col"
+              htmlFor={field.name}
+            >
               <span>{field.label}:</span>
 
-              {field.type === 'price' ? (
+              {field.type === "price" ? (
                 <NumericFormat
                   id={field.name}
                   name={field.name}
