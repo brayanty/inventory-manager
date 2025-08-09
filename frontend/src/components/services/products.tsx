@@ -37,8 +37,8 @@ export async function deleteProduct(id) {
   const data = await response.json();
   return data;
 }
-export async function getProducts(search: string) {
-  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + search);
+export async function getProducts(search: string,page: number = 1) {
+  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + search + "&page=" + page);
   const data = await response.json();
   return data;
 }
