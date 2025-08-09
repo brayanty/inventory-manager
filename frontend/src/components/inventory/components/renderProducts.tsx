@@ -1,5 +1,5 @@
 import { IconVoid } from "@/components/layout/ui/imgs";
-import {formatCOP} from "@/components/utils/format";
+import { formatCOP } from "@/components/utils/format";
 
 import useProductsStore from "@/components/store/products";
 
@@ -8,6 +8,7 @@ import { useSearchStore, useCategoryStore } from "@/components/store/filters";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
 import { getProducts } from "@/components/services/products";
+import usePage from "@/components/store/page";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
@@ -15,6 +16,7 @@ function RenderProducts() {
   const { setCategoryList } = useCategoryListStore();
   const { category } = useCategoryStore();
   const { search } = useSearchStore();
+  const { page, setPage } = usePage();
 
   useEffect(() => {
     const fakeCategories = [
@@ -28,11 +30,11 @@ function RenderProducts() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      const response = await getProducts(search);
-      addProducts(response);
+      const response = await getProducts(search, page);
+      addProducts(response.data || []);
     };
     loadProducts();
-  }, [search]);
+  }, [search, page, setPage]);
 
   const filtered = products.filter((product) => {
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
@@ -70,7 +72,6 @@ function RenderProducts() {
             className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
           >
             {product.name}
-
           </th>
           <td className="px-6 py-4">{product.category}</td>
           <td className="px-6 py-4">{product.sales}</td>
