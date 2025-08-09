@@ -3,14 +3,14 @@ export default function Paginator({
   onPageChange,
 }: {
   selectPage: number;
-  onPageChange: React.Dispatch<React.SetStateAction<number>>;
+  onPageChange: (page: number) => void;
 }) {
   const handlePrev = () => {
     if (selectPage > 1) onPageChange(selectPage - 1);
   };
 
   const handleNext = () => {
-    if (selectPage < 1) onPageChange(selectPage + 1);
+    if (!(selectPage < 1)) onPageChange(selectPage + 1);
   };
 
   return (
