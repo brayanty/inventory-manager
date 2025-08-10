@@ -10,7 +10,7 @@ function ProductsInventory() {
   const { page, setPage } = usePage();
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
 
-  const handleSubmit = async (data: Record<string, any>) => {
+  const handleSubmit = async (data: Record<string, []>) => {
     const response = await createProduct(data);
     if (response) {
       {
