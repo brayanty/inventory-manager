@@ -107,7 +107,7 @@ app.post("/devices", async (req, res) => {
   };
 
   try {
-    await writeData(entries, DEVICES_FILE);
+    await writeData(newEntry, DEVICES_FILE);
     res.status(201).json(newEntry);
   } catch {
     sendError(res, 500, "Error al guardar el producto");
@@ -220,7 +220,7 @@ app.get("/products", async (req, res) => {
         includeScore: true,
         threshold: 0.3,
       });
-      filtered = fuse.search(search).map(r => r.item);
+      filtered = fuse.search(search).map((r) => r.item);
     }
 
     // Calcular paginado
@@ -236,37 +236,53 @@ app.get("/products", async (req, res) => {
       limit: limitNum,
       totalItems,
       totalPages,
-      data: paginated
+      data: paginated,
     });
   } catch (error) {
     sendError(res, 500, "Error al leer los productos");
   }
 });
 
-
 // Crear un nuevo producto
 app.post("/products", async (req, res) => {
-  const { name, category, total, price } = req.body
+  const { name, category, total, price } = req.body;
   const newPrice = parseFloat(price);
   if (isNaN(newPrice) || newPrice < 0) {
-    return res.status(400).json({ error: "El precio debe ser un número válido y no negativo" });
+    return res
+      .status(400)
+      .json({ error: "El precio debe ser un número válido y no negativo" });
   }
   if (!name || typeof name !== "string" || name.trim() === "")
     return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
   if (!category || typeof category !== "string" || category.trim() === "")
-    return sendError(res, 400, "El campo 'category' debe ser una cadena no vacía");
+    return sendError(
+      res,
+      400,
+      "El campo 'category' debe ser una cadena no vacía"
+    );
   if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
-    return sendError(res, 400, "El campo 'total' debe ser un número válido y no negativo");
+    return sendError(
+      res,
+      400,
+      "El campo 'total' debe ser un número válido y no negativo"
+    );
 
-  const newProduct = { id: uuidv4(), sales: 0, name: name, category: category, total: total, price: price }
+  const newProduct = {
+    id: uuidv4(),
+    sales: 0,
+    name: name,
+    category: category,
+    total: total,
+    price: price,
+  };
 
   try {
-    writeData(newProduct, PRODUCTS_FILE)
-    res.json(newProduct,201)
+    writeData(newProduct, PRODUCTS_FILE);
+    res.json(newProduct, 201);
   } catch {
-    sendError(res, 404)
+    sendError(res, 404);
   }
-})
+});
 
 // Actualizar producto
 app.put("/products/:id", async (req, res) => {
