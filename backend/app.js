@@ -245,8 +245,9 @@ app.get("/products", async (req, res) => {
 
 // Crear un nuevo producto
 app.post("/products", async (req, res) => {
-  const { name, category, total, price } = req.body;
-  const newPrice = parseFloat(price);
+  const { name, category } = req.body;
+  const price = parseFloat(req.body.price);
+  const total = parseFloat(req.body.total);
   if (isNaN(newPrice) || newPrice < 0) {
     return res
       .status(400)
@@ -260,7 +261,12 @@ app.post("/products", async (req, res) => {
       400,
       "El campo 'category' debe ser una cadena no vacía"
     );
-  if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
+  if (
+    newTotal == null ||
+    typeof newTotal !== "number" ||
+    isNaN(newTotal) ||
+    newTotal < 0
+  )
     return sendError(
       res,
       400,
