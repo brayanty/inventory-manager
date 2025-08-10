@@ -3,7 +3,7 @@ import { formatCOP } from "@/components/utils/format";
 
 import useProductsStore from "@/components/store/products";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchStore, useCategoryStore } from "@/components/store/filters";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
@@ -17,6 +17,11 @@ function RenderProducts() {
   const { category } = useCategoryStore();
   const { search } = useSearchStore();
   const { page, setPage } = usePage();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading((prev) => !prev);
+  }, [page, setPage]);
 
   useEffect(() => {
     const fakeCategories = [
@@ -34,6 +39,7 @@ function RenderProducts() {
       addProducts(response.data || []);
     };
     loadProducts();
+    setIsLoading(false);
   }, [search, page, setPage]);
 
   const filtered = products.filter((product) => {
@@ -57,6 +63,17 @@ function RenderProducts() {
 
   if (products.length <= 0) {
     return <tr className="col-span-full">No hay productos </tr>;
+  }
+  if (isLoading) {
+    return (
+      <tr>
+        <td colSpan={6} className="text-center py-6">
+          <p className="text-gray-500 dark:text-gray-400">
+            Cargando productos...
+          </p>
+        </td>
+      </tr>
+    );
   }
 
   return (
