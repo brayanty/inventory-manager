@@ -23,7 +23,7 @@ function ProductsInventory() {
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex justify-between p-3 items-center">
-        <h2 className="text-xl font-bold mb-4">Inventaio de Productos</h2>
+        <h2 className="text-xl font-bold mb-4">Inventario de Productos</h2>
         <button
           type="button"
           className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
