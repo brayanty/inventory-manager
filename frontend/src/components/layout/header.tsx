@@ -13,7 +13,7 @@ function Header() {
       <div>
         <button
           className="cursor-pointer p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] hover:bg-gray-600 transition-colors ease-in-out duration-500 text-sm "
-          onClick={toggleSidebar}
+          onClick={() => toggleSidebar()}
         >
           <Menu />
         </button>
