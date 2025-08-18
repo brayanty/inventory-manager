@@ -131,9 +131,9 @@ const TechnicalService = () => {
           prev.map((d) =>
             d.id === editingDeviceId
               ? ({
-                ...deviceData,
-                id: editingDeviceId,
-              } as TechnicalServiceEntry)
+                  ...deviceData,
+                  id: editingDeviceId,
+                } as TechnicalServiceEntry)
               : d
           )
         );
@@ -141,7 +141,6 @@ const TechnicalService = () => {
         setEditingDeviceId(null);
       } else {
         const createdDevice = await createDevice(deviceData);
-        console.log(createDevice);
         setDevices((prev) => [...prev, createdDevice]);
       }
       clearForm();
@@ -169,9 +168,9 @@ const TechnicalService = () => {
       toast.warning("El dispositivo ya está entregado.");
       return;
     }
-    if(newUpdatedDevice.status == "En Revisión") {
-      toast.warning("Hey!!, todavia no se a revisado el dispositivo.")
-      return
+    if (newUpdatedDevice.status == "En Revisión") {
+      toast.warning("Hey!!, todavia no se a revisado el dispositivo.");
+      return;
     }
 
     const warrantLimit = new Date();
@@ -181,8 +180,10 @@ const TechnicalService = () => {
       ...newUpdatedDevice,
       output,
       exitDate: output ? new Date().toISOString().split("T")[0] : null,
-      warrantLimit: newUpdatedDevice.status === "Reparado" ? warrantLimit.toISOString().split("T")[0] : null,
-
+      warrantLimit:
+        newUpdatedDevice.status === "Reparado"
+          ? warrantLimit.toISOString().split("T")[0]
+          : null,
     };
     try {
       await updateDevice(id, newDevice);
@@ -207,7 +208,6 @@ const TechnicalService = () => {
       );
       return;
     }
-
 
     const updatedDevice = devices.find((dev) => dev.id === id);
     if (!updatedDevice) return;
@@ -317,7 +317,10 @@ const TechnicalService = () => {
               </tr>
             ) : (
               filteredDevices.map((d) => (
-                <tr key={d.id} className="border-b border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700">
+                <tr
+                  key={d.id}
+                  className="border-b border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
+                >
                   <td className="p-2">{d.client}</td>
                   <td className="p-2">{d.device}</td>
                   <td className="p-2">{d.IMEI}</td>
@@ -347,10 +350,10 @@ const TechnicalService = () => {
                         newStatus === "Editar"
                           ? handlerEditDevice(d)
                           : newStatus === "Entregado"
-                            ? handleOutput(d.id, true)
-                            : newStatus === "Eliminar"
-                              ? handleDeleteDevice(d.id)
-                              : null
+                          ? handleOutput(d.id, true)
+                          : newStatus === "Eliminar"
+                          ? handleDeleteDevice(d.id)
+                          : null
                       }
                     />
                   </td>
@@ -445,10 +448,11 @@ const TechnicalService = () => {
                   name="IMEI"
                   id="IMEI"
                   maxLength={15}
-                  className={`p-2 rounded border ${devicesForm.IMEI.toString().length <= 14
-                    ? "bg-gray-300"
-                    : ""
-                    } `}
+                  className={`p-2 rounded border ${
+                    devicesForm.IMEI.toString().length <= 14
+                      ? "bg-gray-300"
+                      : ""
+                  } `}
                   value={devicesForm.IMEI}
                   onChange={handleInputChange}
                   aria-label="Número IMEI"
