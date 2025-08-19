@@ -29,18 +29,21 @@ function Header() {
           onChange={(e) => setSearch(e.target.value)}
         />
       </label>
-
-      <select
-        className="p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm"
-        value={categorySelect}
-        onChange={(e) => setCategorySelect(e.target.value)}
-      >
-        {categoryList.map((item, index) => (
-          <option key={index} value={item.category}>
-            {item.category}
-          </option>
-        ))}
-      </select>
+      <div className="">
+        <select
+          className={`${
+            categoryList.length == 0 ? "hidden" : ""
+          } p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm`}
+          value={categorySelect}
+          onChange={(e) => setCategorySelect(e.target.value)}
+        >
+          {categoryList.map((item, index) => (
+            <option key={index} value={item.category}>
+              {item.category}
+            </option>
+          ))}
+        </select>
+      </div>
     </header>
   );
 }
