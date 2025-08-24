@@ -1,15 +1,5 @@
 import { create } from "zustand";
-
-// Interfaz para los productos
-interface Product {
-  name: string;
-  quantity: number;
-  category: string;
-  total: number;
-  price: number;
-  sales: number;
-  id?: string;
-}
+import { Product } from "../types/product";
 
 // Definición del estado global
 interface ProductsState {
