@@ -248,7 +248,7 @@ app.post("/products", async (req, res) => {
   const { name, category } = req.body;
   const price = parseFloat(req.body.price);
   const total = parseFloat(req.body.total);
-  if (isNaN(newPrice) || newPrice < 0) {
+  if (isNaN(price) || price < 0) {
     return res
       .status(400)
       .json({ error: "El precio debe ser un número válido y no negativo" });
@@ -261,12 +261,7 @@ app.post("/products", async (req, res) => {
       400,
       "El campo 'category' debe ser una cadena no vacía"
     );
-  if (
-    newTotal == null ||
-    typeof newTotal !== "number" ||
-    isNaN(newTotal) ||
-    newTotal < 0
-  )
+  if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
     return sendError(
       res,
       400,
