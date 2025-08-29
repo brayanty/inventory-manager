@@ -1,4 +1,4 @@
-import FormRender from "@/components/common/form";
+import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { createProduct } from "@/components/services/products";
