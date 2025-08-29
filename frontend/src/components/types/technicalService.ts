@@ -2,10 +2,10 @@ export type TechnicalServiceEntry = {
   id: string;
   client: string;
   device: string;
+  damage: string;
   model: string;
   IMEI: string;
-  status:
-  | "Reparado" | "Sin Solución" | "En Revisión";
+  status: "Reparado" | "Sin Solución" | "En Revisión";
   output: boolean;
   entryDate: string;
   exitDate: string | null;

@@ -3,7 +3,6 @@ import { useSearchStore } from "@/components/store/filters";
 import React, { useEffect, useState, useMemo } from "react";
 import { formatCOP } from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
-import models from "@/components/constants/models.ts";
 import {
   searchDevices,
   deleteDevice,
@@ -12,9 +11,9 @@ import {
 } from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
-import { NumericFormat } from "react-number-format";
 import { parseLAPrice } from "@/components/utils/ParsePrice";
 import { DropDown } from "@/components/common/dropdown";
+import DeviceForm from "@/components/common/formDevice";
 
 const FAKE_CATEGORIES = [
   { category: "Todos" },
@@ -38,6 +37,7 @@ const TechnicalService = () => {
   const [devicesForm, setDevicesForm] = useState({
     client: "",
     device: "",
+    damage: "",
     model: "",
     IMEI: "",
     price: "",
@@ -77,6 +77,7 @@ const TechnicalService = () => {
     setDevicesForm({
       client: "",
       device: "",
+      damage: "",
       detail: "",
       model: "",
       IMEI: "",
@@ -112,6 +113,7 @@ const TechnicalService = () => {
     const deviceData = {
       client: devicesForm.client.trim(),
       device: devicesForm.device.trim(),
+      damage: devicesForm.device.trim(),
       model: devicesForm.model,
       IMEI: devicesForm.IMEI,
       status: (editingDevice?.status ||
@@ -236,6 +238,7 @@ const TechnicalService = () => {
     setDevicesForm({
       client: d.client,
       device: d.device,
+      damage: d.damage,
       model: d.model,
       IMEI: d.IMEI,
       price: d.price.toString(),
@@ -373,115 +376,12 @@ const TechnicalService = () => {
           setEditingDeviceId(null);
         }}
       >
-        <form className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4">
-          <div className="flex flex-wrap gap-2">
-            <div className="flex flex-row items-center gap-2">
-              <label className="flex flex-col" htmlFor="client">
-                <span>Cliente: </span>
-                <input
-                  type="text"
-                  name="client"
-                  id="client"
-                  placeholder="Petrolino Sinforoso"
-                  className="p-2 rounded border"
-                  value={devicesForm.client}
-                  onChange={handleInputChange}
-                  aria-label="Nombre del cliente"
-                />
-              </label>
-              <label className="flex flex-col" htmlFor="device">
-                <span>Dispositivo: </span>
-                <input
-                  type="text"
-                  name="device"
-                  id="device"
-                  placeholder="Iphone 14 Pro Max"
-                  className="p-2 rounded border"
-                  value={devicesForm.device}
-                  onChange={handleInputChange}
-                  aria-label="Nombre del dispositivo"
-                />
-              </label>
-            </div>
-            <div className="flex flex-row items-center gap-2">
-              <label className="flex flex-col" htmlFor="price">
-                <span>Price: </span>
-                <NumericFormat
-                  id="price"
-                  name="price"
-                  value={devicesForm.price}
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  decimalScale={2}
-                  fixedDecimalScale
-                  allowNegative={false}
-                  onChange={(v) => handleInputChange(v)}
-                  className="p-2 rounded border"
-                  placeholder="40.000"
-                />
-              </label>
-              <label className="flex flex-col" htmlFor="model">
-                <span>Modelo: </span>
-                <select
-                  className="p-2 w-full text-[1rem] border"
-                  name="model"
-                  id="model"
-                  value={devicesForm.model}
-                  onChange={handleInputChange}
-                  aria-label="Modelo del dispositivo"
-                  required
-                >
-                  <option value="">Seleccione un modelo</option>
-                  {models.map((i) => (
-                    <option key={i.nombre} value={i.nombre}>
-                      {i.nombre}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div>
-              <label className="flex flex-col" htmlFor="IMEI">
-                <span>IMEI: </span>
-                <input
-                  type="text"
-                  name="IMEI"
-                  id="IMEI"
-                  maxLength={15}
-                  className={`p-2 rounded border ${
-                    devicesForm.IMEI.toString().length <= 14
-                      ? "bg-gray-300"
-                      : ""
-                  } `}
-                  value={devicesForm.IMEI}
-                  onChange={handleInputChange}
-                  aria-label="Número IMEI"
-                />
-              </label>
-            </div>
-            <div className="w-full">
-              <label className="w-full" htmlFor="detail">
-                <span>Observaciones: </span>
-                <textarea
-                  name="detail"
-                  id="detail"
-                  placeholder="El dispositivo está apagado, con rayas a los costados"
-                  className="p-2 w-full max-w-full min-h-[100px] max-h-[100px] rounded border"
-                  value={devicesForm.detail}
-                  onChange={handleInputChange}
-                  aria-label="Observaciones del dispositivo"
-                ></textarea>
-              </label>
-            </div>
-          </div>
-          <button
-            type="submit"
-            onClick={handleFormSubmit}
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            {isEditing ? "Actualizar dispositivo" : "Registrar ingreso"}
-          </button>
-        </form>
+        <DeviceForm
+          formData={devicesForm}
+          onChange={handleInputChange}
+          onSubmit={handleFormSubmit}
+          isEditing={false}
+        />
       </Modal>
     </div>
   );
