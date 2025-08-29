@@ -1,8 +1,9 @@
 import Button from "@/components/common/button";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
-import {formatCOP} from "@/components/utils/format";
+import { formatCOP } from "@/components/utils/format";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { Product } from "../types/product";
 
 const ShoppingCart = () => {
   const { productsCart, clearProductCart } = useShoppingCartStore();
@@ -22,14 +23,24 @@ const ShoppingCart = () => {
 
   if (!productsCart) return toast("Hubo un error aqui");
 
-  const renderProductsSale = (product) => {
+  const renderProductsSale = (product: Product) => {
     return (
-      <li className="flex justify-evenly items-center gap-2">
+      <li key={product.id} className="flex justify-evenly items-center gap-2">
         <div className="text-[14px]">{product.name.slice(0, 20)}...</div>
         <span className="text-[14px]">{product.category.slice(0, 5)}</span>
         <span className="text-[14px]">{formatCOP(product.price)}</span>
       </li>
     );
+  };
+
+  const saleProducts = () => {
+    if (productsCart.length === 0) {
+      toast("No hay productos en el carrito");
+      return;
+    }
+
+    toast("Productos vendidos exitosamente");
+    clearProductCart();
   };
 
   if (!productsCart) return toast("No hay productos");
@@ -53,7 +64,9 @@ const ShoppingCart = () => {
           <div>Total: {formatCOP(priceTotal)}</div>
         </div>
         <div className="flex justify-center gap-2">
-          <Button className="bg-green-500">Vender</Button>
+          <Button onClick={() => saleProducts()} className="bg-green-500">
+            Vender
+          </Button>
           <Button onClick={clearProductCart}>Limpiar</Button>
         </div>
       </footer>
