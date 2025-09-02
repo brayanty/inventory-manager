@@ -5,6 +5,7 @@ export async function getProduct(id: string) {
   const data = await response.json();
   return data;
 }
+
 export async function createProduct(product) {
   const response = await fetch(DEVICE_ENDPOINT, {
     method: "POST",
@@ -16,6 +17,7 @@ export async function createProduct(product) {
   const data = await response.json();
   return data;
 }
+
 export async function updateProduct(id, product) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
@@ -27,6 +29,7 @@ export async function updateProduct(id, product) {
   const data = await response.json();
   return data;
 }
+
 export async function deleteProduct(id) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "DELETE",
@@ -37,8 +40,23 @@ export async function deleteProduct(id) {
   const data = await response.json();
   return data;
 }
-export async function getProducts(search: string,page: number = 1) {
-  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + search + "&page=" + page);
+
+export async function soldProducts(ids) {
+  const response = await fetch(DEVICE_ENDPOINT + "/" + "sold", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(ids),
+  });
+
+  return response.ok;
+}
+
+export async function getProducts(search: string, page: number = 1) {
+  const response = await fetch(
+    DEVICE_ENDPOINT + "?" + "search=" + search + "&page=" + page
+  );
   const data = await response.json();
   return data;
 }
