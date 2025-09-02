@@ -9,10 +9,11 @@ import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
 import { getProducts } from "@/components/services/products";
 import usePage from "@/components/store/page";
+import { toast } from "react-toastify";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
-  const { addProductShopping } = useShoppingCartStore();
+  const { productsCart, addProductShopping } = useShoppingCartStore();
   const { setCategoryList } = useCategoryListStore();
   const { category } = useCategoryStore();
   const { search } = useSearchStore();
@@ -41,6 +42,20 @@ function RenderProducts() {
     loadProducts();
     setIsLoading(false);
   }, [search, page, setPage]);
+
+  const handleAddShoppingCart = (product) => {
+    const indexSearch = productsCart.findIndex(
+      (productCart) => productCart.id === product.id
+    );
+
+    if (indexSearch === -1) {
+      addProductShopping(product);
+      toast.success("Se agrego correctamente al carrito");
+      return;
+    } else {
+      toast.warn("Ya existe en el carrito");
+    }
+  };
 
   const filtered = products.filter((product) => {
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
@@ -82,7 +97,7 @@ function RenderProducts() {
         <tr
           key={product.id}
           className="border-b dark:border-gray-700 border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer"
-          onClick={() => addProductShopping(product)}
+          onClick={() => handleAddShoppingCart(product)}
         >
           <th
             scope="row"
