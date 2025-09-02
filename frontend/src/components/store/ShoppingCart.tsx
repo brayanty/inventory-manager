@@ -8,6 +8,7 @@ interface Product {
   price: number;
   sales: number;
   id?: string;
+  amount: number;
 }
 
 // Definición del estado global
