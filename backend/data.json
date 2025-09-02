@@ -54,5 +54,19 @@
     "warrantLimit": null,
     "price": 3424234,
     "detail": "43424342432"
+  },
+  {
+    "id": "39f5120c-a48a-4e36-9aa4-f4220e127f62",
+    "client": "El viejo raro ese",
+    "device": "Redmi Note 11",
+    "model": "Samsung",
+    "IMEI": "354139110942990",
+    "status": "En Revisión",
+    "output": false,
+    "entryDate": "2025-08-29",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 543545300,
+    "detail": "fwefr"
   }
 ]
