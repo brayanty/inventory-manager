@@ -318,6 +318,25 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
+// Crear una nueva venta
+app.post("/products/sold", async (req, res) => {
+  const soldProducts = req.body;
+  if (!soldProducts) return;
+  const products = await readData(PRODUCTS_FILE);
+
+  soldProducts.map((item) => {
+    if (item.soldTotal == null && item.id == null) {
+      res.status(404).send({ message: "No hay contidad o id valido" });
+    }
+    const index = products.findIndex((p) => p.id === item.id);
+    const newProduct = {
+      ...products[index],
+      total: products[index] - item.soldTotal,
+    };
+    writeData(newProduct, PRODUCTS_FILE);
+  });
+});
+
 // Iniciar servidor
 app.listen(port, () => {
   console.log(`API de servicio técnico corriendo en http://localhost:${port}`);
