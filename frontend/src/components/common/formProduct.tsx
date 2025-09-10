@@ -2,9 +2,10 @@ import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
 import { ChangeEvent, useState } from "react";
 
-type FieldType = "text" | "number" | "price";
+type FieldType = "text" | "number" | "price" | "select";
 
-interface FormField {
+interface FormFieldProps {
+  items?: any;
   label: string;
   name: string;
   placeholder?: string;
@@ -14,7 +15,7 @@ interface FormField {
 interface FormRenderProps {
   isForm: boolean;
   closeForm: () => void;
-  fields: FormField[];
+  fields: FormFieldProps[];
   onSubmit: (formData: Record<string, any>) => void;
 }
 
@@ -40,7 +41,7 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
       }, {} as Record<string, any>)
     );
   };
-
+  console.log(fields);
   return (
     <Modal title="Formulario de Ingreso" isOpen={isForm} onClose={closeForm}>
       <form
@@ -51,12 +52,24 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
           {fields.map((field) => (
             <label
               key={field.name}
-              className="flex flex-col"
+              className="flex flex-col w-full max-w-48"
               htmlFor={field.name}
             >
               <span>{field.label}:</span>
-
-              {field.type === "price" ? (
+              {field.type === "select" ? (
+                <select
+                  name={field.name}
+                  id={field.name}
+                  className="w-full p-2 rounded border"
+                  aria-label="Display"
+                  required
+                  onChange={handleInputChange}
+                >
+                  {field.items.map((option) => (
+                    <option value={option}>{option}</option>
+                  ))}
+                </select>
+              ) : field.type === "price" ? (
                 <NumericFormat
                   id={field.name}
                   name={field.name}
