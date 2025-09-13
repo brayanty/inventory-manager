@@ -90,10 +90,19 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   type={field.type}
                   id={field.name}
                   name={field.name}
+                  inputMode={field.type === "number" ? "numeric" : "text"}
                   value={dataForm[field.name] || ""}
                   onChange={handleInputChange}
                   placeholder={field.placeholder}
                   className="p-2 rounded border"
+                  onKeyDown={(e) => {
+                    if (
+                      field.type === "number" &&
+                      ["e", "E", "+", "-"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               )}
             </label>
