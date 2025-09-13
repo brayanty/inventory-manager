@@ -3,20 +3,27 @@ import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { createProduct } from "@/components/services/products";
 import usePage from "@/components/store/page.tsx";
+import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 function ProductsInventory() {
   const { page, setPage } = usePage();
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
+  const { products, addProducts } = useProductsStore();
+  const category = ["nose", "nose", "tampoco se"];
 
   const handleSubmit = async (data: Record<string, []>) => {
-    const response = await createProduct(data);
-    if (response) {
+    const newProduct = await createProduct(data);
+    const newProducts = [...products, newProduct];
+    if (newProduct) {
       {
         setOpenAddProduct(false);
+        addProducts(newProducts);
+
         toast.success("Producto agregado correctamente");
       }
+      console.log(products);
     }
   };
 
@@ -70,13 +77,13 @@ function ProductsInventory() {
             label: "Producto",
             name: "name",
             type: "text",
-            placeholder: "Petrolino Sinforoso",
+            placeholder: "Audifonos KJS 34",
           },
           {
             label: "Categoria",
             name: "category",
-            type: "text",
-            placeholder: "Iphone 14",
+            type: "select",
+            items: category,
           },
           { label: "Total", name: "total", type: "number" },
           {
