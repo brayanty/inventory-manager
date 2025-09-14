@@ -4,12 +4,13 @@ import { formatCOP } from "@/components/utils/format";
 import useProductsStore from "@/components/store/products";
 
 import { useEffect, useState } from "react";
-import { useSearchStore, useCategoryStore } from "@/components/store/filters";
+import { useSearchStore } from "@/components/store/filters";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
-import { getProducts } from "@/components/services/products";
+import { getCategories, getProducts } from "@/components/services/products";
 import usePage from "@/components/store/page";
 import { useHandleController } from "../hooks/useHandleController";
+import { Product } from "@/components/types/product";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
@@ -18,8 +19,7 @@ function RenderProducts() {
     productsCart,
     addProductShopping
   );
-  const { setCategoryList } = useCategoryListStore();
-  const { category } = useCategoryStore();
+  const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
   const { page, setPage } = usePage();
   const [isLoading, setIsLoading] = useState(true);
@@ -29,13 +29,11 @@ function RenderProducts() {
   }, [page, setPage]);
 
   useEffect(() => {
-    const fakeCategories = [
-      { category: "Todos" },
-      { category: "Computadoras" },
-      { category: "Periféricos" },
-      { category: "Móviles" },
-    ];
-    setCategoryList(fakeCategories);
+    const loadCategories = async () => {
+      const categories = await getCategories();
+      setCategoryList(categories);
+    };
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -49,7 +47,9 @@ function RenderProducts() {
 
   const filtered = products.filter((product) => {
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
-    const matchCategory = category === "" || product.category === category;
+    const matchCategory =
+      categorySelect === "all" || product.category === categorySelect;
+    console.log(matchCategory, matchName);
     return matchName && matchCategory;
   });
 
@@ -66,7 +66,7 @@ function RenderProducts() {
     );
   }
 
-  if (products.length <= 0) {
+  if (filtered.length <= 0) {
     return <tr className="col-span-full">No hay productos </tr>;
   }
   if (isLoading) {
@@ -83,7 +83,7 @@ function RenderProducts() {
 
   return (
     <>
-      {products.map((product) => (
+      {filtered.map((product: Product) => (
         <tr
           key={product.id}
           className="border-b dark:border-gray-700 border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer"
