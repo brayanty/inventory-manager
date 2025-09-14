@@ -38,7 +38,6 @@ const ShoppingCart = () => {
   // Se envia los id de productos vendidos al backend
   const saleProducts = () => {
     if (productsCart.length === 0) toast("No hay productos en el carrito");
-    console.log(productsCart);
     try {
       const soldProductId = productsCart.map((item) => item.id);
       soldProducts(soldProductId);

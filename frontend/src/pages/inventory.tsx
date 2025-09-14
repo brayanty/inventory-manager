@@ -23,7 +23,6 @@ function ProductsInventory() {
 
         toast.success("Producto agregado correctamente");
       }
-      console.log(products);
     }
   };
 

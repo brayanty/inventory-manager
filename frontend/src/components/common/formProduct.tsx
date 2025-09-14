@@ -41,7 +41,6 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
       }, {} as Record<string, any>)
     );
   };
-  console.log(fields);
   return (
     <Modal title="Formulario de Ingreso" isOpen={isForm} onClose={closeForm}>
       <form
