@@ -6,12 +6,13 @@ import usePage from "@/components/store/page.tsx";
 import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { useCategoryListStore } from "@/components/store/category";
 
 function ProductsInventory() {
   const { page, setPage } = usePage();
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
   const { products, addProducts } = useProductsStore();
-  const category = ["nose", "nose", "tampoco se"];
+  const { categoryList } = useCategoryListStore();
 
   const handleSubmit = async (data: Record<string, []>) => {
     const newProduct = await createProduct(data);
@@ -82,7 +83,7 @@ function ProductsInventory() {
             label: "Categoria",
             name: "category",
             type: "select",
-            items: category,
+            items: categoryList,
           },
           { label: "Total", name: "total", type: "number" },
           {
