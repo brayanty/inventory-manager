@@ -1,11 +1,12 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
 import { ChangeEvent, useState } from "react";
+import { CategoryList } from "../types/product";
 
 type FieldType = "text" | "number" | "price" | "select";
 
 interface FormFieldProps {
-  items?: any;
+  items?: CategoryList[];
   label: string;
   name: string;
   placeholder?: string;
@@ -60,12 +61,20 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   name={field.name}
                   id={field.name}
                   className="w-full p-2 rounded border"
-                  aria-label="Display"
                   required
+                  value={dataForm[field.name] || ""}
                   onChange={handleInputChange}
                 >
-                  {field.items.map((option) => (
-                    <option value={option}>{option}</option>
+                  <option value="" disabled>
+                    Seleccione una opción
+                  </option>
+                  {field.items?.map((option) => (
+                    <option
+                      key={option.category.english}
+                      value={option.category.english}
+                    >
+                      {option.category.spanich}
+                    </option>
                   ))}
                 </select>
               ) : field.type === "price" ? (
@@ -78,6 +87,7 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   decimalScale={2}
                   fixedDecimalScale
                   allowNegative={false}
+                  prefix="$ "
                   onValueChange={(values) =>
                     handlePriceChange(field.name, values.value)
                   }
