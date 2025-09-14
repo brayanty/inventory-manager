@@ -38,8 +38,8 @@ function Header() {
           onChange={(e) => setCategorySelect(e.target.value)}
         >
           {categoryList.map((item, index) => (
-            <option key={index} value={item.category}>
-              {item.category}
+            <option key={index} value={item.category.english}>
+              {item.category.spanich}
             </option>
           ))}
         </select>
