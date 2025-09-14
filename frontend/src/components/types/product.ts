@@ -18,3 +18,7 @@ export type ProductsCart = {
   id?: string;
   amount?: number;
 };
+
+export type CategoryList = {
+  category: { spanich: string; english: string };
+};
