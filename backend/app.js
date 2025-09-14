@@ -19,6 +19,7 @@ require("dotenv").config();
 // Archivos JSON usados
 const DEVICES_FILE = path.join(__dirname, "data.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
+const CATEGORIES_FILE = path.join(__dirname, "categories.json");
 
 // Middlewares
 app.use(express.json());
@@ -335,6 +336,12 @@ app.post("/products/sold", async (req, res) => {
     };
     writeData(newProduct, PRODUCTS_FILE);
   });
+});
+
+// Crear una nueva venta
+app.get("/products/categories", async (req, res) => {
+  const categories = await readData(CATEGORIES_FILE);
+  res.json(categories);
 });
 
 // Iniciar servidor
