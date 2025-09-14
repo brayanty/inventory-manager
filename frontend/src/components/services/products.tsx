@@ -60,3 +60,9 @@ export async function getProducts(search: string, page: number = 1) {
   const data = await response.json();
   return data;
 }
+
+export async function getCategories() {
+  const response = await fetch(DEVICE_ENDPOINT + "/categories");
+  const data = await response.json();
+  return data;
+}
