@@ -7,6 +7,7 @@ import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useCategoryListStore } from "@/components/store/category";
+import Button from "@/components/common/button";
 
 function ProductsInventory() {
   const { page, setPage } = usePage();
@@ -31,15 +32,24 @@ function ProductsInventory() {
     <div className="h-full w-full flex flex-col">
       <div className="flex justify-between p-3 items-center">
         <h2 className="text-xl font-bold mb-4">Inventario de Productos</h2>
-        <button
-          type="button"
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-          onClick={() => {
-            setOpenAddProduct(true);
-          }}
-        >
-          Agregar Producto
-        </button>
+        <div className="flex gap-2">
+          <Button
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+            onClick={() => {
+              setOpenAddProduct(true);
+            }}
+          >
+            Agregar Producto
+          </Button>
+          <Button
+            className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition"
+            onClick={() => {
+              setOpenAddProduct(true);
+            }}
+          >
+            Agregar Categoria
+          </Button>
+        </div>
       </div>
       <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
@@ -68,6 +78,7 @@ function ProductsInventory() {
         </table>
       </div>
       <Paginator selectPage={page} onPageChange={setPage} />
+      {/* //Formulario para agregar productos */}
       <FormRender
         isForm={isOpenAddProduct}
         closeForm={() => setOpenAddProduct(false)}
