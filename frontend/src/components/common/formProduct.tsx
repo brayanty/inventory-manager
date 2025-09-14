@@ -4,7 +4,7 @@ import { ChangeEvent, useState } from "react";
 import { CategoryList } from "../types/product";
 
 type FieldType = "text" | "number" | "price" | "select";
-
+type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 interface FormFieldProps {
   items?: CategoryList[];
   label: string;
@@ -23,7 +23,7 @@ interface FormRenderProps {
 function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
   const [dataForm, setDataForm] = useState<Record<string, any>>({});
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
     const { name, value } = e.target;
     setDataForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -63,7 +63,7 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   className="w-full p-2 rounded border"
                   required
                   value={dataForm[field.name] || ""}
-                  onChange={handleInputChange}
+                  onChange={(e) => handleInputChange(e)}
                 >
                   <option value="" disabled>
                     Seleccione una opción
