@@ -3,9 +3,25 @@
     "id": "1",
     "name": "Laptop Lenovo IdeaPad 5",
     "quantity": 1,
-    "category": "Computadoras",
+    "category": "computers",
     "entire": 20,
     "price": 1850000,
     "sales": 5
+  },
+  {
+    "id": "9e4e0b69-965a-4814-bbd7-111883e7daa5",
+    "sales": 0,
+    "name": "er3q2e3",
+    "category": "mobiles",
+    "total": 432432423,
+    "price": 4234324
+  },
+  {
+    "id": "9ea8aad3-d4ca-4d23-992e-e0b5b557ad40",
+    "sales": 0,
+    "name": "rw24342",
+    "category": "nose",
+    "total": 4324324,
+    "price": 34234
   }
 ]
