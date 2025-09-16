@@ -249,6 +249,16 @@ app.post("/products", async (req, res) => {
   const { name, category } = req.body;
   const price = parseFloat(req.body.price);
   const total = parseFloat(req.body.total);
+  const categoriesList = await readData(CATEGORIES_FILE);
+  const categoryExists = categoriesList.find(
+    (cat) => cat.category.english === category
+  );
+  if (!categoryExists) {
+    return res
+      .status(400)
+      .json({ error: "La categoría proporcionada no existe" });
+  }
+
   if (isNaN(price) || price < 0) {
     return res
       .status(400)
@@ -256,12 +266,6 @@ app.post("/products", async (req, res) => {
   }
   if (!name || typeof name !== "string" || name.trim() === "")
     return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
-  if (!category || typeof category !== "string" || category.trim() === "")
-    return sendError(
-      res,
-      400,
-      "El campo 'category' debe ser una cadena no vacía"
-    );
   if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
     return sendError(
       res,
@@ -273,7 +277,7 @@ app.post("/products", async (req, res) => {
     id: uuidv4(),
     sales: 0,
     name: name,
-    category: category,
+    category: categoryExists.category,
     total: total,
     price: price,
   };
