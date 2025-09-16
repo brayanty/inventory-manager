@@ -1,6 +1,6 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { CategoryList } from "../types/product";
 
 type FieldType = "text" | "number" | "price" | "select";
@@ -65,13 +65,10 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   value={dataForm[field.name] || ""}
                   onChange={(e) => handleInputChange(e)}
                 >
-                  <option value="" disabled>
-                    Seleccione una opción
-                  </option>
                   {field.items?.map((option) => (
                     <option
-                      key={option.category.english}
                       value={option.category.english}
+                      key={option.category.english}
                     >
                       {option.category.spanich}
                     </option>
