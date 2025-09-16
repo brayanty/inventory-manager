@@ -48,7 +48,7 @@ function RenderProducts() {
   const filtered = products.filter((product) => {
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
     const matchCategory =
-      categorySelect === "all" || product.category === categorySelect;
+      categorySelect === "all" || product.category.english === categorySelect;
     console.log(matchCategory, matchName);
     return matchName && matchCategory;
   });
@@ -95,7 +95,7 @@ function RenderProducts() {
           >
             {product.name}
           </th>
-          <td className="px-6 py-4">{product.category}</td>
+          <td className="px-6 py-4">{product.category.spanich}</td>
           <td className="px-6 py-4">{product.sales}</td>
           <td className="px-6 py-4">{product.total}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
