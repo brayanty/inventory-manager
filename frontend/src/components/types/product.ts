@@ -1,7 +1,7 @@
 export type Product = {
   name: string;
   quantity: number;
-  category: string;
+  category: { spanich: string; english: string };
   total?: number;
   price: number;
   sales: number;
@@ -11,7 +11,7 @@ export type Product = {
 export type ProductsCart = {
   name: string;
   quantity: number;
-  category: string;
+  category: { spanich: string; english: string };
   total?: number;
   price: number;
   sales: number;
