@@ -1,7 +1,7 @@
 import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
-import { createProduct } from "@/components/services/products";
+import { createCategory, createProduct } from "@/components/services/products";
 import usePage from "@/components/store/page.tsx";
 import useProductsStore from "@/components/store/products";
 import { useState } from "react";
@@ -13,7 +13,17 @@ function ProductsInventory() {
   const { page, setPage } = usePage();
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
   const { products, addProducts } = useProductsStore();
-  const { categoryList } = useCategoryListStore();
+  const { categoryList, setCategoryList } = useCategoryListStore();
+
+  const [isOpenAddCategory, setOpenAddCategory] = useState(false);
+
+  const handleSubmitCategory = async (data: Record<string, []>) => {
+    const newCategory = await createCategory(data);
+    const newCategories = [...categoryList, newCategory];
+    setCategoryList(newCategories);
+    toast.success("Categoría agregada correctamente");
+    setOpenAddCategory(false);
+  };
 
   const handleSubmit = async (data: Record<string, []>) => {
     const newProduct = await createProduct(data);
@@ -78,7 +88,21 @@ function ProductsInventory() {
         </table>
       </div>
       <Paginator selectPage={page} onPageChange={setPage} />
-      {/* //Formulario para agregar productos */}
+      {/* Formulario para agregar categoria */}
+      <FormRender
+        isForm={isOpenAddCategory}
+        closeForm={() => setOpenAddCategory(false)}
+        onSubmit={(data) => handleSubmitCategory(data)}
+        fields={[
+          {
+            label: "Categoría",
+            name: "category",
+            type: "text",
+            placeholder: "Perifericos...",
+          },
+        ]}
+      />
+      {/* Formulario para agregar productos */}
       <FormRender
         isForm={isOpenAddProduct}
         closeForm={() => setOpenAddProduct(false)}
