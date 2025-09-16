@@ -3,25 +3,132 @@
     "id": "1",
     "name": "Laptop Lenovo IdeaPad 5",
     "quantity": 1,
-    "category": "computers",
+    "category": {
+      "spanich": "Portátiles",
+      "english": "Laptops"
+    },
     "entire": 20,
     "price": 1850000,
     "sales": 5
   },
   {
-    "id": "9e4e0b69-965a-4814-bbd7-111883e7daa5",
+    "id": "067c79f2-0045-4861-98c3-c359d9daaa62",
     "sales": 0,
-    "name": "er3q2e3",
-    "category": "mobiles",
-    "total": 432432423,
-    "price": 4234324
+    "name": "rwre",
+    "category": "peripherals",
+    "total": 4234,
+    "price": 4234
   },
   {
-    "id": "9ea8aad3-d4ca-4d23-992e-e0b5b557ad40",
+    "id": "19a72a53-e891-4b2b-9787-26f6e606ea64",
     "sales": 0,
-    "name": "rw24342",
-    "category": "nose",
-    "total": 4324324,
+    "name": "32132",
+    "category": "computers,Computadoras",
+    "total": 321321,
+    "price": 321
+  },
+  {
+    "id": "18293c25-bcfa-48c3-8b27-ff758ce71052",
+    "sales": 0,
+    "name": "dsdsa",
+    "category": "all,Todos",
+    "total": 213213,
+    "price": 23213
+  },
+  {
+    "id": "bc56e61b-2e4e-4517-bb58-18c1ad34a08f",
+    "sales": 0,
+    "name": "sfs",
+    "category": "Computadoras",
+    "total": 2342,
+    "price": 4234
+  },
+  {
+    "id": "fd98d8bd-8490-4cc2-ad89-b611ad965c77",
+    "sales": 0,
+    "name": "ffewr",
+    "category": "all",
+    "total": 4544,
+    "price": 43434
+  },
+  {
+    "id": "07a906be-a39c-4978-bfe4-8320d03bd9bd",
+    "sales": 0,
+    "name": "rwer",
+    "category": "Computadoras",
+    "total": 4234324,
     "price": 34234
+  },
+  {
+    "id": "8f092ff8-13f1-4615-8ca7-974e3a43ee17",
+    "sales": 0,
+    "name": "dfad",
+    "category": "computers",
+    "total": 343213,
+    "price": 3123
+  },
+  {
+    "id": "52c0d3a5-59f8-47f2-a1f5-d603e01ba8b2",
+    "sales": 0,
+    "name": "3323",
+    "category": "peripherals",
+    "total": 32132132,
+    "price": 3213
+  },
+  {
+    "id": "5fab12e2-57b9-45fc-9644-1fe9aa431796",
+    "sales": 0,
+    "name": "54543543",
+    "category": "peripherals",
+    "total": 435453,
+    "price": 5435
+  },
+  {
+    "id": "b648d5ec-9ce2-4a6e-a479-30578ef4edd1",
+    "sales": 0,
+    "name": "wre",
+    "category": "peripherals",
+    "total": 43243,
+    "price": 2
+  },
+  {
+    "id": "a79cc6a3-6bba-4ea3-a26d-aea6e1142f91",
+    "sales": 0,
+    "name": "fsdfrwe",
+    "category": "peripherals",
+    "total": 5424234,
+    "price": 423423
+  },
+  {
+    "id": "60d07328-430a-45cf-9ed7-c9205064263f",
+    "sales": 0,
+    "name": "34234",
+    "category": "computers",
+    "total": 4324324,
+    "price": 4234
+  },
+  {
+    "id": "de5394db-5b90-4774-860e-2eb4f0429cf6",
+    "sales": 0,
+    "name": "432423",
+    "category": {
+      "category": {
+        "spanich": "Computadoras",
+        "english": "computers"
+      }
+    },
+    "total": 423423,
+    "price": 42343
+  },
+  {
+    "id": "2cf426cc-5581-4f9f-9972-f02c1cc62dcf",
+    "sales": 0,
+    "name": "432423",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 3423423423,
+    "price": 423423
   }
 ]
