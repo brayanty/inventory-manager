@@ -2,6 +2,7 @@ import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
 import { useState } from "react";
 import { CategoryList } from "../types/product";
+import { toast } from "react-toastify";
 
 type FieldType = "text" | "number" | "price" | "select";
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -25,6 +26,11 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
 
   const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
     const { name, value } = e.target;
+    if (name === undefined || value === undefined) {
+      toast.error("Error al capturar los datos del formulario.");
+      return;
+    }
+
     setDataForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -65,6 +71,7 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                   value={dataForm[field.name] || ""}
                   onChange={(e) => handleInputChange(e)}
                 >
+                  <option value="">Selecciona una categoria...</option>
                   {field.items?.map((option) => (
                     <option
                       value={option.category.english}
