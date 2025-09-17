@@ -46,10 +46,19 @@ function RenderProducts() {
   }, [search, page, setPage]);
 
   const filtered = products.filter((product) => {
+    if (
+      product.name === undefined ||
+      product.id === undefined ||
+      product.price === undefined ||
+      product.total === undefined ||
+      product.sales === undefined
+    ) {
+      return false;
+    }
+
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
     const matchCategory =
       categorySelect === "all" || product.category.english === categorySelect;
-    console.log(matchCategory, matchName);
     return matchName && matchCategory;
   });
 
