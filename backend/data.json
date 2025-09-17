@@ -68,5 +68,19 @@
     "warrantLimit": null,
     "price": 543545300,
     "detail": "fwefr"
+  },
+  {
+    "id": "e016e310-6d14-4340-9c5b-a3da3f92e3a6",
+    "client": "El viejo raro ese",
+    "device": "Redmi Note 11",
+    "model": "Huawei",
+    "IMEI": "354139110942990",
+    "status": "En Revisión",
+    "output": false,
+    "entryDate": "2025-09-17",
+    "exitDate": null,
+    "warrantLimit": null,
+    "price": 543545300,
+    "detail": "5435tretrete"
   }
 ]

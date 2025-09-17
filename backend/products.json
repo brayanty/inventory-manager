@@ -12,123 +12,179 @@
     "sales": 5
   },
   {
-    "id": "067c79f2-0045-4861-98c3-c359d9daaa62",
+    "id": "728adc3d-ba2d-49b9-b588-75cc9a280e1e",
     "sales": 0,
-    "name": "rwre",
-    "category": "peripherals",
-    "total": 4234,
-    "price": 4234
-  },
-  {
-    "id": "19a72a53-e891-4b2b-9787-26f6e606ea64",
-    "sales": 0,
-    "name": "32132",
-    "category": "computers,Computadoras",
-    "total": 321321,
-    "price": 321
-  },
-  {
-    "id": "18293c25-bcfa-48c3-8b27-ff758ce71052",
-    "sales": 0,
-    "name": "dsdsa",
-    "category": "all,Todos",
-    "total": 213213,
-    "price": 23213
-  },
-  {
-    "id": "bc56e61b-2e4e-4517-bb58-18c1ad34a08f",
-    "sales": 0,
-    "name": "sfs",
-    "category": "Computadoras",
-    "total": 2342,
-    "price": 4234
-  },
-  {
-    "id": "fd98d8bd-8490-4cc2-ad89-b611ad965c77",
-    "sales": 0,
-    "name": "ffewr",
-    "category": "all",
-    "total": 4544,
-    "price": 43434
-  },
-  {
-    "id": "07a906be-a39c-4978-bfe4-8320d03bd9bd",
-    "sales": 0,
-    "name": "rwer",
-    "category": "Computadoras",
-    "total": 4234324,
-    "price": 34234
-  },
-  {
-    "id": "8f092ff8-13f1-4615-8ca7-974e3a43ee17",
-    "sales": 0,
-    "name": "dfad",
-    "category": "computers",
-    "total": 343213,
-    "price": 3123
-  },
-  {
-    "id": "52c0d3a5-59f8-47f2-a1f5-d603e01ba8b2",
-    "sales": 0,
-    "name": "3323",
-    "category": "peripherals",
-    "total": 32132132,
-    "price": 3213
-  },
-  {
-    "id": "5fab12e2-57b9-45fc-9644-1fe9aa431796",
-    "sales": 0,
-    "name": "54543543",
-    "category": "peripherals",
-    "total": 435453,
-    "price": 5435
-  },
-  {
-    "id": "b648d5ec-9ce2-4a6e-a479-30578ef4edd1",
-    "sales": 0,
-    "name": "wre",
-    "category": "peripherals",
-    "total": 43243,
-    "price": 2
-  },
-  {
-    "id": "a79cc6a3-6bba-4ea3-a26d-aea6e1142f91",
-    "sales": 0,
-    "name": "fsdfrwe",
-    "category": "peripherals",
-    "total": 5424234,
-    "price": 423423
-  },
-  {
-    "id": "60d07328-430a-45cf-9ed7-c9205064263f",
-    "sales": 0,
-    "name": "34234",
-    "category": "computers",
-    "total": 4324324,
-    "price": 4234
-  },
-  {
-    "id": "de5394db-5b90-4774-860e-2eb4f0429cf6",
-    "sales": 0,
-    "name": "432423",
-    "category": {
-      "category": {
-        "spanich": "Computadoras",
-        "english": "computers"
-      }
-    },
-    "total": 423423,
-    "price": 42343
-  },
-  {
-    "id": "2cf426cc-5581-4f9f-9972-f02c1cc62dcf",
-    "sales": 0,
-    "name": "432423",
+    "name": "tytry",
     "category": {
       "spanich": "Periféricos",
       "english": "peripherals"
     },
-    "total": 3423423423,
+    "total": 6546546,
+    "price": 6546
+  },
+  {
+    "id": "ffa3142d-6a54-40f2-b0d9-fa899f3a7a10",
+    "sales": 0,
+    "name": "6565465",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 65654,
+    "price": 6666
+  },
+  {
+    "id": "845df859-6b53-4b3a-9daa-dd8bd10b5892",
+    "sales": 0,
+    "name": "6546456",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 6546546,
+    "price": 56456
+  },
+  {
+    "id": "b19086e6-ff3b-4c00-82f4-1370e9da2b06",
+    "sales": 0,
+    "name": "65645",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 645645645,
+    "price": 546456
+  },
+  {
+    "id": "4a20d77c-8bb1-41f6-af95-7f3d8b141115",
+    "sales": 0,
+    "name": "656456",
+    "category": {
+      "spanich": "Móviles",
+      "english": "mobiles"
+    },
+    "total": 54645654654645,
+    "price": 546456546
+  },
+  {
+    "id": "375ce56f-d90b-42ef-aa75-3d122af7ff24",
+    "sales": 0,
+    "name": "6546456546",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 654654654,
+    "price": 456546454
+  },
+  {
+    "id": "0f8fd5de-41f4-4b3c-86b7-543163ff81fb",
+    "sales": 0,
+    "name": "uytytey",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 56456456,
+    "price": 6546546
+  },
+  {
+    "id": "d31e1f89-a57b-4a13-90a4-0027279f1b37",
+    "sales": 0,
+    "name": "654656",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 6456546,
+    "price": 465464500
+  },
+  {
+    "id": "f44246b0-7193-4fa5-86a7-1a617fea4968",
+    "sales": 0,
+    "name": "adesad",
+    "category": {
+      "spanich": "Computadoras",
+      "english": "computers"
+    },
+    "total": 32321,
+    "price": 22312
+  },
+  {
+    "id": "f3d38004-dc88-4622-9be8-004e92ed815a",
+    "sales": 0,
+    "name": "4324324",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 4234234,
+    "price": 23423
+  },
+  {
+    "id": "5c7c4f32-07ea-4c64-a34b-fde3bf18de8f",
+    "sales": 0,
+    "name": "3213",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 321321,
+    "price": 3
+  },
+  {
+    "id": "6a02a855-3740-433e-92bc-430e96d87406",
+    "sales": 0,
+    "name": "2321321",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 21321321,
+    "price": 3213
+  },
+  {
+    "id": "732c169c-ce63-43a7-bfa8-aa5689d2928c",
+    "sales": 0,
+    "name": "432423432",
+    "category": {
+      "spanich": "Computadoras",
+      "english": "computers"
+    },
+    "total": 423423,
+    "price": 423432
+  },
+  {
+    "id": "27853ed4-5d22-47c1-a721-026d833991f6",
+    "sales": 0,
+    "name": "432423",
+    "category": {
+      "spanich": "Computadoras",
+      "english": "computers"
+    },
+    "total": 3423423,
     "price": 423423
+  },
+  {
+    "id": "883a8a46-01b0-4901-ac0b-b565e11cdb85",
+    "sales": 0,
+    "name": "uiutyty",
+    "category": {
+      "spanich": "Computadoras",
+      "english": "computers"
+    },
+    "total": 5634543543,
+    "price": 546456
+  },
+  {
+    "id": "6d5fc129-62b0-4d3d-a87b-f72c19212097",
+    "sales": 0,
+    "name": "tertert",
+    "category": {
+      "spanich": "Periféricos",
+      "english": "peripherals"
+    },
+    "total": 45435454,
+    "price": 4543
   }
 ]
