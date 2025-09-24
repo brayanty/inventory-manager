@@ -1,5 +1,18 @@
 [
-  { "category": { "spanich": "Computadoras", "english": "computers" } },
-  { "category": { "spanich": "Periféricos", "english": "peripherals" } },
-  { "category": { "spanich": "Móviles", "english": "mobiles" } }
+  {
+    "id": "54cb4524-503e-4ba0-b288-f419df7d677c",
+    "category": "4324"
+  },
+  {
+    "id": "89eadf99-43d0-401b-a808-58ed84881642",
+    "category": "43242"
+  },
+  {
+    "id": "40498692-f104-437c-ac2b-43b92643530b",
+    "category": "perifericos"
+  },
+  {
+    "id": "07290ba4-312c-4ec4-b06a-df51628951c0",
+    "category": "6546456"
+  }
 ]
