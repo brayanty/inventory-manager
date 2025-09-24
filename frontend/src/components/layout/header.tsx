@@ -9,10 +9,7 @@ function Header() {
   const { search, setSearch } = useSearchStore();
   const [toggleSidebar] = useOpenSidebar("#navegation");
 
-  const newCategory = [
-    { category: { spanich: "Todas", english: "all" } },
-    ...categoryList,
-  ];
+  const newCategory = [{ category: "todos" }, ...categoryList];
 
   return (
     <header className="mx-auto w-full h-full max-h-16 flex justify-between items-center p-5 dark:text-white bg-white dark:bg-[#1f232b]">
@@ -39,13 +36,13 @@ function Header() {
         <select
           className={`${
             newCategory.length == 0 ? "hidden" : ""
-          } p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm`}
+          } p-2 rounded-md border capitalize border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm`}
           value={categorySelect}
           onChange={(e) => setCategorySelect(e.target.value)}
         >
           {newCategory.map((item, index) => (
-            <option key={index} value={item.category.english}>
-              {item.category.spanich}
+            <option className="capitalize" key={index} value={item.category}>
+              {item.category}
             </option>
           ))}
         </select>
