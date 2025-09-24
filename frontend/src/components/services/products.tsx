@@ -41,13 +41,13 @@ export async function deleteProduct(id) {
   return data;
 }
 
-export async function soldProducts(ids) {
+export async function soldProducts(productSales) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + "sold", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(ids),
+    body: JSON.stringify(productSales),
   });
 
   return response.ok;
