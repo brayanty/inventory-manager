@@ -251,7 +251,7 @@ app.post("/products", async (req, res) => {
   const total = parseFloat(req.body.total);
   const categoriesList = await readData(CATEGORIES_FILE);
   const categoryExists = categoriesList.find(
-    (cat) => cat.category.english === category
+    (cat) => cat.category === category
   );
   if (!categoryExists) {
     return res
@@ -326,26 +326,70 @@ app.put("/products/:id", async (req, res) => {
 // Crear una nueva venta
 app.post("/products/sold", async (req, res) => {
   const soldProducts = req.body;
-  if (!soldProducts) return;
-  const products = await readData(PRODUCTS_FILE);
 
-  soldProducts.map((item) => {
-    if (item.soldTotal == null && item.id == null) {
-      res.status(404).send({ message: "No hay contidad o id valido" });
-    }
-    const index = products.findIndex((p) => p.id === item.id);
-    const newProduct = {
-      ...products[index],
-      total: products[index] - item.soldTotal,
-    };
-    writeData(newProduct, PRODUCTS_FILE);
+  const productError = soldProducts.findIndex((i) => {
+    i.id.length == 0 || i.amount <= 0;
   });
+  if (!productError) {
+    res.status(404).send({
+      message: "Algun producto tiene un valor negativo a su id es invalido",
+    });
+  }
+
+  const productsData = await readData(PRODUCTS_FILE);
+  const productExist = soldProducts.map((i) => {
+    return productsData.find((product) => product.id == i.id);
+  });
+  console.log(productExist);
+
+  if (!soldProducts) {
+    res.status(404).send({ message: "No hay contidad o id valido" });
+    return;
+  }
+
+  const products = await readData(PRODUCTS_FILE);
 });
 
 // Crear una nueva venta
 app.get("/products/categories", async (req, res) => {
+  try {
+    const categories = await readData(CATEGORIES_FILE);
+    res.json(categories);
+  } catch {
+    sendError(res, 500, "Oops hubo un error en el servidor");
+  }
+});
+
+app.post("/products/categories", async (req, res) => {
+  let { category } = req.body;
   const categories = await readData(CATEGORIES_FILE);
-  res.json(categories);
+
+  // Normalizamos a minúsculas y recortamos espacios
+  category = category.trim().toLowerCase();
+
+  // Verificar si ya existe la categoría (en minúsculas)
+  const existCategory = categories.find(
+    (cat) => cat.category.toLowerCase() === category
+  );
+  if (existCategory) {
+    return res.json({
+      message: `La categoría "${category}" ya está en la lista`,
+    });
+  }
+
+  // Crear nueva categoría
+  const newCategory = {
+    id: uuidv4(),
+    category, // ya está en minúsculas
+  };
+
+  try {
+    categories.push(newCategory); // agregamos al array
+    await writeData(newCategory, CATEGORIES_FILE); // guardamos array completo
+    res.status(201).json(newCategory);
+  } catch (err) {
+    sendError(res, 500, "Error al guardar la categoría");
+  }
 });
 
 // Iniciar servidor
