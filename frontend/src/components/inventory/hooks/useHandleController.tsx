@@ -9,9 +9,10 @@ export const useHandleController = (
     const indexSearch = productsCart.findIndex(
       (productCart) => productCart.id === product.id
     );
+    const newProductCart = { ...product, amount: 1 };
 
     if (indexSearch === -1) {
-      addProductShopping(product);
+      addProductShopping(newProductCart);
       toast.success("Se agrego correctamente al carrito");
       return;
     } else {
