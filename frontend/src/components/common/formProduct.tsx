@@ -15,13 +15,20 @@ interface FormFieldProps {
 }
 
 interface FormRenderProps {
+  title: string;
   isForm: boolean;
   closeForm: () => void;
   fields: FormFieldProps[];
   onSubmit: (formData: Record<string, any>) => void;
 }
 
-function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
+function FormRender({
+  title,
+  isForm,
+  closeForm,
+  fields,
+  onSubmit,
+}: FormRenderProps) {
   const [dataForm, setDataForm] = useState<Record<string, any>>({});
 
   const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
@@ -49,7 +56,12 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
     );
   };
   return (
-    <Modal title="Formulario de Ingreso" isOpen={isForm} onClose={closeForm}>
+    <Modal
+      key={title}
+      title={title || "Formulario"}
+      isOpen={isForm}
+      onClose={closeForm}
+    >
       <form
         className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4"
         onSubmit={handlerSubmit}
@@ -73,11 +85,8 @@ function FormRender({ isForm, closeForm, fields, onSubmit }: FormRenderProps) {
                 >
                   <option value="">Selecciona una categoria...</option>
                   {field.items?.map((option) => (
-                    <option
-                      value={option.category.english}
-                      key={option.category.english}
-                    >
-                      {option.category.spanich}
+                    <option value={option.category} key={option.category}>
+                      {option.category}
                     </option>
                   ))}
                 </select>
