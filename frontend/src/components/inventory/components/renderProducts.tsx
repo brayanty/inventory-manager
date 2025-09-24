@@ -21,63 +21,46 @@ function RenderProducts() {
   );
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
-  const { page, setPage } = usePage();
+  const { page } = usePage();
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    setIsLoading((prev) => !prev);
-  }, [page, setPage]);
-
+  // Cargar categorías al inicio
   useEffect(() => {
     const loadCategories = async () => {
-      const categories = await getCategories();
-      setCategoryList(categories);
+      try {
+        const categories = await getCategories();
+        setCategoryList(categories);
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
     };
     loadCategories();
-  }, []);
+  }, [setCategoryList]);
 
+  // Cargar productos cuando cambie search o page
   useEffect(() => {
     const loadProducts = async () => {
-      const response = await getProducts(search, page);
-      addProducts(response.data || []);
+      setIsLoading(true);
+      try {
+        const response = await getProducts(search, page);
+        addProducts(response.data || []);
+      } catch (error) {
+        console.error("Error cargando productos:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadProducts();
-    setIsLoading(false);
-  }, [search, page, setPage]);
+  }, [search, page, addProducts]);
 
-  const filtered = products.filter((product) => {
-    if (
-      product.name === undefined ||
-      product.id === undefined ||
-      product.price === undefined ||
-      product.total === undefined ||
-      product.sales === undefined
-    ) {
-      return false;
-    }
-
+  const filteredProducts = products.filter((product) => {
+    if (categorySelect === "todos") return true;
     const matchName = product.name.toLowerCase().includes(search.toLowerCase());
-    const matchCategory =
-      categorySelect === "all" || product.category.english === categorySelect;
+    const matchCategory = product.category === categorySelect;
     return matchName && matchCategory;
   });
 
-  if (filtered.length === 0 || !products) {
-    return (
-      <tr>
-        <td colSpan={6} className="text-center py-6">
-          <IconVoid className="mx-auto w-100 h-40" />
-          <p className="mt-2 text-gray-500 dark:text-gray-400">
-            No hay productos.
-          </p>
-        </td>
-      </tr>
-    );
-  }
-
-  if (filtered.length <= 0) {
-    return <tr className="col-span-full">No hay productos </tr>;
-  }
+  // Mostrar estado de carga
   if (isLoading) {
     return (
       <tr>
@@ -90,9 +73,24 @@ function RenderProducts() {
     );
   }
 
+  // Mostrar vacío
+  if (filteredProducts.length === 0) {
+    return (
+      <tr>
+        <td colSpan={6} className="text-center py-6">
+          <IconVoid className="mx-auto w-20 h-20" />
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            No hay productos.
+          </p>
+        </td>
+      </tr>
+    );
+  }
+
+  // Render normal
   return (
     <>
-      {filtered.map((product: Product) => (
+      {filteredProducts.map((product: Product) => (
         <tr
           key={product.id}
           className="border-b dark:border-gray-700 border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer"
@@ -104,7 +102,7 @@ function RenderProducts() {
           >
             {product.name}
           </th>
-          <td className="px-6 py-4">{product.category.spanich}</td>
+          <td className="px-6 py-4">{product.category}</td>
           <td className="px-6 py-4">{product.sales}</td>
           <td className="px-6 py-4">{product.total}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
