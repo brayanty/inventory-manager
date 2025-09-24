@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 interface categoryList {
-  category: { spanich: string; english: string };
+  category: string;
 }
 
 interface CategoryListState {
@@ -13,7 +13,7 @@ interface CategoryListState {
 
 export const useCategoryListStore = create<CategoryListState>((set) => ({
   categoryList: [],
-  categorySelect: "all",
+  categorySelect: "todos",
   setCategoryList: (newCategoryList) => set({ categoryList: newCategoryList }),
   setCategorySelect: (newCategorySelect) =>
     set({ categorySelect: newCategorySelect }),
