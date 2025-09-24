@@ -3,17 +3,18 @@ import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { formatCOP } from "@/components/utils/format";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { Product } from "../types/product";
+import { ProductsCart } from "../types/product";
 import { soldProducts } from "../services/products";
 
 const ShoppingCart = () => {
-  const { productsCart, clearProductCart } = useShoppingCartStore();
+  const { productsCart, addProductShopping, clearProductCart } =
+    useShoppingCartStore();
   const [priceTotal, setPriceTotal] = useState(0);
 
   useEffect(() => {
     if (productsCart && productsCart.length > 0) {
       const total = productsCart.reduce(
-        (acc, product) => acc + product.price,
+        (acc, product) => acc + product.price * product.amount,
         0
       );
       setPriceTotal(total);
@@ -24,12 +25,43 @@ const ShoppingCart = () => {
 
   if (!productsCart) return toast("No hay productos");
 
-  const renderProductsSale = (product: Product, index) => {
+  // funcion para aumentar el valor de la cantidad de productos a vender
+  const handleAmount = (id: string, value: number) => {
+    console.log(value, id);
+    const product = productsCart.find((product) => product.id === id);
+
+    if (product) {
+      const updatedProduct = {
+        ...product,
+        amount: value > product.total ? product.total : value,
+      };
+      addProductShopping(updatedProduct);
+    }
+  };
+
+  const renderProductsSale = (product: ProductsCart, index: number) => {
     return (
       <li key={index} className="flex justify-evenly items-center gap-2">
         <div className="text-[14px]">{product.name.slice(0, 20)}...</div>
         <span className="text-[14px]">{product.category.slice(0, 5)}</span>
-        <span className="text-[14px]">{formatCOP(product.price)}</span>
+        <div className="text-[14px] flex justify-center gap-2">
+          <label htmlFor={product.name}>
+            <input
+              id={product.name}
+              className="w-[40px] text-center bg-[rgba(36,40,50,1)] border border-gray-300 rounded"
+              type="number"
+              max={product.total}
+              min={1}
+              onChange={(e) =>
+                handleAmount(product.id, Number(e.currentTarget.value))
+              }
+              value={product.amount}
+            />
+          </label>
+        </div>
+        <span className="text-[14px]">
+          {formatCOP(product.price * product.amount)}
+        </span>
       </li>
     );
   };
@@ -39,7 +71,10 @@ const ShoppingCart = () => {
   const saleProducts = () => {
     if (productsCart.length === 0) toast("No hay productos en el carrito");
     try {
-      const soldProductId = productsCart.map((item) => item.id);
+      const soldProductId = productsCart.map((item) => {
+        const { id, amount } = item;
+        return { id, amount };
+      });
       soldProducts(soldProductId);
       toast("Productos vendidos exitosamente");
       clearProductCart();
@@ -57,6 +92,7 @@ const ShoppingCart = () => {
         <div className="p-[5px] text-xs uppercase flex justify-between items-center gap-2">
           <h6>Producto</h6>
           <p>categoria</p>
+          <p>Cantidad</p>
           <p>Valor</p>
         </div>
       </div>
@@ -75,7 +111,9 @@ const ShoppingCart = () => {
           <Button onClick={() => saleProducts()} className="bg-green-500">
             Vender
           </Button>
-          <Button onClick={clearProductCart}>Limpiar</Button>
+          <Button className="bg-red-600" onClick={clearProductCart}>
+            Limpiar
+          </Button>
         </div>
       </footer>
     </div>
