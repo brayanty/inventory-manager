@@ -54,7 +54,7 @@ function ProductsInventory() {
           <Button
             className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition"
             onClick={() => {
-              setOpenAddProduct(true);
+              setOpenAddCategory(true);
             }}
           >
             Agregar Categoria
@@ -90,6 +90,7 @@ function ProductsInventory() {
       <Paginator selectPage={page} onPageChange={setPage} />
       {/* Formulario para agregar categoria */}
       <FormRender
+        title="Agregar Categoría"
         isForm={isOpenAddCategory}
         closeForm={() => setOpenAddCategory(false)}
         onSubmit={(data) => handleSubmitCategory(data)}
@@ -104,6 +105,7 @@ function ProductsInventory() {
       />
       {/* Formulario para agregar productos */}
       <FormRender
+        title="Formulario para agregar productos"
         isForm={isOpenAddProduct}
         closeForm={() => setOpenAddProduct(false)}
         onSubmit={(data) => handleSubmit(data)}
