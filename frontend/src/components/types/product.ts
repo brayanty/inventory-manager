@@ -1,24 +1,37 @@
-export type Product = {
-  name: string;
-  quantity: number;
-  category: { spanich: string; english: string };
-  total?: number;
-  price: number;
-  sales: number;
-  id?: string;
-};
+export type ID = string;
 
-export type ProductsCart = {
+/**
+ * Campos comunes para productos
+ */
+export interface ProductBase {
+  /** Identificador único */
+  id: ID;
+  /** Nombre del producto */
   name: string;
-  quantity: number;
-  category: { spanich: string; english: string };
-  total?: number;
+  /** Categoría del producto */
+  category: string;
+  /** Precio unitario */
   price: number;
+  /** Cantidad en inventario */
+  quantity: number;
+  /** Ventas acumuladas (unidades) */
   sales: number;
-  id?: string;
-  amount?: number;
-};
+  /** Total monetario (price * quantity) — puede calcularse en runtime */
+  total: number;
+}
 
+/** Producto estándar */
+export type Product = ProductBase;
+
+/** Producto en el carrito: incluye la cantidad seleccionada */
+export interface ProductCart extends ProductBase {
+  amount: number;
+}
+
+/** Mantiene compatibilidad con el nombre anterior */
+export type ProductsCart = ProductCart;
+
+/** Lista simple de categorías */
 export type CategoryList = {
-  category: { spanich: string; english: string };
+  category: string;
 };
