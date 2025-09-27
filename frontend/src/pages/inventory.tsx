@@ -80,6 +80,9 @@ function ProductsInventory() {
               <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
                 Precio
               </th>
+              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
+                Opciones
+              </th>
             </tr>
           </thead>
           <tbody>
