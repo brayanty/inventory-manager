@@ -28,3 +28,20 @@ export async function writeData(newData, file) {
     throw err;
   }
 }
+
+// Sobrescribe todo el archivo con los datos nuevos
+export async function overwriteData(newData, file) {
+  const filePath = path.resolve(file);
+
+  if (!Array.isArray(newData)) {
+    throw new Error("Los datos a escribir deben ser un array");
+  }
+
+  try {
+    await fs.writeFile(filePath, JSON.stringify(newData, null, 2), "utf-8");
+    console.log("✅ Datos sobrescritos correctamente");
+  } catch (err) {
+    console.error("❌ Error al sobrescribir datos:", err);
+    throw err;
+  }
+}
