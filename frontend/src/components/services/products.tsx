@@ -78,3 +78,26 @@ export async function createCategory(category) {
   const data = await response.json();
   return data;
 }
+
+export async function deleteCategory(id) {
+  const response = await fetch(DEVICE_ENDPOINT + "/categories/" + id, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await response.json();
+  return data;
+}
+
+export async function updateCategory(id, category) {
+  const response = await fetch(DEVICE_ENDPOINT + "/categories/" + id, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(category),
+  });
+  const data = await response.json();
+  return data;
+}
