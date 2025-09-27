@@ -7,10 +7,15 @@ import { useEffect, useState } from "react";
 import { useSearchStore } from "@/components/store/filters";
 import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
-import { getCategories, getProducts } from "@/components/services/products";
+import {
+  deleteProduct,
+  getCategories,
+  getProducts,
+} from "@/components/services/products";
 import usePage from "@/components/store/page";
 import { useHandleController } from "../hooks/useHandleController";
 import { Product } from "@/components/types/product";
+import Button from "@/components/common/button";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
@@ -52,6 +57,12 @@ function RenderProducts() {
     };
     loadProducts();
   }, [search, page, addProducts]);
+
+  const handleDeleteProduct = (id: string) => {
+    const updatedProducts = products.filter((product) => product.id !== id);
+    deleteProduct(id);
+    addProducts(updatedProducts);
+  };
 
   const filteredProducts = products.filter((product) => {
     if (categorySelect === "todos") return true;
@@ -106,6 +117,16 @@ function RenderProducts() {
           <td className="px-6 py-4">{product.sales}</td>
           <td className="px-6 py-4">{product.total}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
+          <td className="px-6 py-4">
+            {
+              <Button
+                className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
+                onClick={() => handleDeleteProduct(product.id)}
+              >
+                Eliminar
+              </Button>
+            }
+          </td>
         </tr>
       ))}
     </>
