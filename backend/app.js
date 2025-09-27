@@ -13,7 +13,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const users = require("./users/user.js");
 const authenticateToken = require("./middleware/auth.js");
-const { readData, writeData } = require("./utils/file.js");
+const { readData, writeData, overwriteData } = require("./utils/file.js");
 require("dotenv").config();
 
 // Archivos JSON usados
@@ -389,6 +389,28 @@ app.post("/products/categories", async (req, res) => {
     res.status(201).json(newCategory);
   } catch (err) {
     sendError(res, 500, "Error al guardar la categoría");
+  }
+});
+
+app.delete("/products/categories/:id", async (req, res) => {
+  try {
+    const categories = await readData(CATEGORIES_FILE);
+    const newCategories = categories.filter((c) => c.id !== req.params.id);
+    await writeData(newCategories, CATEGORIES_FILE);
+    res.json({ result: "Categoría eliminada" });
+  } catch {
+    sendError(res, 500, "Error al eliminar la categoría");
+  }
+});
+
+app.delete("/products/:id", async (req, res) => {
+  try {
+    const products = await readData(PRODUCTS_FILE);
+    const newProducts = products.filter((p) => p.id !== req.params.id);
+    await overwriteData(newProducts, PRODUCTS_FILE);
+    res.json({ result: "Producto eliminado" });
+  } catch {
+    sendError(res, 500, "Error al eliminar el producto");
   }
 });
 
