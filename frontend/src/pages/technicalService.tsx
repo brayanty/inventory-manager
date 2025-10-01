@@ -16,7 +16,6 @@ import { DropDown } from "@/components/common/dropdown";
 import DeviceForm from "@/components/common/formDevice";
 
 const FAKE_CATEGORIES = [
-  { category: "Todos" },
   { category: "Sin Solución" },
   { category: "Reparado" },
   { category: "En Revisión" },
@@ -217,10 +216,11 @@ const TechnicalService = () => {
     const newDevice = {
       ...updatedDevice,
       status,
+      output,
     };
 
     try {
-      await updateDevice(id, newDevice);
+      await updateDevice(id, { status, output });
       setDevices((prev) =>
         prev.map((dev) => (dev.id === id ? newDevice : dev))
       );
@@ -251,7 +251,7 @@ const TechnicalService = () => {
 
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
-      if (categorySelect === "Todos") return true;
+      if (categorySelect === "todos") return true;
       return device.status === categorySelect;
     });
   }, [devices, categorySelect]);
@@ -269,7 +269,7 @@ const TechnicalService = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto min-h-[500px] max-h-[60vh]">
+      <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="sticky top-0 z-5 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
