@@ -1,116 +1,26 @@
 [
   {
-    "id": "1",
-    "name": "Laptop Lenovo IdeaPad 5",
-    "quantity": 1,
-    "category": "Portátiles",
-    "entire": 20,
-    "price": 1850000,
-    "sales": 5,
-    "total": 10
+    "id": "01bdc3c4-1158-4fd4-9589-d03eecf4effc",
+    "sales": 1,
+    "name": "Iphone 11 base",
+    "category": "celulares/telefonos",
+    "total": 0,
+    "price": 1000000
   },
   {
-    "id": "73c35758-b1d0-4c92-847c-fcd1523af343",
-    "sales": 0,
-    "name": "tertert",
-    "category": "Móviles",
-    "total": 45435455,
-    "price": 43243
+    "id": "db82f21e-99d6-4fba-ada8-c73b6d756591",
+    "sales": 1,
+    "name": "Iphone 11 base",
+    "category": "celulares/telefonos",
+    "total": 0,
+    "price": 1000000
   },
   {
-    "id": "878cb858-1ebe-423f-9d9c-c8baebb10aa9",
-    "sales": 0,
-    "name": "rrewr",
-    "category": "43242",
-    "total": 342434,
-    "price": 4234
-  },
-  {
-    "id": "7f04477b-c27e-4173-a331-5ceaabef0975",
-    "sales": 0,
-    "name": "rrewr",
-    "category": "4324",
-    "total": 342434,
-    "price": 323213
-  },
-  {
-    "id": "d9fc5ac4-2d6c-4ffd-9c92-00387025845f",
-    "sales": 0,
-    "name": "423423",
-    "category": "4324",
-    "total": 4234234,
-    "price": 24234
-  },
-  {
-    "id": "fc16db75-c158-48e1-a714-505916b9e16d",
-    "sales": 0,
-    "name": " 32313",
-    "category": "4324",
-    "total": 3213213,
-    "price": 3213
-  },
-  {
-    "id": "145212e1-28c7-4e6e-a494-968bdcc4df4d",
-    "sales": 0,
-    "name": "4324234",
-    "category": "perifericos",
-    "total": 423423,
-    "price": 4234
-  },
-  {
-    "id": "33f0b577-37f7-4e34-992d-f7be1f41f65a",
-    "sales": 0,
-    "name": "32213",
-    "category": "4324",
-    "total": 3312321,
-    "price": 21312
-  },
-  {
-    "id": "7b2d53e1-f750-407b-a771-9aba13af32c1",
-    "sales": 0,
-    "name": "32321",
-    "category": "4324",
-    "total": 321312,
-    "price": 23123
-  },
-  {
-    "id": "c1af8741-8f4f-40be-bb09-9e6ba544dfd5",
-    "sales": 0,
-    "name": "435435",
-    "category": "4324",
-    "total": 543543,
-    "price": 5435
-  },
-  {
-    "id": "b81bd379-f058-4d61-8383-c28cc411b4ef",
-    "sales": 0,
-    "name": "et34543543",
-    "category": "4324",
-    "total": 5435435,
-    "price": 4
-  },
-  {
-    "id": "3545dd8a-79b5-4b07-a0b1-6ed993fbc2e4",
-    "sales": 0,
-    "name": "6546",
-    "category": "4324",
-    "total": 654654,
-    "price": 6456
-  },
-  {
-    "id": "0e54ad5e-18e3-4e35-bce9-6b6f9a36bfb1",
-    "sales": 0,
-    "name": "fsfre",
-    "category": "4324",
-    "total": 4,
-    "price": 343423
-  },
-  {
-    "id": "8045756c-c35e-4862-8a9a-583f872409ce",
-    "sales": 0,
-    "name": "wwq2|1",
-    "category": "perifericos",
-    "total": 21212,
-    "price": 221
+    "id": "24c2eeae-5ffc-46f7-a250-6468ad914182",
+    "sales": 1,
+    "name": "Iphone 11 base",
+    "category": "celulares/telefonos",
+    "total": 11,
+    "price": 1000000
   }
 ]

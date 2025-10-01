@@ -1,18 +1,26 @@
 [
   {
-    "id": "54cb4524-503e-4ba0-b288-f419df7d677c",
-    "category": "4324"
-  },
-  {
-    "id": "89eadf99-43d0-401b-a808-58ed84881642",
-    "category": "43242"
-  },
-  {
     "id": "40498692-f104-437c-ac2b-43b92643530b",
     "category": "perifericos"
   },
   {
-    "id": "07290ba4-312c-4ec4-b06a-df51628951c0",
-    "category": "6546456"
+    "id": "b85cd94b-9b33-43fd-abd6-bbba58297136",
+    "category": "audio"
+  },
+  {
+    "id": "ff21b3e0-8502-4767-b234-75ce1956bf24",
+    "category": "display's"
+  },
+  {
+    "id": "e4e5e57c-da01-4378-944e-76046bf89958",
+    "category": "pc/laptops"
+  },
+  {
+    "id": "3db245e8-865e-494d-9117-7b3c7205763c",
+    "category": "cables"
+  },
+  {
+    "id": "3768bd39-44f8-461f-8c87-9ae27b7e8379",
+    "category": "celulares/telefonos"
   }
 ]
