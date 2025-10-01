@@ -78,14 +78,18 @@ function FormRender({
                 <select
                   name={field.name}
                   id={field.name}
-                  className="w-full p-2 rounded border"
+                  className="w-full p-2 rounded border capitalize"
                   required
                   value={dataForm[field.name] || ""}
                   onChange={(e) => handleInputChange(e)}
                 >
                   <option value="">Selecciona una categoria...</option>
                   {field.items?.map((option) => (
-                    <option value={option.category} key={option.category}>
+                    <option
+                      className="capitalize"
+                      value={option.category}
+                      key={option.category}
+                    >
                       {option.category}
                     </option>
                   ))}
