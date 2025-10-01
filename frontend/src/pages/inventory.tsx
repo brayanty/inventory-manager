@@ -26,6 +26,7 @@ function ProductsInventory() {
   };
 
   const handleSubmit = async (data: Record<string, []>) => {
+    if (!data) return;
     const newProduct = await createProduct(data);
     const newProducts = [...products, newProduct];
     if (newProduct) {
