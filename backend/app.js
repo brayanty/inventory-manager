@@ -14,12 +14,14 @@ const jwt = require("jsonwebtoken");
 const users = require("./users/user.js");
 const authenticateToken = require("./middleware/auth.js");
 const { readData, writeData, overwriteData } = require("./utils/file.js");
+const { postProductsPrinter } = require("./services/printerService.js");
 require("dotenv").config();
 
 // Archivos JSON usados
 const DEVICES_FILE = path.join(__dirname, "data.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
 const CATEGORIES_FILE = path.join(__dirname, "categories.json");
+const SALES_FILE = path.join(__dirname, "sales.json");
 
 // Middlewares
 app.use(express.json());
@@ -98,7 +100,6 @@ app.post("/devices", async (req, res) => {
     model: model && typeof model === "string" ? model.trim() : null,
     IMEI: IMEI.toString().trim(),
     status: status.trim(),
-    output: false,
     entryDate,
     exitDate: exitDate && !isNaN(Date.parse(exitDate)) ? exitDate : null,
     warrantLimit:
@@ -151,42 +152,26 @@ app.get("/devices/:id", async (req, res) => {
 
 // UPDATE
 app.put("/devices/:id", async (req, res) => {
+  const { id } = req.params;
+  const updateFields = req.body; // campos a actualizar
+
   try {
-    const entries = await readData(DEVICES_FILE);
-    const index = entries.findIndex((e) => e.id === req.params.id);
-    if (req.body.output) {
-      return sendError(
-        res,
-        400,
-        "No se puede actualizar un dispositivo entregado"
-      );
+    const products = await readData(DEVICES_FILE);
+
+    const index = products.findIndex((e) => e.id === id);
+    if (index === -1) {
+      return sendError(res, 404, "Dispositivo no encontrado");
     }
-    if (index === -1) return sendError(res, 404, "Entrada no encontrada");
 
-    const validationError = validateEntryData(req.body);
-    if (validationError) return sendError(res, 400, validationError);
+    // Mezcla lo existente con lo nuevo (mantiene campos no enviados)
+    const updatedProduct = { ...products[index], ...updateFields };
 
-    const updated = {
-      ...entries[index],
-      ...req.body,
-      client: req.body.client.trim(),
-      device: req.body.device.trim(),
-      status: req.body.status.trim(),
-      entryDate: entries[index].entryDate,
-      exitDate:
-        req.body.exitDate && !isNaN(Date.parse(req.body.exitDate))
-          ? req.body.exitDate
-          : null,
-      warrantLimit:
-        req.body.warrantLimit && !isNaN(Date.parse(req.body.warrantLimit))
-          ? req.body.warrantLimit
-          : null,
-      detail: req.body.detail?.trim() || null,
-    };
+    const newProducts = [...products];
+    newProducts[index] = updatedProduct;
 
-    entries[index] = updated;
-    await writeData(entries, DEVICES_FILE);
-    res.json(updated);
+    await overwriteData(newProducts, DEVICES_FILE);
+
+    res.json(updatedProduct);
   } catch {
     sendError(res, 500, "Error al actualizar la entrada");
   }
@@ -197,7 +182,7 @@ app.delete("/devices/:id", async (req, res) => {
   try {
     const entries = await readData(DEVICES_FILE);
     const newEntries = entries.filter((e) => e.id !== req.params.id);
-    await writeData(newEntries, DEVICES_FILE);
+    await overwriteData(newEntries, DEVICES_FILE);
     res.json({ result: "Entrada eliminada" });
   } catch {
     sendError(res, 500, "Error al eliminar la entrada");
@@ -322,35 +307,105 @@ app.put("/products/:id", async (req, res) => {
     sendError(res, 500, "Error al actualizar el producto");
   }
 });
-
-// Crear una nueva venta
 app.post("/products/sold", async (req, res) => {
-  const soldProducts = req.body;
+  try {
+    const soldProducts = req.body;
 
-  const productError = soldProducts.findIndex((i) => {
-    i.id.length == 0 || i.amount <= 0;
-  });
-  if (!productError) {
-    res.status(404).send({
-      message: "Algun producto tiene un valor negativo a su id es invalido",
+    // Validar entrada
+    if (!Array.isArray(soldProducts) || soldProducts.length === 0) {
+      return res.status(400).json({
+        message: "Se requiere un arreglo no vacío de productos vendidos",
+      });
+    }
+
+    // Validar cada producto
+    for (const item of soldProducts) {
+      if (!item.id || typeof item.id !== "string" || item.id.trim() === "") {
+        return res.status(400).json({
+          message: `ID inválido para el producto: ${JSON.stringify(item)}`,
+        });
+      }
+      if (!Number.isInteger(item.amount) || item.amount <= 0) {
+        return res.status(400).json({
+          message: `Cantidad inválida para el producto con ID ${item.id}`,
+        });
+      }
+    }
+
+    // Leer datos de productos
+    const productsData = await readData(PRODUCTS_FILE);
+
+    // Verificar si todos los IDs de productos existen
+    const invalidProduct = soldProducts.find(
+      (item) => !productsData.some((product) => product.id === item.id)
+    );
+    if (invalidProduct) {
+      return res.status(404).json({
+        message: `Producto con ID ${invalidProduct.id} no encontrado`,
+      });
+    }
+
+    // Verificar inventario y preparar actualizaciones
+    const updatedProducts = productsData.map((product) => {
+      const soldItem = soldProducts.find((item) => item.id === product.id);
+      if (soldItem) {
+        if (product.total < soldItem.amount) {
+          return res.status(400).json({
+            message: `No hay suficiente stock para el producto ${product.name} (disponible: ${product.total}, solicitado: ${soldItem.amount})`,
+          });
+        }
+        return {
+          ...product,
+          total: product.total - soldItem.amount,
+          sales: product.sales + soldItem.amount,
+        };
+      }
+      return product;
     });
+
+    // Verificar si ya se envió una respuesta (por ejemplo, por falta de stock)
+    if (res.headersSent) {
+      return; // Evitar procesamiento adicional si se envió una respuesta
+    }
+
+    // Preparar datos para postProductsPrinter
+    const printableProducts = soldProducts.map((item) => {
+      const product = productsData.find((p) => p.id === item.id);
+      return {
+        name: product.name,
+        price: product.price, // Asumiendo que productsData tiene un campo price
+        quantity: item.amount, // Mapeamos amount a quantity
+      };
+    });
+    // Enviar a la impresora
+
+    // Lo hizo grok xd
+    // Registrar la venta
+    const sale = {
+      id: uuidv4(),
+      timestamp: new Date().toISOString(),
+      products: soldProducts,
+    };
+    // Agregar o guardar en un archivo de ventas
+    await writeData(sale, SALES_FILE);
+
+    // Guardar productos actualizados
+    await overwriteData(updatedProducts, PRODUCTS_FILE);
+
+    try {
+      await postProductsPrinter(printableProducts);
+    } catch (err) {
+      console.error("Error al imprimir los productos:", err);
+      // No fallamos la solicitud, solo registramos el error
+    }
+
+    res.status(201).json({ message: "Venta registrada con éxito" });
+  } catch (err) {
+    sendError(res, 500, "Error al procesar la venta");
   }
-
-  const productsData = await readData(PRODUCTS_FILE);
-  const productExist = soldProducts.map((i) => {
-    return productsData.find((product) => product.id == i.id);
-  });
-  console.log(productExist);
-
-  if (!soldProducts) {
-    res.status(404).send({ message: "No hay contidad o id valido" });
-    return;
-  }
-
-  const products = await readData(PRODUCTS_FILE);
 });
 
-// Crear una nueva venta
+// Crear una nueva categoria
 app.get("/products/categories", async (req, res) => {
   try {
     const categories = await readData(CATEGORIES_FILE);
