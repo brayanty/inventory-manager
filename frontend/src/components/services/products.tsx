@@ -49,8 +49,8 @@ export async function soldProducts(productSales) {
     },
     body: JSON.stringify(productSales),
   });
-
-  return response.ok;
+  const data = await response.json();
+  return data;
 }
 
 export async function getProducts(search: string, page: number = 1) {
