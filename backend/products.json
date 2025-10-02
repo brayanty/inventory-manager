@@ -17,10 +17,26 @@
   },
   {
     "id": "24c2eeae-5ffc-46f7-a250-6468ad914182",
-    "sales": 1,
+    "sales": 12,
     "name": "Iphone 11 base",
     "category": "celulares/telefonos",
-    "total": 11,
+    "total": 0,
     "price": 1000000
+  },
+  {
+    "id": "b1ebb0f6-95c2-422c-a0f3-02b2347aeb9c",
+    "sales": 16,
+    "name": "tfrwet",
+    "category": "audio",
+    "total": 543527,
+    "price": 455
+  },
+  {
+    "id": "a40db19f-876b-4efc-839b-b31e854be6a9",
+    "sales": 31,
+    "name": "5454",
+    "category": "perifericos",
+    "total": 3543503,
+    "price": 543543
   }
 ]
