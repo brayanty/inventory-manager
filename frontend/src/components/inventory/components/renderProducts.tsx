@@ -5,7 +5,6 @@ import useProductsStore from "@/components/store/products";
 
 import { useEffect, useState } from "react";
 import { useSearchStore } from "@/components/store/filters";
-import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { useCategoryListStore } from "@/components/store/category";
 import {
   deleteProduct,
@@ -16,14 +15,12 @@ import usePage from "@/components/store/page";
 import { useHandleController } from "../hooks/useHandleController";
 import { Product } from "@/components/types/product";
 import Button from "@/components/common/button";
+import { toast } from "react-toastify";
 
 function RenderProducts() {
   const { products, addProducts } = useProductsStore();
-  const { productsCart, addProductShopping } = useShoppingCartStore();
-  const { handleAddShoppingCart } = useHandleController(
-    productsCart,
-    addProductShopping
-  );
+  const { setShoppingCart } = useHandleController();
+
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
   const { page } = usePage();
@@ -36,7 +33,8 @@ function RenderProducts() {
         const categories = await getCategories();
         setCategoryList(categories);
       } catch (error) {
-        console.error("Error cargando categorías:", error);
+        toast.error("Error cargando categorías:");
+        throw new Error("Error cargando categorías\n" + error);
       }
     };
     loadCategories();
@@ -50,7 +48,8 @@ function RenderProducts() {
         const response = await getProducts(search, page);
         addProducts(response.data || []);
       } catch (error) {
-        console.error("Error cargando productos:", error);
+        toast.error("Error cargando productos:");
+        throw new Error("Error cargando productos\n" + error);
       } finally {
         setIsLoading(false);
       }
@@ -105,7 +104,7 @@ function RenderProducts() {
         <tr
           key={product.id}
           className="border-b dark:border-gray-700 border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer"
-          onClick={() => handleAddShoppingCart(product)}
+          onClick={() => setShoppingCart(product)}
         >
           <th
             scope="row"

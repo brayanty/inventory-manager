@@ -1,11 +1,15 @@
-import { Product, ProductsCart } from "@/components/types/product";
+import useShoppingCartStore from "@/components/store/ShoppingCart";
+import { Product } from "@/components/types/product";
 import { toast } from "react-toastify";
 
-export const useHandleController = (
-  productsCart: ProductsCart[],
-  addProductShopping: (product: ProductsCart) => void
-) => {
-  const handleAddShoppingCart = (product: Product) => {
+export const useHandleController = () => {
+  const { productsCart, addProductShopping } = useShoppingCartStore();
+
+  const setShoppingCart = (product: Product) => {
+    if (product.total === 0 || !product) {
+      toast.error("No hay stock disponible");
+      return;
+    }
     const indexSearch = productsCart.findIndex(
       (productCart) => productCart.id === product.id
     );
@@ -19,5 +23,5 @@ export const useHandleController = (
       toast.warn("Ya existe en el carrito");
     }
   };
-  return { handleAddShoppingCart };
+  return { setShoppingCart };
 };
