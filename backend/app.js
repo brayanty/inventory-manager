@@ -399,7 +399,7 @@ app.post("/products/sold", async (req, res) => {
       // No fallamos la solicitud, solo registramos el error
     }
 
-    res.status(201).json({ message: "Venta registrada con éxito" });
+    res.status(201).json(updatedProducts);
   } catch (err) {
     sendError(res, 500, "Error al procesar la venta");
   }
