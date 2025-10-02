@@ -3,13 +3,15 @@ import useShoppingCartStore from "@/components/store/ShoppingCart";
 import { formatCOP } from "@/components/utils/format";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { ProductsCart } from "../types/product";
+import { ProductBase, ProductsCart } from "../types/product";
 import { soldProducts } from "../services/products";
+import useProductsStore from "../store/products";
 
 const ShoppingCart = () => {
   const { productsCart, addProductShopping, clearProductCart } =
     useShoppingCartStore();
   const [priceTotal, setPriceTotal] = useState(0);
+  const { addProducts } = useProductsStore();
 
   useEffect(() => {
     if (productsCart && productsCart.length > 0) {
@@ -92,7 +94,7 @@ const ShoppingCart = () => {
 
   // Función para manejar la venta de productos
   // Se envia los id de productos vendidos al backend
-  const saleProducts = () => {
+  const saleProducts = async () => {
     if (productsCart.length === 0) {
       toast("No hay productos en el carrito");
       return;
@@ -102,7 +104,15 @@ const ShoppingCart = () => {
         const { id, amount } = item;
         return { id, amount };
       });
-      soldProducts(soldProductId);
+
+      const updatedProducts = (await soldProducts(
+        soldProductId
+      )) as ProductBase[];
+      if (!updatedProducts) {
+        toast("Error al vender los productos");
+        return;
+      }
+      addProducts(updatedProducts as ProductBase[]);
       toast("Productos vendidos exitosamente");
       clearProductCart();
     } catch {
