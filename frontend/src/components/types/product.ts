@@ -12,8 +12,6 @@ export interface ProductBase {
   category: string;
   /** Precio unitario */
   price: number;
-  /** Cantidad en inventario */
-  quantity: number;
   /** Ventas acumuladas (unidades) */
   sales: number;
   /** Total monetario (price * quantity) — puede calcularse en runtime */
