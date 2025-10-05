@@ -1,7 +1,9 @@
 export const postProductsPrinter = async (products) => {
   const newProducts = products.map((product) =>
-    formatLine(product.name, product.price, product.quantity)
+    formatLine(product.name, product.price, { amount: product.total })
   );
+  console.log(products);
+  console.log(newProducts);
 
   const operaciones = [
     {
@@ -46,7 +48,7 @@ export const postProductsPrinter = async (products) => {
     { nombre: "Cortar", argumentos: [] },
   ];
   try {
-    const postPrinter = await fetch("http://192.168.0.103:8000/imprimir", {
+    const postPrinter = await fetch("http://192.168.0.103:3000/imprimir", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +59,7 @@ export const postProductsPrinter = async (products) => {
         operaciones: operaciones,
       }),
     });
-    const response = await postPrinter.json();
+    const response = await postPrinter();
     return response;
   } catch (e) {
     console.error("Error al conectar con el server de impresión:", e);
