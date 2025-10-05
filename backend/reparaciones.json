@@ -1,0 +1,79 @@
+[
+  {
+    "smartPhones": [
+      "Reparación de pantalla",
+      "Reparación de batería",
+      "Reparación de cámara",
+      "Reparación de puerto de carga",
+      "Reparación de altavoz",
+      "Reparación de micrófono",
+      "Reparación de botones",
+      "Reparación de software",
+      "Reparación de agua",
+      "Reemplazo de carcasa",
+      "Reparación de sensor de huellas",
+      "Reparación de antena",
+      "Reparación de vibrador",
+      "Reparación de placa base"
+    ]
+  },
+  {
+    "laptops": [
+      "Reparación de pantalla",
+      "Reparación de batería",
+      "Reparación de teclado",
+      "Reparación de puerto de carga",
+      "Reparación de altavoz",
+      "Reparación de micrófono",
+      "Reparación de software",
+      "Reparación de agua",
+      "Reemplazo de carcasa",
+      "Reparación de placa base",
+      "Reparación de ventilador",
+      "Reparación de disco duro/SSD",
+      "Reparación de RAM",
+      "Mantenimiento y limpieza"
+    ]
+  },
+  {
+    "tablets": [
+      "Reparación de pantalla",
+      "Reparación de batería",
+      "Reparación de cámara",
+      "Reparación de puerto de carga",
+      "Reparación de altavoz",
+      "Reparación de micrófono",
+      "Reparación de botones",
+      "Reparación de software",
+      "Reparación de agua",
+      "Reemplazo de carcasa",
+      "Reparación de sensor de huellas",
+      "Reparación de antena",
+      "Reparación de vibrador",
+      "Reparación de placa base"
+    ]
+  },
+  {
+    "consoles": [
+      "Reparación de pantalla",
+      "Reparación de batería",
+      "Reparación de puerto de carga",
+      "Reparación de altavoz",
+      "Reparación de micrófono",
+      "Reparación de botones",
+      "Reparación de software",
+      "Reparación de agua",
+      "Reemplazo de carcasa",
+      "Reparación de antena",
+      "Reparación de placa base",
+      "Reparación de lector de discos"
+    ]
+  },
+  {
+    "parlantes": [
+      "Reparación de puerto de carga",
+      "Reparación de batería",
+      "Reparación de altavoz"
+    ]
+  }
+]

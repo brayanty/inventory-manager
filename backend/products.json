@@ -25,18 +25,18 @@
   },
   {
     "id": "b1ebb0f6-95c2-422c-a0f3-02b2347aeb9c",
-    "sales": 16,
+    "sales": 50,
     "name": "tfrwet",
     "category": "audio",
-    "total": 543527,
+    "total": 543493,
     "price": 455
   },
   {
     "id": "a40db19f-876b-4efc-839b-b31e854be6a9",
-    "sales": 31,
+    "sales": 78,
     "name": "5454",
     "category": "perifericos",
-    "total": 3543503,
+    "total": 3543456,
     "price": 543543
   }
 ]
