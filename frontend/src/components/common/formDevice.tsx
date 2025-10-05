@@ -2,6 +2,13 @@ import { NumericFormat } from "react-number-format";
 import models from "../constants/models";
 
 const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
+  const mockslistRepairTypes = [
+    "Pantalla",
+    "Batería",
+    "Cámara",
+    "Puerto de carga",
+    "Micrófono",
+  ];
   return (
     <form
       className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4"
@@ -106,6 +113,28 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               onChange={onChange}
               aria-label="Número IMEI"
             />
+          </label>
+        </div>
+        <div className="flex flex-row item-center gap-2">
+          {/* Tipos de raparaciones*/}
+          <label className="flex flex-col" htmlFor="model">
+            <span>¿Reparacion?:</span>
+            <select
+              className="p-2 w-full text-[1rem] border"
+              name="model"
+              id="model"
+              value={formData.typeRepair}
+              onChange={onChange}
+              aria-label="reparación del dispositivo"
+              required
+            >
+              <option value="">¿Que se va a reparar?</option>
+              {mockslistRepairTypes.map((i) => (
+                <option key={i} value={i}>
+                  {i}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 
