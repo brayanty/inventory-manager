@@ -39,6 +39,7 @@ const TechnicalService = () => {
     damage: "",
     model: "",
     IMEI: "",
+    mockslistRepairTypes: "",
     price: "",
     detail: "",
   });
