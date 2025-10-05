@@ -22,6 +22,7 @@ const DEVICES_FILE = path.join(__dirname, "data.json");
 const PRODUCTS_FILE = path.join(__dirname, "products.json");
 const CATEGORIES_FILE = path.join(__dirname, "categories.json");
 const SALES_FILE = path.join(__dirname, "sales.json");
+const DEVICES_REPAIR_AVAILABLE_FILE = path.join(__dirname, "reparaciones.json");
 
 // Middlewares
 app.use(express.json());
@@ -186,6 +187,48 @@ app.delete("/devices/:id", async (req, res) => {
     res.json({ result: "Entrada eliminada" });
   } catch {
     sendError(res, 500, "Error al eliminar la entrada");
+  }
+});
+
+// Tipos de reparaciones disponibles
+app.get("/devices/repairTypeAvailable", async (req, res) => {
+  try {
+    const entries = await readData(DEVICES_REPAIR_AVAILABLE_FILE);
+    res.json(entries);
+  } catch {
+    sendError(res, 500, "Error al leer las reparaciones disponibles");
+  }
+});
+
+app.post("/devices/repairTypeAvailable", async (req, res) => {
+  const { type } = req.body;
+  const types = await readData(DEVICES_REPAIR_AVAILABLE_FILE);
+
+  const typeExists = types.find(
+    (t) => t.type.toLowerCase() === type.trim().toLowerCase()
+  );
+
+  if (typeExists) {
+    return res
+      .status(400)
+      .json({ error: `El tipo de reparación "${type}" ya existe` });
+  }
+
+  if (!type || typeof type !== "string" || type.trim() === "")
+    return sendError(res, 400, "El campo 'type' debe ser una cadena no vacía");
+
+  const newType = {
+    id: uuidv4(),
+    type: type.trim(),
+  };
+
+  types.push(newType);
+
+  try {
+    await overwriteData(newType, DEVICES_REPAIR_AVAILABLE_FILE);
+    res.status(201).json(newType);
+  } catch {
+    sendError(res, 500, "Error al guardar el tipo de reparación");
   }
 });
 
@@ -374,7 +417,7 @@ app.post("/products/sold", async (req, res) => {
       return {
         name: product.name,
         price: product.price, // Asumiendo que productsData tiene un campo price
-        quantity: item.amount, // Mapeamos amount a quantity
+        quantity: item.total, // Mapeamos amount a quantity
       };
     });
     // Enviar a la impresora
