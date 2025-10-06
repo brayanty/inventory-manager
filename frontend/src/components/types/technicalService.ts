@@ -12,6 +12,7 @@ export type TechnicalServiceEntry = {
   warrantLimit: string | null;
   price: number;
   detail: string;
+  faults: string[]
 };
 
 export type TechnicalServiceEntryNoID = Partial<
