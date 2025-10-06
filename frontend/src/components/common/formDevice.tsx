@@ -1,5 +1,6 @@
 import { NumericFormat } from "react-number-format";
 import models from "../constants/models";
+import FaultsInput from "./FaultsInput";
 
 const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
   const mockslistRepairTypes = [
@@ -115,27 +116,9 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
             />
           </label>
         </div>
-        <div className="flex flex-row item-center gap-2">
-          {/* Tipos de raparaciones*/}
-          <label className="flex flex-col" htmlFor="model">
-            <span>¿Reparacion?:</span>
-            <select
-              className="p-2 w-full text-[1rem] border"
-              name="model"
-              id="model"
-              value={formData.typeRepair}
-              onChange={onChange}
-              aria-label="reparación del dispositivo"
-              required
-            >
-              <option value="">¿Que se va a reparar?</option>
-              {mockslistRepairTypes.map((i) => (
-                <option key={i} value={i}>
-                  {i}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="flex flex-row item-center gap-2 min-w-full max-h-[100px] overflow-scroll">
+          {/* Tipos de raparaciones*/} 
+         <FaultsInput value={formData.faults} onChange={onChange} />
         </div>
 
         {/* Observaciones */}
