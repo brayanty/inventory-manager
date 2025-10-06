@@ -80,19 +80,21 @@ app.post("/devices", async (req, res) => {
     warrantLimit,
     price,
     detail,
+    faults
   } = req.body;
 
-  const validationError = validateEntryData({
-    client,
-    device,
-    model,
-    IMEI,
-    status,
-    output,
-    entryDate,
-    price,
-  });
-  if (validationError) return sendError(res, 400, validationError);
+  // const validationError = validateEntryData({
+  //   client,
+  //   device,
+  //   model,
+  //   IMEI,
+  //   status,
+  //   output,
+  //   entryDate,
+  //   price,
+  //   faults
+  // });
+  // if (validationError) return sendError(res, 400, validationError);
 
   const newEntry = {
     id: uuidv4(),
@@ -107,6 +109,7 @@ app.post("/devices", async (req, res) => {
       warrantLimit && !isNaN(Date.parse(warrantLimit)) ? warrantLimit : null,
     price,
     detail: detail && typeof detail === "string" ? detail.trim() : null,
+    faults: faults
   };
 
   try {
