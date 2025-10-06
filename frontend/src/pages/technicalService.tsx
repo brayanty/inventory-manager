@@ -39,9 +39,9 @@ const TechnicalService = () => {
     damage: "",
     model: "",
     IMEI: "",
-    mockslistRepairTypes: "",
     price: "",
     detail: "",
+    faults: []
   });
 
   useEffect(() => {
@@ -82,6 +82,7 @@ const TechnicalService = () => {
       model: "",
       IMEI: "",
       price: "",
+      faults: [""],
     });
     setisFormTechnical(false);
   };
@@ -124,6 +125,7 @@ const TechnicalService = () => {
       warrantLimit: editingDevice?.warrantLimit || null,
       price: newPrice,
       detail: devicesForm.detail,
+      faults: devicesForm.faults, 
     };
 
     try {
@@ -244,6 +246,7 @@ const TechnicalService = () => {
       IMEI: d.IMEI,
       price: d.price.toString(),
       detail: d.detail || "",
+      faults: devicesForm.faults,
     });
     setIsEditing(true);
     setEditingDeviceId(d.id || "");
