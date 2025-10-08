@@ -41,7 +41,7 @@ const TechnicalService = () => {
     IMEI: "",
     price: "",
     detail: "",
-    faults: []
+    faults: [],
   });
 
   useEffect(() => {
@@ -82,7 +82,7 @@ const TechnicalService = () => {
       model: "",
       IMEI: "",
       price: "",
-      faults: [""],
+      faults: [],
     });
     setisFormTechnical(false);
   };
@@ -91,19 +91,14 @@ const TechnicalService = () => {
     const newPrice = parseLAPrice(devicesForm.price);
 
     e.preventDefault();
-    if (!/^\d{15,}$/.test(devicesForm.IMEI.toString())) {
-      toast.warn("El IMEI debe tener al menos 15 dígitos numéricos.");
-      return;
-    }
     if (
       !devicesForm.client.trim() ||
       !devicesForm.device.trim() ||
       !devicesForm.model ||
-      newPrice <= 0 ||
-      devicesForm.IMEI.toString().trim().length != 15
+      newPrice <= 0
     ) {
       toast.warning(
-        "Verifica los campos: cliente, dispositivo, modelo, precio o IMEI."
+        "Verifica los campos: cliente, dispositivo, modelo, precio."
       );
       return;
     }
@@ -116,7 +111,7 @@ const TechnicalService = () => {
       device: devicesForm.device.trim(),
       damage: devicesForm.device.trim(),
       model: devicesForm.model,
-      IMEI: devicesForm.IMEI,
+      IMEI: devicesForm.IMEI || "000000000000000",
       status: (editingDevice?.status ||
         "En Revisión") as TechnicalServiceEntry["status"],
       entryDate:
@@ -125,7 +120,7 @@ const TechnicalService = () => {
       warrantLimit: editingDevice?.warrantLimit || null,
       price: newPrice,
       detail: devicesForm.detail,
-      faults: devicesForm.faults, 
+      faults: devicesForm.faults,
     };
 
     try {
