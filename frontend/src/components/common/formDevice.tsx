@@ -3,13 +3,6 @@ import models from "../constants/models";
 import FaultsInput from "./FaultsInput";
 
 const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
-  const mockslistRepairTypes = [
-    "Pantalla",
-    "Batería",
-    "Cámara",
-    "Puerto de carga",
-    "Micrófono",
-  ];
   return (
     <form
       className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4"
@@ -107,18 +100,16 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               maxLength={15}
               inputMode="numeric"
               pattern="\d*"
-              className={`p-2 rounded border ${
-                formData.IMEI.toString().length <= 14 ? "bg-gray-300" : ""
-              }`}
+              className={`p-2 rounded border`}
               value={formData.IMEI}
               onChange={onChange}
               aria-label="Número IMEI"
             />
           </label>
         </div>
-        <div className="flex flex-row item-center gap-2 min-w-full max-h-[100px] overflow-scroll">
-          {/* Tipos de raparaciones*/} 
-         <FaultsInput value={formData.faults} onChange={onChange} />
+        <div className="flex flex-row item-center gap-2 min-w-full max-h-[100px]">
+          {/* Tipos de raparaciones*/}
+          <FaultsInput value={formData.faults} onChange={onChange} />
         </div>
 
         {/* Observaciones */}
@@ -141,9 +132,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
       {/* Botón de envío */}
       <button
         type="submit"
-        disabled={
-          !formData.client || !formData.device || formData.IMEI.length !== 15
-        }
+        disabled={!formData.client || !formData.device}
         className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         {isEditing ? "Actualizar dispositivo" : "Registrar ingreso"}
