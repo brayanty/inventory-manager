@@ -6,13 +6,13 @@ export type TechnicalServiceEntry = {
   model: string;
   IMEI: string;
   status: "Reparado" | "Sin Solución" | "En Revisión";
-  output: boolean;
+  output?: boolean;
   entryDate: string;
   exitDate: string | null;
   warrantLimit: string | null;
   price: number;
   detail: string;
-  faults: string[]
+  faults: string[];
 };
 
 export type TechnicalServiceEntryNoID = Partial<
