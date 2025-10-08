@@ -1,65 +1,58 @@
 export const postProductsPrinter = async (products) => {
   const newProducts = products.map((product) =>
-    formatLine(product.name, product.price, { amount: product.total })
+    formatLine(product.name, product.price, product.amount)
   );
-  console.log(products);
-  console.log(newProducts);
 
-  const operaciones = [
-    {
-      nombre: "HabilitarCaracteresPersonalizados",
-      argumentos: [],
-    },
-    {
-      nombre: "DeshabilitarElModoDeCaracteresChinos",
-      argumentos: [],
-    },
-    { nombre: "Iniciar", argumentos: [] },
+  // Calcular total (sumar precio * cantidad)
+  const total = products.reduce((acum, product) => {
+    return acum + product.price * (product.amount || 1);
+  }, 0);
 
-    { nombre: "EstablecerAlineacion", argumentos: [1] },
-    { nombre: "EscribirTexto", argumentos: ["Centro\nTecnologico\n"] },
-    {
-      nombre: "EscribirTexto",
-      argumentos: ["NIT: 389281938\nTel: 3145494395\n\n"],
-    },
+  const cargaUtil = {
+    serial: "",
+    impresora: "lp0",
+    operaciones: [
+      { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
+      { nombre: "DeshabilitarElModoDeCaracteresChinos", argumentos: [] },
+      { nombre: "Iniciar", argumentos: [] },
 
-    { nombre: "EstablecerAlineacion", argumentos: [0] },
-    newProducts,
-    {
-      nombre: "EscribirTexto",
-      argumentos: ["------------------------------\n"],
-    },
-
-    { nombre: "EstablecerAlineacion", argumentos: [2] },
-    { nombre: "EscribirTexto", argumentos: ["TOTAL: $12.500\n"] },
-
-    { nombre: "Feed", argumentos: [2] },
-    { nombre: "EstablecerAlineacion", argumentos: [1] },
-    {
-      nombre: "HabilitarCaracteresPersonalizados",
-      argumentos: [],
-    },
-    {
-      nombre: "EscribirTexto",
-      argumentos: ["¡Gracias por su compra!\n"],
-    },
-
-    { nombre: "Feed", argumentos: [3] },
-    { nombre: "Cortar", argumentos: [] },
-  ];
-  try {
-    const postPrinter = await fetch("http://192.168.0.103:3000/imprimir", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+      { nombre: "EstablecerAlineacion", argumentos: [1] },
+      { nombre: "EscribirTexto", argumentos: ["Centro\nTecnologico\n"] },
+      {
+        nombre: "EscribirTexto",
+        argumentos: ["NIT: 389281938\nTel: 3145494395\n\n"],
       },
-      body: JSON.stringify({
-        serial: "",
-        nombreImpresora: "lp0",
-        operaciones: operaciones,
-      }),
+
+      { nombre: "EstablecerAlineacion", argumentos: [0] },
+      ...newProducts,
+
+      {
+        nombre: "EscribirTexto",
+        argumentos: ["------------------------------\n"],
+      },
+
+      { nombre: "EstablecerAlineacion", argumentos: [2] },
+      {
+        nombre: "EscribirTexto",
+        argumentos: [`TOTAL: ${total.toLocaleString("es-CO")}\n`],
+      },
+
+      { nombre: "Feed", argumentos: [2] },
+      { nombre: "EstablecerAlineacion", argumentos: [1] },
+      { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
+      { nombre: "EscribirTexto", argumentos: ["¡Gracias por su compra!\n"] },
+      { nombre: "Feed", argumentos: [3] },
+    ],
+  };
+
+  try {
+    const postPrinter = await fetch("http://192.168.0.109:3000/imprimir", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cargaUtil.operaciones),
     });
-    const response = await postPrinter();
+
+    const response = await postPrinter.json();
     return response;
   } catch (e) {
     console.error("Error al conectar con el server de impresión:", e);
@@ -72,16 +65,13 @@ export const postProductsPrinter = async (products) => {
 
 function formatLine(nombre, precio, cantidad = 1, ancho = 32) {
   const izquierda = `${cantidad} x ${nombre}`;
-
-  // Texto de la derecha (precio formateado)
   const derecha = `$${precio.toLocaleString("es-CO")}`;
 
-  // Cuántos espacios necesito entre izquierda y derecha
   let espacios = ancho - (izquierda.length + derecha.length);
   if (espacios < 1) espacios = 1;
 
   return {
     nombre: "EscribirTexto",
-    argumentos: [izquierda + " ".repeat(espacios) + derecha],
+    argumentos: [`${izquierda}${" ".repeat(espacios)}${derecha}\n`],
   };
 }
