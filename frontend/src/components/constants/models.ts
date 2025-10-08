@@ -1,61 +1,24 @@
 interface Models {
   id: number;
-  nombre: string;
-  descripcion: string;
+  name: string;
 }
 
 const models: Models[] = [
-  { id: 1, nombre: "Apple", descripcion: "Fabricante de dispositivos iOS" },
-  {
-    id: 2,
-    nombre: "Samsung",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 3,
-    nombre: "Huawei",
-    descripcion: "Fabricante de dispositivos Android y HarmonyOS",
-  },
-  {
-    id: 4,
-    nombre: "Xiaomi",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 5,
-    nombre: "Google",
-    descripcion: "Fabricante de dispositivos Android Pixel",
-  },
-  {
-    id: 6,
-    nombre: "OnePlus",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 7,
-    nombre: "Oppo",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 8,
-    nombre: "Vivo",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 9,
-    nombre: "Motorola",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 10,
-    nombre: "Nokia",
-    descripcion: "Fabricante de dispositivos Android",
-  },
-  {
-    id: 11,
-    nombre: "Otros",
-    descripcion: "Otras marcas mejor conocido como chinos",
-  },
+  { id: 1, name: "Apple" },
+  { id: 2, name: "Samsung" },
+  { id: 3, name: "Microsoft" },
+  { id: 4, name: "Google" },
+  { id: 5, name: "Amazon" },
+  { id: 6, name: "Sony" },
+  { id: 7, name: "Intel" },
+  { id: 8, name: "Huawei" },
+  { id: 9, name: "Dell" },
+  { id: 10, name: "Lenovo" },
+  { id: 11, name: "LG Electronics" },
+  { id: 12, name: "Xiaomi" },
+  { id: 13, name: "HP (Hewlett-Packard)" },
+  { id: 14, name: "NVIDIA" },
+  { id: 15, name: "Canon" },
 ];
 
 export default models;
