@@ -260,7 +260,10 @@ const TechnicalService = () => {
       <div className="flex justify-between p-3 items-center">
         <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
         <button
-          onClick={() => setisFormTechnical(true)}
+          onClick={() => {
+            clearForm();
+            setisFormTechnical(true);
+          }}
           type="button"
           className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
         >
