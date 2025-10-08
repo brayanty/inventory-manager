@@ -34,7 +34,7 @@ const Sidebar = () => {
             }
           >
             <IconNote />
-            Productos
+            Productos/Servicios
           </NavLink>
           <NavLink
             to="/technicalservice"
