@@ -1,4 +1,5 @@
-import React, { useState, KeyboardEvent, ChangeEvent } from 'react';
+import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
+import { Product } from "../types/product";
 
 interface FaultsInputProps {
   value: string[];
@@ -6,29 +7,54 @@ interface FaultsInputProps {
 }
 
 const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [replacement, setRepuestos] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchTypingFaults = async () => {
+      if (inputValue.trim().length < 2) {
+        setRepuestos([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/repairTypeAvailable/?search=${inputValue}`
+        );
+        const data = await response.json();
+
+        setRepuestos(data);
+      } catch (error) {
+        console.error("Error fetching repair types:", error);
+      }
+    };
+
+    const timeout = setTimeout(fetchTypingFaults, 1000); // pequeño debounce
+    return () => clearTimeout(timeout);
+  }, [inputValue]);
 
   const addFault = (newFault: string) => {
     const trimmed = newFault.trim();
     if (trimmed && !value.includes(trimmed)) {
       const updated = [...value, trimmed];
-      onChange?.({ target: { name: 'faults', value: updated } });
+      onChange?.({ target: { name: "faults", value: updated } });
     }
   };
 
   const removeFault = (index: number) => {
     const updated = value.filter((_, i) => i !== index);
-    onChange?.({ target: { name: 'faults', value: updated } });
+    onChange?.({ target: { name: "faults", value: updated } });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === 'Enter' || e.key === ',') && inputValue.trim()) {
+    if ((e.key === "Enter" || e.key === ",") && inputValue.trim()) {
       e.preventDefault();
       addFault(inputValue);
-      setInputValue('');
+      setInputValue("");
+      setRepuestos([]);
     }
 
-    if (e.key === 'Backspace' && !inputValue && value.length > 0) {
+    if (e.key === "Backspace" && !inputValue && value.length > 0) {
       removeFault(value.length - 1);
     }
   };
@@ -38,11 +64,11 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
   };
 
   return (
-    <div className="border border-gray-950 rounded-md p-2 flex flex-wrap gap-2 min-h-max max-w-full min-w-full items-center">
+    <div className="border border-gray-950 rounded-md p-2 flex flex-wrap gap-2 min-w-full items-center relative">
       {value.map((fault, index) => (
         <span
           key={index}
-          className="flex items-center bg-blue-500 text-white text-sm px-3 py-1 rounded-full"
+          className="capitalize flex items-center bg-blue-500 text-white text-sm px-3 py-1 rounded-full"
         >
           {fault}
           <button
@@ -54,6 +80,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
           </button>
         </span>
       ))}
+
       <input
         type="text"
         value={inputValue}
@@ -62,6 +89,24 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
         placeholder="Escribe una falla y presiona Enter"
         className="flex-grow min-w-[150px] outline-none bg-transparent text-sm"
       />
+
+      {replacement.length > 0 && (
+        <ul className="absolute top-10 left-0 w-full h-[100px] bg-white border border-gray-300 rounded-md mt-1 max-h-100 overflow-y-auto z-10 shadow-lg">
+          {replacement.map((r) => (
+            <li
+              key={r.id}
+              className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+              onClick={() => {
+                addFault(r.name);
+                setInputValue("");
+                setRepuestos([]);
+              }}
+            >
+              {r.name}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
