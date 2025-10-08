@@ -1,5 +1,5 @@
 export const postProductsPrinter = async (products) => {
-  const newProducts = products.map((product) =>
+  const newDataPrinter = products.map((product) =>
     formatLine(product.name, product.price, product.amount)
   );
 
@@ -8,9 +8,8 @@ export const postProductsPrinter = async (products) => {
     return acum + product.price * (product.amount || 1);
   }, 0);
 
-  const cargaUtil = {
-    serial: "",
-    impresora: "lp0",
+  // Construimos directamente el cuerpo que se enviará
+  const data = {
     operaciones: [
       { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
       { nombre: "DeshabilitarElModoDeCaracteresChinos", argumentos: [] },
@@ -20,11 +19,11 @@ export const postProductsPrinter = async (products) => {
       { nombre: "EscribirTexto", argumentos: ["Centro\nTecnologico\n"] },
       {
         nombre: "EscribirTexto",
-        argumentos: ["NIT: 389281938\nTel: 3145494395\n\n"],
+        argumentos: ["NIT: 71319344-8\nTel: 3145494395\n\n"],
       },
 
       { nombre: "EstablecerAlineacion", argumentos: [0] },
-      ...newProducts,
+      ...newDataPrinter,
 
       {
         nombre: "EscribirTexto",
@@ -46,14 +45,14 @@ export const postProductsPrinter = async (products) => {
   };
 
   try {
-    const postPrinter = await fetch("http://192.168.0.109:3000/imprimir", {
+    const response = await fetch("http://192.168.0.111:3000/imprimir", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cargaUtil.operaciones),
+      body: JSON.stringify(data),
     });
 
-    const response = await postPrinter.json();
-    return response;
+    const result = await response.json();
+    return result;
   } catch (e) {
     console.error("Error al conectar con el server de impresión:", e);
     return {
@@ -63,6 +62,7 @@ export const postProductsPrinter = async (products) => {
   }
 };
 
+// Función para formatear una línea de producto
 function formatLine(nombre, precio, cantidad = 1, ancho = 32) {
   const izquierda = `${cantidad} x ${nombre}`;
   const derecha = `$${precio.toLocaleString("es-CO")}`;
