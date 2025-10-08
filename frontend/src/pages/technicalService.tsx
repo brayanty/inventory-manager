@@ -121,6 +121,7 @@ const TechnicalService = () => {
       price: newPrice,
       detail: devicesForm.detail,
       faults: devicesForm.faults,
+      output: editingDevice?.output || false,
     };
 
     try {
