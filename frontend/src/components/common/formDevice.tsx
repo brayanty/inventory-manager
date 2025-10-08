@@ -81,8 +81,8 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
             >
               <option value="">Seleccione un modelo</option>
               {models.map((i) => (
-                <option key={i.nombre} value={i.nombre}>
-                  {i.nombre}
+                <option key={i.name} value={i.name}>
+                  {i.name}
                 </option>
               ))}
             </select>
