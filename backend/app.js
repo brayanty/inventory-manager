@@ -80,7 +80,7 @@ app.post("/devices", async (req, res) => {
     warrantLimit,
     price,
     detail,
-    faults
+    faults,
   } = req.body;
 
   // const validationError = validateEntryData({
@@ -109,7 +109,7 @@ app.post("/devices", async (req, res) => {
       warrantLimit && !isNaN(Date.parse(warrantLimit)) ? warrantLimit : null,
     price,
     detail: detail && typeof detail === "string" ? detail.trim() : null,
-    faults: faults
+    faults: faults,
   };
 
   try {
@@ -157,7 +157,7 @@ app.get("/devices/:id", async (req, res) => {
 // UPDATE
 app.put("/devices/:id", async (req, res) => {
   const { id } = req.params;
-  const updateFields = req.body; // campos a actualizar
+  const updateFields = req.body;
 
   try {
     const products = await readData(DEVICES_FILE);
@@ -166,8 +166,6 @@ app.put("/devices/:id", async (req, res) => {
     if (index === -1) {
       return sendError(res, 404, "Dispositivo no encontrado");
     }
-
-    // Mezcla lo existente con lo nuevo (mantiene campos no enviados)
     const updatedProduct = { ...products[index], ...updateFields };
 
     const newProducts = [...products];
@@ -194,12 +192,40 @@ app.delete("/devices/:id", async (req, res) => {
 });
 
 // Tipos de reparaciones disponibles
-app.get("/devices/repairTypeAvailable", async (req, res) => {
+app.get("/repairTypeAvailable", async (req, res) => {
+  const search = req.query.search; // Usar req.query para obtener parámetros de consulta
   try {
-    const entries = await readData(DEVICES_REPAIR_AVAILABLE_FILE);
-    res.json(entries);
-  } catch {
-    sendError(res, 500, "Error al leer las reparaciones disponibles");
+    if (!search) {
+      return res
+        .status(400)
+        .json({ message: "El parámetro de búsqueda está vacío" });
+    }
+
+    const repairTypeAvailable = await readData(PRODUCTS_FILE);
+
+    const filterRepairType = repairTypeAvailable.filter((repair) => {
+      return repair.category == "repuestos" || repair.category == "display";
+    });
+    const fuse = new Fuse(filterRepairType, {
+      keys: ["name"], // Ajustar las claves según los campos correctos
+      includeScore: true,
+      threshold: 0.3, // Umbral para búsqueda difusa
+    });
+
+    const results = fuse.search(search);
+
+    if (!results.length) {
+      return res
+        .status(404)
+        .json({ message: "No se encontraron resultados para la búsqueda" });
+    }
+
+    res.json(results.map((r) => r.item));
+  } catch (error) {
+    console.error("Error al leer las reparaciones disponibles:", error);
+    res
+      .status(500)
+      .json({ message: "Error al leer las reparaciones disponibles" });
   }
 });
 
@@ -419,14 +445,10 @@ app.post("/products/sold", async (req, res) => {
       const product = productsData.find((p) => p.id === item.id);
       return {
         name: product.name,
-        price: product.price, // Asumiendo que productsData tiene un campo price
-        quantity: item.total, // Mapeamos amount a quantity
+        price: product.price,
+        amount: item.amount,
       };
     });
-    // Enviar a la impresora
-
-    // Lo hizo grok xd
-    // Registrar la venta
     const sale = {
       id: uuidv4(),
       timestamp: new Date().toISOString(),
@@ -439,6 +461,7 @@ app.post("/products/sold", async (req, res) => {
     await overwriteData(updatedProducts, PRODUCTS_FILE);
 
     try {
+      // Enviar a la impresor
       await postProductsPrinter(printableProducts);
     } catch (err) {
       console.error("Error al imprimir los productos:", err);
