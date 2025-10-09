@@ -14,7 +14,10 @@ const jwt = require("jsonwebtoken");
 const users = require("./users/user.js");
 const authenticateToken = require("./middleware/auth.js");
 const { readData, writeData, overwriteData } = require("./utils/file.js");
-const { postProductsPrinter } = require("./services/printerService.js");
+const {
+  postProductsPrinter,
+  postTechnicalServicePrinter,
+} = require("./services/printerService.js");
 require("dotenv").config();
 
 // Archivos JSON usados
@@ -96,6 +99,8 @@ app.post("/devices", async (req, res) => {
   // });
   // if (validationError) return sendError(res, 400, validationError);
 
+  const products = await readData(PRODUCTS_FILE);
+
   const newEntry = {
     id: uuidv4(),
     client: client.trim(),
@@ -111,9 +116,23 @@ app.post("/devices", async (req, res) => {
     detail: detail && typeof detail === "string" ? detail.trim() : null,
     faults: faults,
   };
+  const repairs = products.filter((e) => faults.includes(e.name));
 
   try {
+    await postTechnicalServicePrinter(
+      {
+        name: newEntry.client,
+        device: newEntry.device,
+        price: parseFloat(newEntry.price),
+      },
+      repairs
+    );
+  } catch (e) {
+    console.log(e);
+  }
+  try {
     await writeData(newEntry, DEVICES_FILE);
+
     res.status(201).json(newEntry);
   } catch {
     sendError(res, 500, "Error al guardar el producto");
