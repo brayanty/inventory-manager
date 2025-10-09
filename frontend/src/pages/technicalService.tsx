@@ -262,7 +262,6 @@ const TechnicalService = () => {
         <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
         <button
           onClick={() => {
-            clearForm();
             setisFormTechnical(true);
           }}
           type="button"
