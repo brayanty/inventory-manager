@@ -75,3 +75,101 @@ function formatLine(nombre, precio, cantidad = 1, ancho = 32) {
     argumentos: [`${izquierda}${" ".repeat(espacios)}${derecha}\n`],
   };
 }
+export const postTechnicalServicePrinter = async (device, repairs) => {
+  let dataPrinter = [];
+
+  //Agrega datos del cliente
+  dataPrinter.push({
+    nombre: "EscribirTexto",
+    argumentos: [`Cliente: ${device.name}\n`],
+  });
+
+  dataPrinter.push({
+    nombre: "EscribirTexto",
+    argumentos: ["------------------------------"],
+  });
+
+  const dataDevice = formatLineDevice(device.device, device.price);
+  dataPrinter.push(dataDevice);
+
+  // Agregar reparaciones (cada una formateada correctamente)
+  const formatRepairs = repairs.map((repair) =>
+    formatLineDevice(repair.name, repair.price)
+  );
+  dataPrinter.push(...formatRepairs);
+
+  // Calcular total
+  const total = repairs.reduce(
+    (acum, repair) => acum + repair.price * (repair.amount || 1),
+    0
+  );
+
+  const data = {
+    operaciones: [
+      { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
+      { nombre: "DeshabilitarElModoDeCaracteresChinos", argumentos: [] },
+      { nombre: "Iniciar", argumentos: [] },
+
+      { nombre: "EstablecerAlineacion", argumentos: [1] },
+      { nombre: "EscribirTexto", argumentos: ["SERVICIO TÉCNICO\n"] },
+      { nombre: "EscribirTexto", argumentos: ["Centro Tecnológico\n"] },
+      {
+        nombre: "EscribirTexto",
+        argumentos: ["NIT: 71319344-8\nTel: 3145494395\n\n"],
+      },
+
+      { nombre: "EstablecerAlineacion", argumentos: [0] },
+      ...dataPrinter, // ✅ todas las líneas formateadas correctamente
+
+      {
+        nombre: "EscribirTexto",
+        argumentos: ["------------------------------\n"],
+      },
+      { nombre: "EstablecerAlineacion", argumentos: [2] },
+      {
+        nombre: "EscribirTexto",
+        argumentos: [`TOTAL: $${total.toLocaleString("es-CO")}\n`],
+      },
+
+      { nombre: "Feed", argumentos: [2] },
+      { nombre: "EstablecerAlineacion", argumentos: [1] },
+      { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
+      {
+        nombre: "EscribirTexto",
+        argumentos: ["¡Gracias por confiar en nosotros!\n"],
+      },
+      { nombre: "Feed", argumentos: [3] },
+    ],
+  };
+
+  try {
+    const response = await fetch("http://192.168.0.111:3000/imprimir", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (e) {
+    console.error("Error al conectar con el server de impresión:", e);
+    return {
+      success: false,
+      message: "No se pudo conectar con el server de impresión",
+    };
+  }
+};
+
+// Función para formatear una línea de producto
+function formatLineDevice(nombre, precio, ancho = 32) {
+  const izquierda = `${nombre}`;
+  const derecha = `$${precio.toLocaleString("es-CO")}`;
+
+  let espacios = ancho - (izquierda.length + derecha.length);
+  if (espacios < 1) espacios = 1;
+
+  return {
+    nombre: "EscribirTexto",
+    argumentos: [`${izquierda}${" ".repeat(espacios)}${derecha}\n`],
+  };
+}
