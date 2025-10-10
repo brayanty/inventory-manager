@@ -1,8 +1,8 @@
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: "http://192.168.0.111:3000/imprimir",
+  baseUrl: "http://192.168.0.105:3000/imprimir",
   headers: { "Content-Type": "application/json" },
-  lineWidth: 32,
+  lineWidth: 31,
 };
 
 const COMPANY_INFO = {
@@ -16,12 +16,18 @@ const PRINTER_OPERATIONS = {
   start: [
     { nombre: "Iniciar", argumentos: [] },
     { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
-    { nombre: "DeshabilitarElModoDeCaracteresChinos", argumentos: [] },
+    {
+      nombre: "DeshabilitarElModoDeCaracteresChinos",
+      argumentos: [],
+    },
   ],
   end: [
-    { nombre: "Feed", argumentos: [2] },
     { nombre: "EstablecerAlineacion", argumentos: [1] },
     { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
+    {
+      nombre: "EscribirTexto",
+      argumentos: ["Gracias por confiar en nosotros!!"],
+    },
     { nombre: "Feed", argumentos: [3] },
   ],
 };
@@ -62,10 +68,11 @@ class LineFormatter {
   }
 
   static formatLine(left, right, width = PRINTER_CONFIG.lineWidth) {
-    const spaces = Math.max(1, width - (left.length + right.length));
+    const newLeft = left.slice(0, 16);
+    const spaces = Math.max(1, width - (newLeft.length + right.length));
     return {
       nombre: "EscribirTexto",
-      argumentos: [`${left}${" ".repeat(spaces)}${right}\n`],
+      argumentos: [`${newLeft}${" ".repeat(spaces)}${right}\n`],
     };
   }
 }
@@ -124,7 +131,7 @@ class DocumentBuilder {
   addFooter(message) {
     this.operations.push(
       { nombre: "EstablecerAlineacion", argumentos: [1] },
-      { nombre: "EscribirTexto", argumentos: [`${message}\n`] }
+      { nombre: "TextoSegunPaginaDeCodigos", argumentos: [`${message}\n`] }
     );
     return this;
   }
@@ -189,18 +196,32 @@ class TechnicalServicePrintService {
     // Establece si esta pagado la reparacion
     lines.push({
       nombre: "EscribirTexto",
-      argumentos: [device.pay ? "PAGADO" : "NO PAGADO"],
+      argumentos: [device.pay ? "PAGADO\n" : "NO PAGADO\n"],
     });
+    //Establece alineacion a la izquierda
     lines.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
 
-    // Dispositivo y reparaciones
-    lines.push(LineFormatter.formatDeviceLine(device.device, device.price));
+    //Escribe el nombre del dispositivo a reparar
+    lines.push({
+      nombre: "EscribirTexto",
+      argumentos: [`Dispositivo: ${device.device}\n`],
+    });
+    lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
+
+    //Reparaciones realizadas
+    lines.push({
+      nombre: "EscribirTexto",
+      argumentos: ["Reparaciones:\n"],
+    });
+    //Establece alineacion al centro
+    lines.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
 
     const repairLines = repairs.map((repair) =>
       LineFormatter.formatDeviceLine(repair.name, repair.price)
     );
     lines.push(...repairLines);
 
+    // Total a pagar
     const total = repairs.reduce(
       (sum, repair) => sum + repair.price * (repair.amount || 1),
       device.price
