@@ -84,6 +84,7 @@ app.post("/devices", async (req, res) => {
     price,
     detail,
     faults,
+    pay,
   } = req.body;
 
   // const validationError = validateEntryData({
@@ -115,6 +116,7 @@ app.post("/devices", async (req, res) => {
     price,
     detail: detail && typeof detail === "string" ? detail.trim() : null,
     faults: faults,
+    pay,
   };
   const repairs = products.filter((e) => faults.includes(e.name));
 
@@ -124,6 +126,7 @@ app.post("/devices", async (req, res) => {
         name: newEntry.client,
         device: newEntry.device,
         price: parseFloat(newEntry.price),
+        pay: pay,
       },
       repairs
     );
