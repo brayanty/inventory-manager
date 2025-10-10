@@ -14,9 +14,9 @@ const COMPANY_INFO = {
 // Operaciones base de la impresora
 const PRINTER_OPERATIONS = {
   start: [
+    { nombre: "Iniciar", argumentos: [] },
     { nombre: "HabilitarCaracteresPersonalizados", argumentos: [] },
     { nombre: "DeshabilitarElModoDeCaracteresChinos", argumentos: [] },
-    { nombre: "Iniciar", argumentos: [] },
   ],
   end: [
     { nombre: "Feed", argumentos: [2] },
@@ -179,10 +179,19 @@ class TechnicalServicePrintService {
       nombre: "EscribirTexto",
       argumentos: [`Cliente: ${device.name}\n`],
     });
+    // Separacion
     lines.push({
       nombre: "EscribirTexto",
       argumentos: ["------------------------------\n"],
     });
+    // Alinear al centro
+    lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
+    // Establece si esta pagado la reparacion
+    lines.push({
+      nombre: "EscribirTexto",
+      argumentos: [device.pay ? "PAGADO" : "NO PAGADO"],
+    });
+    lines.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
 
     // Dispositivo y reparaciones
     lines.push(LineFormatter.formatDeviceLine(device.device, device.price));
@@ -204,7 +213,9 @@ class TechnicalServicePrintService {
       .addLines(lines)
       .addSeparator()
       .addTotal(total)
-      .addFooter("¡Gracias por confiar en nosotros!")
+      .addFooter(
+        "GARANTÍA: 30 días por defectos de mano de obra y repuestos instalados. No cubre daños por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
+      )
       .addEndOperations()
       .build();
 
