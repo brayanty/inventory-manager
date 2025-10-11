@@ -8,12 +8,12 @@ interface FaultsInputProps {
 
 const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
   const [inputValue, setInputValue] = useState("");
-  const [replacement, setRepuestos] = useState<Product[]>([]);
+  const [replacement, setReplacement] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchTypingFaults = async () => {
       if (inputValue.trim().length < 2) {
-        setRepuestos([]);
+        setReplacement([]);
         return;
       }
 
@@ -23,7 +23,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
         );
         const data = await response.json();
 
-        setRepuestos(data);
+        setReplacement(data);
       } catch (error) {
         console.error("Error fetching repair types:", error);
       }
@@ -51,7 +51,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
       e.preventDefault();
       addFault(inputValue);
       setInputValue("");
-      setRepuestos([]);
+      setReplacement([]);
     }
 
     if (e.key === "Backspace" && !inputValue && value.length > 0) {
@@ -99,7 +99,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
               onClick={() => {
                 addFault(r.name);
                 setInputValue("");
-                setRepuestos([]);
+                setReplacement([]);
               }}
             >
               {r.name}
