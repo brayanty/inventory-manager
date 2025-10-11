@@ -16,6 +16,19 @@ export type TechnicalServiceEntry = {
   pay: boolean;
 };
 
+export type DeviceEntry = Pick<
+  TechnicalServiceEntry,
+  | "client"
+  | "device"
+  | "damage"
+  | "model"
+  | "IMEI"
+  | "price"
+  | "detail"
+  | "faults"
+  | "pay"
+>;
+
 export type TechnicalServiceEntryNoID = Partial<
   Omit<TechnicalServiceEntry, "id">
 >;
