@@ -13,7 +13,7 @@ import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
 import { DropDown } from "@/components/common/dropdown";
 import DeviceForm from "@/components/common/formDevice";
-import { useDeviceFormStore } from "@/components/store/deviceToRepair";
+import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
