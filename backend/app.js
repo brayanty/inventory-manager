@@ -226,7 +226,7 @@ app.get("/repairTypeAvailable", async (req, res) => {
     const repairTypeAvailable = await readData(PRODUCTS_FILE);
 
     const filterRepairType = repairTypeAvailable.filter((repair) => {
-      return repair.category == "repuestos" || repair.category == "display";
+      return repair.category == "repuesto" || repair.category == "display";
     });
     const fuse = new Fuse(filterRepairType, {
       keys: ["name"], // Ajustar las claves según los campos correctos
