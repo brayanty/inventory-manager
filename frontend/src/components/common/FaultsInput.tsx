@@ -1,5 +1,6 @@
 import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { Product } from "../types/product";
+import { useDeviceFormStore } from "../store/useDeviceFormStore";
 
 interface FaultsInputProps {
   value: string[];
@@ -9,6 +10,7 @@ interface FaultsInputProps {
 const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
   const [inputValue, setInputValue] = useState("");
   const [replacement, setReplacement] = useState<Product[]>([]);
+  const { deviceForm, setPriceForm } = useDeviceFormStore();
 
   useEffect(() => {
     const fetchTypingFaults = async () => {
@@ -100,6 +102,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
                 addFault(r.name);
                 setInputValue("");
                 setReplacement([]);
+                setPriceForm(deviceForm.price + r.price);
               }}
             >
               {r.name}
