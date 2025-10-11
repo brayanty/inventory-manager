@@ -369,7 +369,6 @@ const TechnicalService = () => {
         }}
       >
         <DeviceForm
-          formData={deviceForm}
           onChange={handleInputChange}
           onSubmit={handleFormSubmit}
           isEditing={false}
