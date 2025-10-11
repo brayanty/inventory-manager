@@ -11,9 +11,9 @@ import {
 } from "@/components/services/devices.js";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
-import { parseLAPrice } from "@/components/utils/ParsePrice";
 import { DropDown } from "@/components/common/dropdown";
 import DeviceForm from "@/components/common/formDevice";
+import { useDeviceFormStore } from "@/components/store/deviceToRepair";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
@@ -33,16 +33,7 @@ const TechnicalService = () => {
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
 
-  const [devicesForm, setDevicesForm] = useState({
-    client: "",
-    device: "",
-    damage: "",
-    model: "",
-    IMEI: "",
-    price: "",
-    detail: "",
-    faults: [],
-  });
+  const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
   useEffect(() => {
     const getDevices = async () => {
@@ -66,35 +57,32 @@ const TechnicalService = () => {
     >
   ) => {
     const { name, value } = e.target;
-    setDevicesForm((f) => ({
-      ...f,
-
-      [name]: value,
-    }));
+    setDeviceForm(name, value);
   };
 
   const clearForm = () => {
-    setDevicesForm({
+    setDeviceFormEdit({
       client: "",
       device: "",
       damage: "",
       detail: "",
       model: "",
       IMEI: "",
-      price: "",
+      price: 0,
       faults: [],
+      pay: false,
     });
     setisFormTechnical(false);
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    const newPrice = parseLAPrice(devicesForm.price);
+    const newPrice = deviceForm.price;
 
     e.preventDefault();
     if (
-      !devicesForm.client.trim() ||
-      !devicesForm.device.trim() ||
-      !devicesForm.model ||
+      !deviceForm.client.trim() ||
+      !deviceForm.device.trim() ||
+      !deviceForm.model ||
       newPrice <= 0
     ) {
       toast.warning(
@@ -107,11 +95,11 @@ const TechnicalService = () => {
       : null;
 
     const deviceData = {
-      client: devicesForm.client.trim(),
-      device: devicesForm.device.trim(),
-      damage: devicesForm.device.trim(),
-      model: devicesForm.model,
-      IMEI: devicesForm.IMEI || "000000000000000",
+      client: deviceForm.client.trim(),
+      device: deviceForm.device.trim(),
+      damage: deviceForm.device.trim(),
+      model: deviceForm.model,
+      IMEI: deviceForm.IMEI || "000000000000000",
       status: (editingDevice?.status ||
         "En Revisión") as TechnicalServiceEntry["status"],
       entryDate:
@@ -119,8 +107,8 @@ const TechnicalService = () => {
       exitDate: editingDevice?.exitDate || null,
       warrantLimit: editingDevice?.warrantLimit || null,
       price: newPrice,
-      detail: devicesForm.detail,
-      faults: devicesForm.faults,
+      detail: deviceForm.detail,
+      faults: deviceForm.faults,
       output: editingDevice?.output || false,
     };
 
@@ -234,15 +222,17 @@ const TechnicalService = () => {
       toast.warning("No se puede editar un dispositivo entregado.");
       return;
     }
-    setDevicesForm({
+
+    setDeviceFormEdit({
       client: d.client,
       device: d.device,
       damage: d.damage,
       model: d.model,
       IMEI: d.IMEI,
-      price: d.price.toString(),
+      price: d.price,
       detail: d.detail || "",
-      faults: devicesForm.faults,
+      faults: d.faults,
+      pay: d.pay,
     });
     setIsEditing(true);
     setEditingDeviceId(d.id || "");
@@ -379,7 +369,7 @@ const TechnicalService = () => {
         }}
       >
         <DeviceForm
-          formData={devicesForm}
+          formData={deviceForm}
           onChange={handleInputChange}
           onSubmit={handleFormSubmit}
           isEditing={false}
