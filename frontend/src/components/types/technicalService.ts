@@ -13,6 +13,7 @@ export type TechnicalServiceEntry = {
   price: number;
   detail: string;
   faults: string[];
+  pay: boolean;
 };
 
 export type TechnicalServiceEntryNoID = Partial<
