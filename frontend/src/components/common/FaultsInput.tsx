@@ -31,7 +31,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
       }
     };
 
-    const timeout = setTimeout(fetchTypingFaults, 1000); // pequeño debounce
+    const timeout = setTimeout(fetchTypingFaults, 600); // pequeño debounce
     return () => clearTimeout(timeout);
   }, [inputValue]);
 
