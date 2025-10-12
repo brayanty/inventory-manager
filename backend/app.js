@@ -99,7 +99,13 @@ app.post("/devices", async (req, res) => {
   //   faults
   // });
   // if (validationError) return sendError(res, 400, validationError);
-
+  const devices = await readData(DEVICES_FILE);
+  //valieda que el IMEI no se encuentre
+  if (devices.find((device) => device.IMEI === IMEI)) {
+    res.status(409).json({
+      messege: `El ${IMEI} ya se encuentra el la base de datos`,
+    });
+  }
   const products = await readData(PRODUCTS_FILE);
 
   const newEntry = {
