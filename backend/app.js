@@ -116,22 +116,23 @@ app.post("/devices", async (req, res) => {
     price,
     detail: detail && typeof detail === "string" ? detail.trim() : null,
     faults: faults,
-    pay,
+    pay: typeof pay === "boolean" ? pay : false,
   };
   const repairs = products.filter((e) => faults.includes(e.name));
 
   try {
-    await postTechnicalServicePrinter(
+    // Se declara response para su posterior uso xd
+    const response = await postTechnicalServicePrinter(
       {
         name: newEntry.client,
         device: newEntry.device,
-        price: parseFloat(newEntry.price),
         pay: pay,
+        id: newEntry.id,
       },
       repairs
     );
   } catch (e) {
-    console.log(e);
+    console.err("hubo un error al conectar con la impresora");
   }
   try {
     await writeData(newEntry, DEVICES_FILE);
@@ -555,7 +556,7 @@ app.delete("/products/:id", async (req, res) => {
     const newProducts = products.filter((p) => p.id !== req.params.id);
     await overwriteData(newProducts, PRODUCTS_FILE);
     res.json({ result: "Producto eliminado" });
-  } catch {
+  } catch (err) {
     sendError(res, 500, "Error al eliminar el producto");
   }
 });
