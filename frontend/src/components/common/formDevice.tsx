@@ -1,8 +1,21 @@
-import { NumericFormat } from "react-number-format";
 import models from "../constants/models";
+import { useDeviceFormStore } from "../store/useDeviceFormStore";
+import { formatCOP } from "../utils/format";
 import FaultsInput from "./FaultsInput";
 
-const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
+interface DeviceFormEntry {
+  onChange: (e: React.ChangeEvent<Element>) => void;
+  onSubmit: (e) => void;
+  isEditing: boolean;
+}
+
+const DeviceForm = ({
+  onChange,
+  onSubmit,
+  isEditing = false,
+}: DeviceFormEntry) => {
+  const { deviceForm } = useDeviceFormStore();
+
   return (
     <form
       className="h-full w-full text-black flex flex-col flex-wrap justify-between items-center gap-4"
@@ -19,7 +32,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               id="client"
               placeholder="Petrolino Sinforoso"
               className="p-2 rounded border"
-              value={formData.client}
+              value={deviceForm.client}
               onChange={onChange}
               aria-label="Nombre del cliente"
             />
@@ -34,7 +47,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               id="device"
               placeholder="iPhone 14 Pro Max"
               className="p-2 rounded border"
-              value={formData.device}
+              value={deviceForm.device}
               onChange={onChange}
               aria-label="Nombre del dispositivo"
             />
@@ -42,7 +55,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
         </div>
 
         <div className="flex flex-row items-center gap-2">
-          {/* Precio */}
+          {/* Precio
           <label className="flex flex-col" htmlFor="price">
             <span>Precio:</span>
             <NumericFormat
@@ -65,7 +78,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               className="p-2 rounded border"
               placeholder="40.000"
             />
-          </label>
+          </label> */}
 
           {/* Modelo */}
           <label className="flex flex-col" htmlFor="model">
@@ -74,7 +87,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               className="p-2 w-full text-[1rem] border"
               name="model"
               id="model"
-              value={formData.model}
+              value={deviceForm.model}
               onChange={onChange}
               aria-label="Modelo del dispositivo"
               required
@@ -101,7 +114,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               inputMode="numeric"
               pattern="\d*"
               className={`p-2 rounded border`}
-              value={formData.IMEI}
+              value={deviceForm.IMEI}
               onChange={onChange}
               aria-label="Número IMEI"
             />
@@ -109,7 +122,67 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
         </div>
         <div className="flex flex-row item-center gap-2 min-w-full max-h-[100px]">
           {/* Tipos de raparaciones*/}
-          <FaultsInput value={formData.faults} onChange={onChange} />
+          <FaultsInput value={deviceForm.faults} onChange={onChange} />
+        </div>
+
+        <div className="flex items-end justify-between w-full p-2">
+          <label
+            htmlFor="pay"
+            className="relative flex items-center cursor-pointer text-2xl select-none"
+          >
+            {/* Checkbox oculto */}
+            <input
+              name="pay"
+              id="pay"
+              type="checkbox"
+              checked={deviceForm.pay}
+              onChange={(e) =>
+                onChange({ target: { name: "pay", value: e.target.checked } })
+              }
+              className="absolute opacity-0 h-0 w-0 peer"
+            />
+
+            <div
+              className="peer-checked:bg-[#4e7cd1] peer-checked:rounded-md peer-checked:animate-pulsebox 
+    h-6 w-6 bg-gray-300 rounded-full transition duration-300 relative"
+            >
+              <div
+                className="hidden peer-checked:block absolute left-[0.45em] top-[0.25em] w-[0.25em] h-[0.5em] 
+      border-[0.15em] border-t-0 border-l-0 border-solid border-[#E0E0E2] 
+      rotate-45 origin-top-left"
+              ></div>
+            </div>
+
+            <span className="ml-3 text-base text-black">¿Esta pagado?</span>
+          </label>
+
+          <label className="relative flex items-center cursor-pointer text-2xl select-none">
+            {/* Checkbox oculto */}
+            <input
+              type="checkbox"
+              className="absolute opacity-0 h-0 w-0 peer"
+            />
+
+            {/* Checkmark custom */}
+            <div
+              className="peer-checked:bg-[#4e7cd1] peer-checked:rounded-md peer-checked:animate-pulsebox 
+               h-6 w-6 bg-gray-300 rounded-full transition duration-300 relative"
+            >
+              {/* Checkmark visual */}
+              <div
+                className="hidden peer-checked:block absolute left-[0.45em] top-[0.25em] w-[0.25em] h-[0.5em] 
+                 border-[0.15em] border-t-0 border-l-0 border-solid border-[#E0E0E2] 
+                 rotate-45 origin-top-left"
+              ></div>
+            </div>
+
+            {/* Texto opcional al lado */}
+            <span className="ml-1 text-base text-black">
+              ¿LE IMPRO EL TICKET?
+            </span>
+          </label>
+
+          <span className="">{formatCOP(deviceForm.price)}</span>
         </div>
 
         {/* Observaciones */}
@@ -121,7 +194,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
               id="detail"
               placeholder="El dispositivo está apagado, con rayas a los costados"
               className="p-2 w-full max-w-full min-h-[100px] max-h-[100px] rounded border"
-              value={formData.detail}
+              value={deviceForm.detail}
               onChange={onChange}
               aria-label="Observaciones del dispositivo"
             ></textarea>
@@ -132,7 +205,7 @@ const DeviceForm = ({ formData, onChange, onSubmit, isEditing = false }) => {
       {/* Botón de envío */}
       <button
         type="submit"
-        disabled={!formData.client || !formData.device}
+        disabled={!deviceForm.client || !deviceForm.device}
         className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         {isEditing ? "Actualizar dispositivo" : "Registrar ingreso"}
