@@ -1,6 +1,6 @@
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: "http://192.168.0.105:3000/imprimir",
+  baseUrl: "http://192.168.0.108:3000/imprimir",
   headers: { "Content-Type": "application/json" },
   lineWidth: 31,
 };
@@ -99,8 +99,11 @@ class DocumentBuilder {
     return this;
   }
 
-  addLeftAlignedContent() {
-    this.operations.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
+  addAlignedContent(aling) {
+    this.operations.push({
+      nombre: "EstablecerAlineacion",
+      argumentos: [aling],
+    });
     return this;
   }
 
@@ -118,20 +121,36 @@ class DocumentBuilder {
   }
 
   addTotal(total, label = "TOTAL") {
-    this.operations.push(
-      { nombre: "EstablecerAlineacion", argumentos: [2] },
-      {
-        nombre: "EscribirTexto",
-        argumentos: [`${label}: $${total.toLocaleString("es-CO")}\n`],
-      }
-    );
+    this.operations.push({
+      nombre: "EscribirTexto",
+      argumentos: [`${label}: $${total.toLocaleString("es-CO")}\n`],
+    });
+    return this;
+  }
+
+  addQR(data) {
+    this.operations.push({
+      nombre: "ImprimirCodigoQr",
+      argumentos: [data, 380, 3, 0],
+    });
+    return this;
+  }
+
+  addText(text) {
+    this.operations.push({
+      nombre: "EscribirTexto",
+      argumentos: [`${text}\n`],
+    });
     return this;
   }
 
   addFooter(message) {
     this.operations.push(
-      { nombre: "EstablecerAlineacion", argumentos: [1] },
-      { nombre: "TextoSegunPaginaDeCodigos", argumentos: [`${message}\n`] }
+      { nombre: "EstablecerAlineacion", argumentos: [1] }, // Centrado
+      {
+        nombre: "EscribirTexto", // ✅ CON "r"
+        argumentos: [`${message}\n`],
+      }
     );
     return this;
   }
@@ -165,7 +184,7 @@ class ProductPrintService {
     const data = new DocumentBuilder()
       .addStartOperations()
       .addHeader("Centro Tecnologico")
-      .addLeftAlignedContent()
+      .addAlignedContent(0)
       .addLines(productLines)
       .addSeparator()
       .addTotal(total)
@@ -206,15 +225,12 @@ class TechnicalServicePrintService {
       nombre: "EscribirTexto",
       argumentos: [`Dispositivo: ${device.device}\n`],
     });
-    lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
 
     //Reparaciones realizadas
     lines.push({
       nombre: "EscribirTexto",
       argumentos: ["Reparaciones:\n"],
     });
-    //Establece alineacion al centro
-    lines.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
 
     const repairLines = repairs.map((repair) =>
       LineFormatter.formatDeviceLine(repair.name, repair.price)
@@ -223,27 +239,34 @@ class TechnicalServicePrintService {
 
     // Total a pagar
     const total = repairs.reduce(
-      (sum, repair) => sum + repair.price * (repair.amount || 1),
-      device.price
+      (sum, repair) => sum + repair.price,
+      device.price || 0
     );
 
     const data = new DocumentBuilder()
       .addStartOperations()
       .addHeader("SERVICIO TÉCNICO")
-      .addLeftAlignedContent()
+      .addAlignedContent(0)
       .addLines(lines)
       .addSeparator()
+      .addAlignedContent(2)
       .addTotal(total)
+      // PRIMERO el footer (garantía)
+      .addAlignedContent(0)
+      .addSeparator()
       .addFooter(
-        "GARANTÍA: 30 días por defectos de mano de obra y repuestos instalados. No cubre daños por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
+        "\nGARANTÍA: 30 días por defectos de mano de obra y repuestos instalados. No cubre daños por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
       )
+      // DESPUÉS el QR y nombre del cliente
+      .addAlignedContent(1)
       .addEndOperations()
+      .addQR(device.id)
+      .addText(`Cliente: ${device.name}`)
       .build();
-
+    console.log(JSON.stringify(data));
     return await PrinterService.sendToPrinter(data);
   }
 }
-
 // Exportar las funciones originales (manteniendo compatibilidad)
 export const postProductsPrinter = ProductPrintService.print;
 export const postTechnicalServicePrinter = TechnicalServicePrintService.print;
