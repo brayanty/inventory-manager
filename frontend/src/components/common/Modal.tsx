@@ -46,7 +46,7 @@ function Modal({
             {title}
           </h2>
         )}
-        <div>{children}</div>
+        <div>{isOpen && children}</div>
       </div>
     </div>
   );
