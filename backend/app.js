@@ -99,14 +99,21 @@ app.post("/devices", async (req, res) => {
   //   faults
   // });
   // if (validationError) return sendError(res, 400, validationError);
+
   const devices = await readData(DEVICES_FILE);
+
   //valieda que el IMEI no se encuentre
   if (devices.find((device) => device.IMEI === IMEI)) {
     res.status(409).json({
       messege: `El ${IMEI} ya se encuentra el la base de datos`,
     });
+    return;
   }
   const products = await readData(PRODUCTS_FILE);
+
+  if (isNaN(price)) {
+    res.status(406).json({ message: "el precio del dispositivo es invalido" });
+  }
 
   const newEntry = {
     id: uuidv4(),
@@ -119,7 +126,7 @@ app.post("/devices", async (req, res) => {
     exitDate: exitDate && !isNaN(Date.parse(exitDate)) ? exitDate : null,
     warrantLimit:
       warrantLimit && !isNaN(Date.parse(warrantLimit)) ? warrantLimit : null,
-    price,
+    price: price,
     detail: detail && typeof detail === "string" ? detail.trim() : null,
     faults: faults,
     pay: typeof pay === "boolean" ? pay : false,
