@@ -44,7 +44,7 @@ class PrinterService {
 
       return await response.json();
     } catch (error) {
-      console.error("Error al conectar con el server de impresión:", error);
+      console.error("Error al conectar con el server de impresión:");
       return {
         success: false,
         message: "No se pudo conectar con el server de impresión",
@@ -146,9 +146,9 @@ class DocumentBuilder {
 
   addFooter(message) {
     this.operations.push(
-      { nombre: "EstablecerAlineacion", argumentos: [1] }, // Centrado
+      { nombre: "EstablecerAlineacion", argumentos: [1] },
       {
-        nombre: "EscribirTexto", // ✅ CON "r"
+        nombre: "EscribirTexto",
         argumentos: [`${message}\n`],
       }
     );
@@ -245,7 +245,7 @@ class TechnicalServicePrintService {
 
     const data = new DocumentBuilder()
       .addStartOperations()
-      .addHeader("SERVICIO TÉCNICO")
+      .addHeader("SERVICIO TECNICO")
       .addAlignedContent(0)
       .addLines(lines)
       .addSeparator()
@@ -255,21 +255,19 @@ class TechnicalServicePrintService {
       .addAlignedContent(0)
       .addSeparator()
       .addFooter(
-        "\nGARANTÍA: 30 días por defectos de mano de obra y repuestos instalados. No cubre daños por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
+        "\nGARANTIA: 30 dias por defectos de mano de obra y repuestos instalados. No cubre danos por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
       )
-      // DESPUÉS el QR y nombre del cliente
+
       .addAlignedContent(1)
       .addEndOperations()
       .addQR(device.id)
       .addText(`Cliente: ${device.name}`)
       .build();
-    console.log(JSON.stringify(data));
+
     return await PrinterService.sendToPrinter(data);
   }
 }
-// Exportar las funciones originales (manteniendo compatibilidad)
 export const postProductsPrinter = ProductPrintService.print;
 export const postTechnicalServicePrinter = TechnicalServicePrintService.print;
 
-// Exportar los servicios para uso avanzado
 export { ProductPrintService, TechnicalServicePrintService };
