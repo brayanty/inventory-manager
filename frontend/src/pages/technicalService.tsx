@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { DropDown } from "@/components/common/dropdown";
 import DeviceForm from "@/components/common/formDevice";
 import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
+import ReadQR from "@/components/readQR/readQR";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
@@ -34,6 +35,8 @@ const TechnicalService = () => {
   const { search } = useSearchStore();
 
   const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
+
+  const [isOpenQR, setOpenQR] = useState(false);
 
   useEffect(() => {
     const getDevices = async () => {
@@ -259,6 +262,15 @@ const TechnicalService = () => {
         >
           Formulario de Ingreso
         </button>
+        <button
+          onClick={() => {
+            setOpenQR(true);
+          }}
+          type="button"
+          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Buscar por QR
+        </button>
       </div>
 
       <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
@@ -373,6 +385,13 @@ const TechnicalService = () => {
           onSubmit={handleFormSubmit}
           isEditing={false}
         />
+      </Modal>
+      <Modal
+        title="Buscar dispositivo por QR"
+        isOpen={isOpenQR}
+        onClose={() => setOpenQR(false)}
+      >
+        <ReadQR />
       </Modal>
     </div>
   );
