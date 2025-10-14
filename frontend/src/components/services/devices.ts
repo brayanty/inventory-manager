@@ -53,7 +53,7 @@ export async function getDeviceByName(name: string) {
   return data;
 }
 export async function getDeviceById(id: string) {
-  const response = await fetch(DEVICE_ENDPOINT + "?" + "id=" + id);
+  const response = await fetch(DEVICE_ENDPOINT + "/" + id);
   const data = await response.json();
   return data;
 }
