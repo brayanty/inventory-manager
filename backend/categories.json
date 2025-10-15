@@ -1,7 +1,7 @@
 [
   {
     "id": "40498692-f104-437c-ac2b-43b92643530b",
-    "category": "perifericos"
+    "category": "periferico"
   },
   {
     "id": "b85cd94b-9b33-43fd-abd6-bbba58297136",
@@ -9,18 +9,26 @@
   },
   {
     "id": "ff21b3e0-8502-4767-b234-75ce1956bf24",
-    "category": "display's"
+    "category": "display"
   },
   {
     "id": "e4e5e57c-da01-4378-944e-76046bf89958",
-    "category": "pc/laptops"
+    "category": "pc/laptop"
   },
   {
     "id": "3db245e8-865e-494d-9117-7b3c7205763c",
-    "category": "cables"
+    "category": "cable"
   },
   {
     "id": "3768bd39-44f8-461f-8c87-9ae27b7e8379",
-    "category": "celulares/telefonos"
+    "category": "celulare/telefono"
+  },
+  {
+    "id": "4f41c321-4959-4ee7-b037-6480684e3263",
+    "category": "repuesto"
+  },
+  {
+    "id": "d0c7e4c7-fb61-4c2a-9b32-5265312f1451",
+    "category": "servicios"
   }
 ]
