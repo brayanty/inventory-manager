@@ -38,6 +38,9 @@ const TechnicalService = () => {
 
   const [isOpenQR, setOpenQR] = useState(false);
 
+  const [deviceDetail, setDeviceDetail] = useState<TechnicalServiceEntry>();
+  const [isOpenDetail, setOpenDetail] = useState(false);
+
   useEffect(() => {
     const getDevices = async () => {
       setIsLoading(true);
@@ -242,6 +245,12 @@ const TechnicalService = () => {
     setisFormTechnical(true);
   };
 
+  const handleDeviceSearchQR = (device: TechnicalServiceEntry) => {
+    setDeviceDetail(device);
+    setOpenDetail(true);
+    setOpenQR(false);
+  };
+
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
       if (categorySelect === "todos") return true;
@@ -370,6 +379,30 @@ const TechnicalService = () => {
           </tbody>
         </table>
       </div>
+      <Modal
+        title="Detalles del dispositivo"
+        isOpen={isOpenDetail}
+        onClose={() => {
+          setOpenDetail(false);
+        }}
+      >
+        <div className="text-black">
+          <div>Cliente: {deviceDetail?.client}</div>
+          <div>Dispositivo: {deviceDetail?.device}</div>
+          <div>Modelo: {deviceDetail?.model}</div>
+          <div className="flex gap-1 text-wrap">
+            <span>Fallas: </span>
+            {deviceDetail?.faults.map((f) => {
+              return <p key={f}>{f},</p>;
+            })}
+          </div>
+          <div>Esta pagado: {deviceDetail?.pay ? "Si" : "No"}</div>
+          <div>Recibido: {deviceDetail?.entryDate}</div>
+          <div>Esta entregado: {deviceDetail?.output}</div>
+          <div>Observaciones: {deviceDetail?.detail}</div>
+          <div>IMEI: {deviceDetail?.IMEI}</div>
+        </div>
+      </Modal>
 
       <Modal
         title={isEditing ? "Editar dispositivo" : "Formulario de Ingreso"}
@@ -391,7 +424,7 @@ const TechnicalService = () => {
         isOpen={isOpenQR}
         onClose={() => setOpenQR(false)}
       >
-        <ReadQR />
+        <ReadQR deviceSearchQR={handleDeviceSearchQR} />
       </Modal>
     </div>
   );
