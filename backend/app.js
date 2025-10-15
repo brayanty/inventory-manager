@@ -130,6 +130,7 @@ app.post("/devices", async (req, res) => {
     detail: detail && typeof detail === "string" ? detail.trim() : null,
     faults: faults,
     pay: typeof pay === "boolean" ? pay : false,
+    output: output,
   };
   const repairs = products.filter((e) => faults.includes(e.name));
 
@@ -180,11 +181,21 @@ app.get("/devices", async (req, res) => {
 
 // READ ONE
 app.get("/devices/:id", async (req, res) => {
+  const deviceID = req.params.id;
+  const devices = await readData(DEVICES_FILE);
   try {
-    const entries = await readData(DEVICES_FILE);
-    const entry = entries.find((e) => e.id === req.params.id);
-    if (!entry) return sendError(res, 404, "Entrada no encontrada");
-    res.json(entry);
+    const device = devices.find((e) => {
+      return e.id === deviceID;
+    });
+
+    if (!devices)
+      return sendError(
+        res,
+        404,
+        "No se encontro el dispositivo en la base de datos"
+      );
+
+    res.json(device);
   } catch {
     sendError(res, 500, "Error al leer la entrada");
   }
