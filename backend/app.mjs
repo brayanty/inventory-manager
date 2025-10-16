@@ -1,34 +1,39 @@
-const express = require("express");
-const path = require("path");
-const cors = require("cors");
-const { v4: uuidv4 } = require("uuid");
-const morgan = require("morgan");
-const rateLimit = require("express-rate-limit");
-const Fuse = require("fuse.js");
-const app = express();
-const port = 3000;
-const { validateEntryData } = require("./utils/validateData.js");
+import "dotenv/config";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import express, { json } from "express";
+import cors from "cors";
+import { v4 as uuidv4 } from "uuid";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import Fuse from "fuse.js";
+import { handleSuccess, handleError } from "./modules/handleResponse.js";
+import { validateEntryData } from "./utils/validateData.js";
 
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const users = require("./users/user.js");
-const authenticateToken = require("./middleware/auth.js");
-const { readData, writeData, overwriteData } = require("./utils/file.js");
-const {
+import { readData, writeData, overwriteData } from "./utils/file.js";
+import {
   postProductsPrinter,
   postTechnicalServicePrinter,
-} = require("./services/printerService.js");
-require("dotenv").config();
+} from "./services/printerService.js";
+
+//variables de entorno
+const PORT = process.env.PORT || 0;
+
+//path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Archivos JSON usados
-const DEVICES_FILE = path.join(__dirname, "data.json");
-const PRODUCTS_FILE = path.join(__dirname, "products.json");
-const CATEGORIES_FILE = path.join(__dirname, "categories.json");
-const SALES_FILE = path.join(__dirname, "sales.json");
-const DEVICES_REPAIR_AVAILABLE_FILE = path.join(__dirname, "reparaciones.json");
+const DEVICES_FILE = join(__dirname, "data.json");
+const PRODUCTS_FILE = join(__dirname, "products.json");
+const CATEGORIES_FILE = join(__dirname, "categories.json");
+const SALES_FILE = join(__dirname, "sales.json");
+const DEVICES_REPAIR_AVAILABLE_FILE = join(__dirname, "reparaciones.json");
+
+const app = express();
 
 // Middlewares
-app.use(express.json());
+app.use(json());
 app.use(morgan("short"));
 app.use(
   cors({
@@ -42,32 +47,6 @@ const limiter = rateLimit({
   message: { error: "Demasiadas solicitudes, intenta de nuevo más tarde" },
 });
 app.use(limiter);
-
-// Función para errores
-const sendError = (res, status, message) =>
-  res.status(status).json({ error: message });
-
-// Login
-app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  const user = users.find((u) => u.username === username);
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(403).json({ message: "Credenciales inválidas" });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, username: user.username },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-  res.json({ token });
-});
-
-// Ruta protegida
-app.get("/protected", authenticateToken, (req, res) => {
-  res.json({ message: "Acceso concedido", user: req.user });
-});
 
 // ✅ CREATE
 app.post("/devices", async (req, res) => {
@@ -102,20 +81,24 @@ app.post("/devices", async (req, res) => {
 
   const devices = await readData(DEVICES_FILE);
 
-  //valieda que el IMEI no se encuentre
+  //verifica que el IMEI no se encuentre
   if (devices.find((device) => device.IMEI === IMEI)) {
-    res.status(409).json({
-      messege: `El ${IMEI} ya se encuentra el la base de datos`,
-    });
+    handleError(
+      req,
+      res,
+      `El ${IMEI} ya se encuentra el la base de datos`,
+      409
+    );
+
     return;
   }
   const products = await readData(PRODUCTS_FILE);
 
   if (isNaN(price)) {
-    res.status(406).json({ message: "el precio del dispositivo es invalido" });
+    handleError(req, res, "El precio del dispositivo es invalido", 406);
   }
 
-  const newEntry = {
+  const newDevice = {
     id: uuidv4(),
     client: client.trim(),
     device: device.trim(),
@@ -138,10 +121,10 @@ app.post("/devices", async (req, res) => {
     // Se declara response para su posterior uso xd
     const response = await postTechnicalServicePrinter(
       {
-        name: newEntry.client,
-        device: newEntry.device,
+        name: newDevice.client,
+        device: newDevice.device,
         pay: pay,
-        id: newEntry.id,
+        id: newDevice.id,
       },
       repairs
     );
@@ -149,9 +132,10 @@ app.post("/devices", async (req, res) => {
     console.err("hubo un error al conectar con la impresora");
   }
   try {
-    await writeData(newEntry, DEVICES_FILE);
+    await writeData(newDevice, DEVICES_FILE);
 
-    res.status(201).json(newEntry);
+    res.status(201).json(newDevice);
+    handleSuccess(req, res, newDevice);
   } catch {
     sendError(res, 500, "Error al guardar el producto");
   }
@@ -586,6 +570,6 @@ app.delete("/products/:id", async (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(port, () => {
-  console.log(`API de servicio técnico corriendo en http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
 });
