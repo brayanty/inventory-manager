@@ -4,7 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
-import devicesRouters from "./routers/createDevice.route.js";
+import devicesRouters from "./routers/device.route.js";
 import { handleError } from "./modules/handleResponse.js";
 
 // Variables de entorno
