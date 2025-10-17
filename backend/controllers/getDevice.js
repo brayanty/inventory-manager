@@ -1,7 +1,7 @@
 import { FILES } from "../config/file.js";
 import { handleError, handleSuccess } from "../modules/handleResponse.js";
+import { readData } from "../utils/file.js";
 
-// READ ONE
 export default async function getDevice(req, res) {
   const deviceID = req.params.id;
   const devices = await readData(FILES.DEVICES);
