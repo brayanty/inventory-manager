@@ -30,18 +30,6 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 
-// // DELETE
-// app.delete("/devices/:id", async (req, res) => {
-//   try {
-//     const entries = await readData(DEVICES_FILE);
-//     const newEntries = entries.filter((e) => e.id !== req.params.id);
-//     await overwriteData(newEntries, DEVICES_FILE);
-//     res.json({ result: "Entrada eliminada" });
-//   } catch {
-//     sendError(res, 500, "Error al eliminar la entrada");
-//   }
-// });
-
 // // Tipos de reparaciones disponibles
 // app.get("/repairTypeAvailable", async (req, res) => {
 //   const search = req.query.search; // Usar req.query para obtener parámetros de consulta

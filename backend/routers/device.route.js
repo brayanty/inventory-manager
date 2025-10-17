@@ -3,6 +3,7 @@ import createDevice from "../controllers/createDevice.js";
 import getAllDevice from "../controllers/getAllDevice.js";
 import getDevice from "../controllers/getDevice.js";
 import updateDevice from "../controllers/updateDevice.js";
+import deleteDevice from "../controllers/deleteDevice.js";
 
 const router = Router();
 
@@ -14,5 +15,7 @@ router.get("/devices", getAllDevice);
 router.get("/devices/:id", getDevice);
 //Update device
 router.post("/devices/:id", updateDevice);
+//Delete device
+router.delete("/devices/:id", deleteDevice);
 
 export default router;
