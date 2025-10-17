@@ -30,28 +30,6 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 
-// // READ ONE
-// app.get("/devices/:id", async (req, res) => {
-//   const deviceID = req.params.id;
-//   const devices = await readData(DEVICES_FILE);
-//   try {
-//     const device = devices.find((e) => {
-//       return e.id === deviceID;
-//     });
-
-//     if (!devices)
-//       return sendError(
-//         res,
-//         404,
-//         "No se encontro el dispositivo en la base de datos"
-//       );
-
-//     res.json(device);
-//   } catch {
-//     sendError(res, 500, "Error al leer la entrada");
-//   }
-// });
-
 // // UPDATE
 // app.put("/devices/:id", async (req, res) => {
 //   const { id } = req.params;
