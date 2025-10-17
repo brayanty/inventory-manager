@@ -29,27 +29,6 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use("/api", devicesRouters);
-// // READ ALL
-// app.get("/devices", async (req, res) => {
-//   try {
-//     const entries = await readData(DEVICES_FILE);
-//     const { search } = req.query;
-
-//     if (search) {
-//       const fuse = new Fuse(entries, {
-//         keys: ["client", "device"],
-//         includeScore: true,
-//         threshold: 0.3,
-//       });
-//       const results = fuse.search(search);
-//       return res.json(results.map((r) => r.item));
-//     }
-
-//     res.json(entries);
-//   } catch {
-//     sendError(res, 500, "Error al leer las entradas");
-//   }
-// });
 
 // // READ ONE
 // app.get("/devices/:id", async (req, res) => {
