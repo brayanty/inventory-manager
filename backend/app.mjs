@@ -30,31 +30,6 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 
-// // UPDATE
-// app.put("/devices/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const updateFields = req.body;
-
-//   try {
-//     const products = await readData(DEVICES_FILE);
-
-//     const index = products.findIndex((e) => e.id === id);
-//     if (index === -1) {
-//       return sendError(res, 404, "Dispositivo no encontrado");
-//     }
-//     const updatedProduct = { ...products[index], ...updateFields };
-
-//     const newProducts = [...products];
-//     newProducts[index] = updatedProduct;
-
-//     await overwriteData(newProducts, DEVICES_FILE);
-
-//     res.json(updatedProduct);
-//   } catch {
-//     sendError(res, 500, "Error al actualizar la entrada");
-//   }
-// });
-
 // // DELETE
 // app.delete("/devices/:id", async (req, res) => {
 //   try {

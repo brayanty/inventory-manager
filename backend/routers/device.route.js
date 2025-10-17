@@ -2,6 +2,7 @@ import { Router } from "express";
 import createDevice from "../controllers/createDevice.js";
 import getAllDevice from "../controllers/getAllDevice.js";
 import getDevice from "../controllers/getDevice.js";
+import updateDevice from "../controllers/updateDevice.js";
 
 const router = Router();
 
@@ -10,6 +11,8 @@ router.post("/devices", createDevice);
 //Get all device
 router.get("/devices", getAllDevice);
 //Get one device
-router.get("/diveces/:id", getDevice);
+router.get("/devices/:id", getDevice);
+//Update device
+router.post("/devices/:id", updateDevice);
 
 export default router;
