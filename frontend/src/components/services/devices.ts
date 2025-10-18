@@ -1,11 +1,13 @@
 import { TechnicalServiceEntryNoID } from "../types/technicalService";
 
-const DEVICE_ENDPOINT = "http://localhost:3000/devices";
+const DEVICE_ENDPOINT = "http://localhost:3000/api/devices";
 
 export async function getDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id);
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function createDevice(device: TechnicalServiceEntryNoID) {
   const response = await fetch(DEVICE_ENDPOINT, {
@@ -16,7 +18,9 @@ export async function createDevice(device: TechnicalServiceEntryNoID) {
     body: JSON.stringify(device),
   });
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function updateDevice(
   id: string,
@@ -30,7 +34,9 @@ export async function updateDevice(
     body: JSON.stringify(device),
   });
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function deleteDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
@@ -40,25 +46,35 @@ export async function deleteDevice(id: string) {
     },
   });
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function searchDevices(query: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + query);
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function getDeviceByName(name: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "name=" + name);
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function getDeviceById(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id);
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
 export async function getDeviceByStatus(status: string) {
   const response = await fetch(DEVICE_ENDPOINT + "?" + "status=" + status);
   const data = await response.json();
-  return data;
+  if (data.success) {
+    return data.data;
+  }
 }
