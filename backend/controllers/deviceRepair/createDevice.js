@@ -1,10 +1,10 @@
-import { handleError, handleSuccess } from "../modules/handleResponse.js";
-import { readData, writeData } from "../utils/file.js";
-import { FILES } from "../config/file.js";
+import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import { readData, writeData } from "../../utils/file.js";
+import { FILES } from "../../config/file.js";
 import { v4 as uuidv4 } from "uuid";
-import { postTechnicalServicePrinter } from "../services/printerService.js";
+import { postTechnicalServicePrinter } from "../../services/printerService.js";
 
-export async function createDevice(req, res) {
+export default async function createDevice(req, res) {
   const {
     client,
     device,

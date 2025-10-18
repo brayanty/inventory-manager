@@ -1,7 +1,7 @@
 import Fuse from "fuse.js";
-import { FILES } from "../config/file.js";
-import { readData } from "../utils/file.js";
-import { handleError, handleSuccess } from "../modules/handleResponse.js";
+import { FILES } from "../../config/file.js";
+import { readData } from "../../utils/file.js";
+import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 export default async function getAllDevice(req, res) {
   try {

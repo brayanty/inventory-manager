@@ -1,6 +1,6 @@
-import { FILES } from "../config/file.js";
-import { handleError, handleSuccess } from "../modules/handleResponse.js";
-import { overwriteData, readData } from "../utils/file.js";
+import { FILES } from "../../config/file.js";
+import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import { overwriteData, readData } from "../../utils/file.js";
 
 export default async function updateDevice(req, res) {
   const { id } = req.params;

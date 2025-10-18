@@ -1,7 +1,7 @@
 import Fuse from "fuse.js";
-import { FILES } from "../config/file.js";
-import { handleError, handleSuccess } from "../modules/handleResponse.js";
-import { readData } from "../utils/file.js";
+import { FILES } from "../../config/file.js";
+import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import { readData } from "../../utils/file.js";
 
 export default async function getRepairs(req, res) {
   const search = req.query.search;
