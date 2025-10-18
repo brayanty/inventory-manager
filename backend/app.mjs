@@ -30,44 +30,6 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 
-// // Tipos de reparaciones disponibles
-// app.get("/repairTypeAvailable", async (req, res) => {
-//   const search = req.query.search; // Usar req.query para obtener parámetros de consulta
-//   try {
-//     if (!search) {
-//       return res
-//         .status(400)
-//         .json({ message: "El parámetro de búsqueda está vacío" });
-//     }
-
-//     const repairTypeAvailable = await readData(PRODUCTS_FILE);
-
-//     const filterRepairType = repairTypeAvailable.filter((repair) => {
-//       return repair.category == "repuesto" || repair.category == "display";
-//     });
-//     const fuse = new Fuse(filterRepairType, {
-//       keys: ["name"], // Ajustar las claves según los campos correctos
-//       includeScore: true,
-//       threshold: 0.3, // Umbral para búsqueda difusa
-//     });
-
-//     const results = fuse.search(search);
-
-//     if (!results.length) {
-//       return res
-//         .status(404)
-//         .json({ message: "No se encontraron resultados para la búsqueda" });
-//     }
-
-//     res.json(results.map((r) => r.item));
-//   } catch (error) {
-//     console.error("Error al leer las reparaciones disponibles:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Error al leer las reparaciones disponibles" });
-//   }
-// });
-
 // app.post("/devices/repairTypeAvailable", async (req, res) => {
 //   const { type } = req.body;
 //   const types = await readData(DEVICES_REPAIR_AVAILABLE_FILE);
