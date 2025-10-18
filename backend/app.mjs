@@ -30,38 +30,6 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 
-// app.post("/devices/repairTypeAvailable", async (req, res) => {
-//   const { type } = req.body;
-//   const types = await readData(DEVICES_REPAIR_AVAILABLE_FILE);
-
-//   const typeExists = types.find(
-//     (t) => t.type.toLowerCase() === type.trim().toLowerCase()
-//   );
-
-//   if (typeExists) {
-//     return res
-//       .status(400)
-//       .json({ error: `El tipo de reparación "${type}" ya existe` });
-//   }
-
-//   if (!type || typeof type !== "string" || type.trim() === "")
-//     return sendError(res, 400, "El campo 'type' debe ser una cadena no vacía");
-
-//   const newType = {
-//     id: uuidv4(),
-//     type: type.trim(),
-//   };
-
-//   types.push(newType);
-
-//   try {
-//     await overwriteData(newType, DEVICES_REPAIR_AVAILABLE_FILE);
-//     res.status(201).json(newType);
-//   } catch {
-//     sendError(res, 500, "Error al guardar el tipo de reparación");
-//   }
-// });
-
 // // PRODUCTS
 
 // // Obtener productos con paginación y búsqueda
