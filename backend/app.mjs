@@ -33,52 +33,6 @@ app.use(limiter);
 app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
 
-// // Crear un nuevo producto
-// app.post("/products", async (req, res) => {
-//   const { name, category } = req.body;
-//   const price = parseFloat(req.body.price);
-//   const total = parseFloat(req.body.total);
-//   const categoriesList = await readData(CATEGORIES_FILE);
-//   const categoryExists = categoriesList.find(
-//     (cat) => cat.category === category
-//   );
-//   if (!categoryExists) {
-//     return res
-//       .status(400)
-//       .json({ error: "La categoría proporcionada no existe" });
-//   }
-
-//   if (isNaN(price) || price < 0) {
-//     return res
-//       .status(400)
-//       .json({ error: "El precio debe ser un número válido y no negativo" });
-//   }
-//   if (!name || typeof name !== "string" || name.trim() === "")
-//     return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
-//   if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
-//     return sendError(
-//       res,
-//       400,
-//       "El campo 'total' debe ser un número válido y no negativo"
-//     );
-
-//   const newProduct = {
-//     id: uuidv4(),
-//     sales: 0,
-//     name: name,
-//     category: categoryExists.category,
-//     total: total,
-//     price: price,
-//   };
-
-//   try {
-//     writeData(newProduct, PRODUCTS_FILE);
-//     res.json(newProduct, 201);
-//   } catch {
-//     sendError(res, 404);
-//   }
-// });
-
 // // Actualizar producto
 // app.put("/products/:id", async (req, res) => {
 //   const { name, price, stock } = req.body;
@@ -111,6 +65,7 @@ app.use("/api", productsRouters);
 //     sendError(res, 500, "Error al actualizar el producto");
 //   }
 // });
+
 // app.post("/products/sold", async (req, res) => {
 //   try {
 //     const soldProducts = req.body;
