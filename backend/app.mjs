@@ -5,6 +5,8 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 
 import devicesRouters from "./routers/device.route.js";
+import productsRouters from "./routers/product.route.js";
+
 import { handleError } from "./modules/handleResponse.js";
 
 // Variables de entorno
@@ -29,46 +31,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use("/api", devicesRouters);
-
-// // PRODUCTS
-
-// // Obtener productos con paginación y búsqueda
-// app.get("/products", async (req, res) => {
-//   try {
-//     const entries = await readData(PRODUCTS_FILE);
-//     const { search, page = 1, limit = 10 } = req.query;
-
-//     let filtered = entries;
-
-//     // Filtrar si hay búsqueda
-//     if (search) {
-//       const fuse = new Fuse(entries, {
-//         keys: ["name"],
-//         includeScore: true,
-//         threshold: 0.3,
-//       });
-//       filtered = fuse.search(search).map((r) => r.item);
-//     }
-
-//     // Calcular paginado
-//     const pageNum = parseInt(page) || 1;
-//     const limitNum = parseInt(limit) || 10;
-//     const totalItems = filtered.length;
-//     const totalPages = Math.ceil(totalItems / limitNum);
-//     const start = (pageNum - 1) * limitNum;
-//     const paginated = filtered.slice(start, start + limitNum);
-
-//     res.json({
-//       page: pageNum,
-//       limit: limitNum,
-//       totalItems,
-//       totalPages,
-//       data: paginated,
-//     });
-//   } catch (error) {
-//     sendError(res, 500, "Error al leer los productos");
-//   }
-// });
+app.use("/api", productsRouters);
 
 // // Crear un nuevo producto
 // app.post("/products", async (req, res) => {
