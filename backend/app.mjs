@@ -33,39 +33,6 @@ app.use(limiter);
 app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
 
-// // Actualizar producto
-// app.put("/products/:id", async (req, res) => {
-//   const { name, price, stock } = req.body;
-
-//   if (!name || typeof name !== "string" || name.trim() === "")
-//     return sendError(res, 400, "El campo 'name' debe ser una cadena no vacía");
-//   if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
-//     return sendError(
-//       res,
-//       400,
-//       "El campo 'price' debe ser un número válido y no negativo"
-//     );
-//   if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
-//     return sendError(
-//       res,
-//       400,
-//       "El campo 'stock' debe ser un número válido y no negativo"
-//     );
-
-//   try {
-//     const products = await readData(PRODUCTS_FILE);
-//     const index = products.findIndex((p) => p.id === req.params.id);
-//     if (index === -1) return sendError(res, 404, "Producto no encontrado");
-
-//     const updated = { ...products[index], name: name.trim(), price, stock };
-//     products[index] = updated;
-//     await writeData(products, PRODUCTS_FILE);
-//     res.json(updated);
-//   } catch {
-//     sendError(res, 500, "Error al actualizar el producto");
-//   }
-// });
-
 // app.post("/products/sold", async (req, res) => {
 //   try {
 //     const soldProducts = req.body;
