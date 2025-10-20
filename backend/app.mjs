@@ -86,17 +86,6 @@ app.use("/api", productsRouters);
 //   }
 // });
 
-// app.delete("/products/:id", async (req, res) => {
-//   try {
-//     const products = await readData(PRODUCTS_FILE);
-//     const newProducts = products.filter((p) => p.id !== req.params.id);
-//     await overwriteData(newProducts, PRODUCTS_FILE);
-//     res.json({ result: "Producto eliminado" });
-//   } catch (err) {
-//     sendError(res, 500, "Error al eliminar el producto");
-//   }
-// });
-
 // ... tus middlewares y rutas existentes ...
 
 // Manejo de rutas no encontradas
