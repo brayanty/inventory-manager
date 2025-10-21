@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 
 import devicesRouters from "./routers/device.route.js";
 import productsRouters from "./routers/product.route.js";
+import categoryRouters from "./routers/category.route.js";
 
 import { handleError } from "./modules/handleResponse.js";
 
@@ -32,59 +33,7 @@ app.use(limiter);
 
 app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
-
-// // Crear una nueva categoria
-// app.get("/products/categories", async (req, res) => {
-//   try {
-//     const categories = await readData(CATEGORIES_FILE);
-//     res.json(categories);
-//   } catch {
-//     sendError(res, 500, "Oops hubo un error en el servidor");
-//   }
-// });
-
-// app.post("/products/categories", async (req, res) => {
-//   let { category } = req.body;
-//   const categories = await readData(CATEGORIES_FILE);
-
-//   // Normalizamos a minúsculas y recortamos espacios
-//   category = category.trim().toLowerCase();
-
-//   // Verificar si ya existe la categoría (en minúsculas)
-//   const existCategory = categories.find(
-//     (cat) => cat.category.toLowerCase() === category
-//   );
-//   if (existCategory) {
-//     return res.json({
-//       message: `La categoría "${category}" ya está en la lista`,
-//     });
-//   }
-
-//   // Crear nueva categoría
-//   const newCategory = {
-//     id: uuidv4(),
-//     category, // ya está en minúsculas
-//   };
-
-//   try {
-//     categories.push(newCategory); // agregamos al array
-//     await writeData(newCategory, CATEGORIES_FILE); // guardamos array completo
-//     res.status(201).json(newCategory);
-//   } catch (err) {
-//     sendError(res, 500, "Error al guardar la categoría");
-//   }
-// });
-
-// app.delete("/products/categories/:id", async (req, res) => {
-//   try {
-//     const categories = await readData(CATEGORIES_FILE);
-//     const newCategories = categories.filter((c) => c.id !== req.params.id);
-//     await writeData(newCategories, CATEGORIES_FILE);
-//     res.json({ result: "Categoría eliminada" });
-//   } catch {
-//     sendError(res, 500, "Error al eliminar la categoría");
-//   }
-// });
+app.use("/api", categoryRouters);
 
 // ... tus middlewares y rutas existentes ...
 
