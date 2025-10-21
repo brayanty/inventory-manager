@@ -1,4 +1,7 @@
+import { v4 as uuidv4 } from "uuid";
+import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import { overwriteData, readData } from "../../utils/file.js";
 
 export async function createProduct(req, res) {
   const { name, category } = req.body;
@@ -6,7 +9,7 @@ export async function createProduct(req, res) {
   const price = parseFloat(req.body.price);
   const total = parseFloat(req.body.total);
 
-  const categoriesList = await readData(CATEGORIES_FILE);
+  const categoriesList = await readData(FILES.CATEGORIES);
   const categoryExists = categoriesList.find(
     (cat) => cat.category === category
   );
@@ -45,7 +48,7 @@ export async function createProduct(req, res) {
   };
 
   try {
-    writeData(newProduct, PRODUCTS_FILE);
+    overwriteData(newProduct, FILES.PRODUCTS);
     handleSuccess(req, res, newProduct);
   } catch {
     handleError(req, res, "Hubo un error interno");
