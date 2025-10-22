@@ -21,11 +21,11 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
 
       try {
         const response = await fetch(
-          `http://localhost:3000/repairTypeAvailable/?search=${inputValue}`
+          `http://localhost:3000/api/repairs/?search=${inputValue}`
         );
         const data = await response.json();
 
-        setReplacement(data);
+        setReplacement(data.data);
       } catch (error) {
         console.error("Error fetching repair types:", error);
       }
@@ -93,7 +93,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
       />
 
       {replacement.length > 0 && (
-        <ul className="absolute top-10 left-0 w-full h-[100px] bg-white border border-gray-300 rounded-md mt-1 max-h-100 overflow-y-auto z-10 shadow-lg">
+        <ul className="absolute top-10 left-0 w-full h-[100px] dark:bg-[#1f232b] dark:bg. bg-white border border-gray-300 rounded-md mt-1 max-h-100 overflow-y-auto z-10 shadow-lg">
           {replacement.map((r) => (
             <li
               key={r.id}
