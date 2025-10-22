@@ -3,6 +3,7 @@ import React from "react";
 function Modal({
   isOpen,
   onClose,
+  title,
   children,
   showCloseButton = true,
   overlayClickCloses = true,
