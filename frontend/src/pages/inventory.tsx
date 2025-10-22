@@ -25,9 +25,10 @@ function ProductsInventory() {
 
   const handleSubmit = async (data: Record<string, []>) => {
     if (!data) return;
-    const newProduct = await createProduct(data);
-    const newProducts = [...products, newProduct];
-    if (newProduct) {
+
+    const newProducts = await createProduct(data);
+
+    if (newProducts) {
       {
         setOpenAddProduct(false);
         addProducts(newProducts);
