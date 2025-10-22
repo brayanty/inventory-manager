@@ -5,12 +5,11 @@ import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 // Obtener productos con paginación y búsqueda
 export async function getProduct(req, res) {
+  const { search, page = 1, limit = 10 } = req.query;
   try {
     const entries = await readData(FILES.PRODUCTS);
-    const { search, page = 1, limit = 10 } = req.query;
 
     let filtered = entries;
-
     // Filtrar si hay búsqueda
     if (search) {
       const fuse = new Fuse(entries, {
@@ -34,9 +33,10 @@ export async function getProduct(req, res) {
       limit: limitNum,
       totalItems,
       totalPages,
-      data: paginated,
+      products: paginated,
     });
-  } catch {
+  } catch (error) {
+    console.error(error);
     handleError(req, res, "Error al leer los productos");
   }
 }
