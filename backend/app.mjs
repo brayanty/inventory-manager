@@ -73,13 +73,13 @@ app.use((error, req, res, next) => {
 //   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
 // });
 
-app.listen(PORT, IP_LOCAL, null, () => {
-  console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
-  console.log(
-    `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
-  );
-});
+// app.listen(PORT, IP_LOCAL, null, () => {
+//   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+//   console.log(
+//     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
+//   );
+// });
 
-https.createServer(options, app).listen(8443, () => {
-  console.log("Servidor HTTPS corriendo en el puerto 8443");
+https.createServer(options, app).listen(3000, () => {
+  console.log("Servidor HTTPS corriendo en el puerto 3000");
 });
