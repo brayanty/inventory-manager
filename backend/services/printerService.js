@@ -42,7 +42,9 @@ class PrinterService {
         body: JSON.stringify(data),
       });
 
-      return await response.json();
+      await response.json();
+
+      return { success: true };
     } catch (error) {
       console.error("Error al conectar con el server de impresión:");
       return {
