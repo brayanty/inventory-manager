@@ -8,7 +8,7 @@ export async function createProduct(req, res) {
 
   const price = parseFloat(req.body.price);
   const total = parseFloat(req.body.total);
-
+  const products = await readData(FILES.PRODUCTS);
   const categoriesList = await readData(FILES.CATEGORIES);
   const categoryExists = categoriesList.find(
     (cat) => cat.category === category
@@ -46,10 +46,10 @@ export async function createProduct(req, res) {
     total: total,
     price: price,
   };
-
+  products.push(newProduct);
   try {
-    overwriteData(newProduct, FILES.PRODUCTS);
-    handleSuccess(req, res, newProduct);
+    overwriteData(products, FILES.PRODUCTS);
+    handleSuccess(req, res, products);
   } catch {
     handleError(req, res, "Hubo un error interno");
   }
