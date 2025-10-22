@@ -11,7 +11,8 @@ import categoryRouters from "./routers/category.route.js";
 import { handleError } from "./modules/handleResponse.js";
 
 // Variables de entorno
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || process.env.production || 3000;
+const IP_LOCAL = process.env.IP_LOCALHOST;
 
 const app = express();
 
@@ -20,7 +21,8 @@ app.use(json());
 app.use(morgan("short"));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["https://localhost:3000", "https://127.0.0.1:3000"],
+    credentials: true,
   })
 );
 
@@ -61,6 +63,13 @@ app.use((error, req, res, next) => {
   handleError(req, res, "Error interno del servidor", 500);
 });
 
-app.listen(PORT, () => {
+// app.listen(0, (host) => {
+//   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+// });
+
+app.listen(PORT, IP_LOCAL, null, () => {
   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+  console.log(
+    `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
+  );
 });
