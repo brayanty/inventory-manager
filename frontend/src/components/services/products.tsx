@@ -1,4 +1,4 @@
-const API_ENDPOINT = "http://192.168.0.108:3000/api/";
+const API_ENDPOINT = "https://192.168.0.108:3000/api/";
 
 const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
 const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
