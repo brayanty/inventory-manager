@@ -23,7 +23,7 @@ function RenderProducts() {
 
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
-  const { page } = usePage();
+  const { page, setTotalPages } = usePage();
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar categorías al inicio
@@ -46,7 +46,8 @@ function RenderProducts() {
       setIsLoading(true);
       try {
         const response = await getProducts(search, page);
-        addProducts(response.data || []);
+        setTotalPages(response.data.totalPages);
+        addProducts(response.data.products);
       } catch (error) {
         toast.error("Error cargando productos:");
         throw new Error("Error cargando productos\n" + error);
