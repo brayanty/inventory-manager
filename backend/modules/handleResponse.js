@@ -5,7 +5,7 @@ export function handleSuccess(
   message = "Success",
   status = 200
 ) {
-  res.status(status).json({
+  return res.status(status).json({
     success: true,
     status: status,
     message: message,
@@ -32,5 +32,5 @@ export function handleError(
     response.details = details;
   }
 
-  res.status(status).json(response);
+  return res.status(status).json(response);
 }
