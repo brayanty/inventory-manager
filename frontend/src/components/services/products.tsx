@@ -1,13 +1,17 @@
-const DEVICE_ENDPOINT = "http://localhost:3000/products";
+const API_ENDPOINT = "http://192.168.86.221:3000/api/";
+
+const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
+const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
+const SOLDPRODUCTS_ENDPOINT = API_ENDPOINT + "soldProducts";
 
 export async function getProduct(id: string) {
-  const response = await fetch(DEVICE_ENDPOINT + "/" + id);
+  const response = await fetch(PRODUCTS_ENDPOINT + "/" + id);
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function createProduct(product) {
-  const response = await fetch(DEVICE_ENDPOINT, {
+  const response = await fetch(PRODUCTS_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -15,11 +19,11 @@ export async function createProduct(product) {
     body: JSON.stringify(product),
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function updateProduct(id, product) {
-  const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
+  const response = await fetch(PRODUCTS_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -27,22 +31,22 @@ export async function updateProduct(id, product) {
     body: JSON.stringify(product),
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function deleteProduct(id) {
-  const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
+  const response = await fetch(PRODUCTS_ENDPOINT + "/" + id, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function soldProducts(productSales) {
-  const response = await fetch(DEVICE_ENDPOINT + "/" + "sold", {
+  const response = await fetch(SOLDPRODUCTS_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -50,25 +54,26 @@ export async function soldProducts(productSales) {
     body: JSON.stringify(productSales),
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function getProducts(search: string, page: number = 1) {
   const response = await fetch(
-    DEVICE_ENDPOINT + "?" + "search=" + search + "&page=" + page
+    PRODUCTS_ENDPOINT + "?" + "search=" + search + "&page=" + page
   );
   const data = await response.json();
+
   return data;
 }
 
 export async function getCategories() {
-  const response = await fetch(DEVICE_ENDPOINT + "/categories");
+  const response = await fetch(CATEGORY_ENDPOINT);
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function createCategory(category) {
-  const response = await fetch(DEVICE_ENDPOINT + "/categories", {
+  const response = await fetch(CATEGORY_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -76,22 +81,22 @@ export async function createCategory(category) {
     body: JSON.stringify(category),
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function deleteCategory(id) {
-  const response = await fetch(DEVICE_ENDPOINT + "/categories/" + id, {
+  const response = await fetch(CATEGORY_ENDPOINT + "/" + id, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
 
 export async function updateCategory(id, category) {
-  const response = await fetch(DEVICE_ENDPOINT + "/categories/" + id, {
+  const response = await fetch(CATEGORY_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -99,5 +104,5 @@ export async function updateCategory(id, category) {
     body: JSON.stringify(category),
   });
   const data = await response.json();
-  return data;
+  return data.data;
 }
