@@ -3,16 +3,22 @@ import express, { json } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-
+import https from "https";
 import devicesRouters from "./routers/device.route.js";
 import productsRouters from "./routers/product.route.js";
 import categoryRouters from "./routers/category.route.js";
-
+import fs from "fs/promises";
 import { handleError } from "./modules/handleResponse.js";
+import SSL_CONFIG from "./config/ssl.js";
 
 // Variables de entorno
 const PORT = process.env.PORT || process.env.production || 3000;
 const IP_LOCAL = process.env.IP_LOCALHOST;
+
+const options = {
+  key: await fs.readFile(SSL_CONFIG.keyPath),
+  cert: await fs.readFile(SSL_CONFIG.certPath),
+};
 
 const app = express();
 
@@ -21,7 +27,7 @@ app.use(json());
 app.use(morgan("short"));
 app.use(
   cors({
-    origin: ["https://localhost:3000", "https://127.0.0.1:3000"],
+    origin: ["https://192.168.0.108:5173", "https://192.168.0.108:5173:3000"],
     credentials: true,
   })
 );
@@ -72,4 +78,8 @@ app.listen(PORT, IP_LOCAL, null, () => {
   console.log(
     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
   );
+});
+
+https.createServer(options, app).listen(8443, () => {
+  console.log("Servidor HTTPS corriendo en el puerto 8443");
 });
