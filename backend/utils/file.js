@@ -15,17 +15,15 @@ export async function writeData(newData, file) {
 
   let newDataFile = (await readData(filePath)) ?? [];
   if (!Array.isArray(newDataFile)) {
-    throw new Error("El archivo no contiene un array válido");
+    console.error("El archivo no contiene un array válido");
   }
 
   newDataFile.push(newData);
 
   try {
     await fs.writeFile(filePath, JSON.stringify(newDataFile, null, 2), "utf-8");
-    console.log("✅ Datos escritos correctamente");
   } catch (err) {
-    console.error("❌ Error al escribir datos:", err);
-    throw err;
+    console.error("Error al escribir datos:", err);
   }
 }
 
@@ -34,14 +32,13 @@ export async function overwriteData(newData, file) {
   const filePath = path.resolve(file);
 
   if (!Array.isArray(newData)) {
-    throw new Error("Los datos a escribir deben ser un array");
+    console.error("Los datos a escribir deben ser un array");
   }
 
   try {
     await fs.writeFile(filePath, JSON.stringify(newData, null, 2), "utf-8");
-    console.log("✅ Datos sobrescritos correctamente");
   } catch (err) {
-    console.error("❌ Error al sobrescribir datos:", err);
+    console.error("Error al sobrescribir datos:", err);
     throw err;
   }
 }
