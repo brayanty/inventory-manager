@@ -4,7 +4,7 @@ import { DeviceEntry } from "../types/technicalService";
 interface DeviceFormState {
   deviceForm: DeviceEntry;
   setPriceForm: (price: number) => void;
-  setDeviceForm: (name: string, value: string | number) => void;
+  setDeviceForm: (name: keyof DeviceEntry, value: DeviceEntry[keyof DeviceEntry]) => void;
   setDeviceFormEdit: (editDevice: DeviceEntry) => void;
 }
 
