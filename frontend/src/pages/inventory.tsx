@@ -2,7 +2,6 @@ import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
 import { createCategory, createProduct } from "@/components/services/products";
-import usePage from "@/components/store/page.tsx";
 import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -10,7 +9,6 @@ import { useCategoryListStore } from "@/components/store/category";
 import Button from "@/components/common/button";
 
 function ProductsInventory() {
-  const { page, setPage } = usePage();
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
   const { products, addProducts } = useProductsStore();
   const { categoryList, setCategoryList } = useCategoryListStore();
@@ -91,7 +89,7 @@ function ProductsInventory() {
           </tbody>
         </table>
       </div>
-      <Paginator selectPage={page} onPageChange={setPage} />
+      <Paginator />
       {/* Formulario para agregar categoria */}
       <FormRender
         title="Agregar Categoría"
