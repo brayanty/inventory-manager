@@ -27,8 +27,6 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
 
   // Función para detener completamente la cámara
   const stopCamera = useCallback(() => {
-    console.log("🔴 Deteniendo cámara...");
-
     // 1. Cancelar animation frame
     if (animationFrameIdRef.current) {
       cancelAnimationFrame(animationFrameIdRef.current);
@@ -38,7 +36,6 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
     // 2. Detener todas las tracks del stream
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
-        console.log("🛑 Deteniendo track:", track.kind);
         track.stop();
         track.enabled = false;
       });
@@ -79,163 +76,156 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
   }, [scannedData, deviceSearchQR]);
 
   // Effect PRINCIPAL - se ejecuta solo cuando isScanning cambia
+  // Reemplaza tu useEffect principal con esta versión mejorada
   useEffect(() => {
-    console.log("🔄 useEffect principal, isScanning:", isScanning);
-
-    // Si NO estamos escaneando, detener todo
     if (!isScanning) {
       stopCamera();
       return;
     }
 
-    // Si estamos escaneando, iniciar la cámara
     const initializeScanner = async () => {
       const video = videoRef.current;
       const canvasElement = canvasRef.current;
 
       if (!video || !canvasElement) return;
 
-      const canvas = canvasElement.getContext("2d");
-      if (!canvas) return;
-
       try {
         setError(null);
         setIsLoading(true);
 
-        // Obtener stream de cámara
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
+        // 1. Verificar disponibilidad de cámara
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("La cámara no está disponible en este dispositivo");
+        }
+
+        // 2. Obtener stream con mejores opciones de compatibilidad
+        const constraints = {
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        };
+
+        // 3. Intentar con facingMode, si falla intentar sin especificar
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (facingError) {
+          console.log(
+            "Intentando cámara trasera falló, probando cámara por defecto"
+          );
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
 
         streamRef.current = stream;
         video.srcObject = stream;
-        video.setAttribute("playsinline", "true");
 
-        await video.play();
-        setIsLoading(false);
-
-        // Función para dibujar líneas
-        const drawLine = (
-          begin: { x: number; y: number },
-          end: { x: number; y: number },
-          color: string
-        ) => {
-          canvas.beginPath();
-          canvas.moveTo(begin.x, begin.y);
-          canvas.lineTo(end.x, end.y);
-          canvas.lineWidth = 4;
-          canvas.strokeStyle = color;
-          canvas.stroke();
+        // 4. Manejar eventos de video
+        video.onloadedmetadata = () => {
+          video.play().catch((playError) => {
+            console.error("Error al reproducir video:", playError);
+            setError("No se puede reproducir el video de la cámara");
+          });
         };
 
-        // Función principal de escaneo
-        const tick = () => {
-          // Verificar si todavía estamos escaneando
-          if (!isScanningRef.current) {
-            console.log("⏹️ Tick detenido porque isScanning es false");
-            return;
-          }
-
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvasElement.height = video.videoHeight;
-            canvasElement.width = video.videoWidth;
-            canvas.drawImage(
-              video,
-              0,
-              0,
-              canvasElement.width,
-              canvasElement.height
-            );
-
-            const imageData = canvas.getImageData(
-              0,
-              0,
-              canvasElement.width,
-              canvasElement.height
-            );
-            const code = jsQR(
-              imageData.data,
-              imageData.width,
-              imageData.height,
-              {
-                inversionAttempts: "dontInvert",
-              }
-            );
-
-            if (code) {
-              // Dibujar marco alrededor del QR
-              drawLine(
-                code.location.topLeftCorner,
-                code.location.topRightCorner,
-                "#FF3B58"
-              );
-              drawLine(
-                code.location.topRightCorner,
-                code.location.bottomRightCorner,
-                "#FF3B58"
-              );
-              drawLine(
-                code.location.bottomRightCorner,
-                code.location.bottomLeftCorner,
-                "#FF3B58"
-              );
-              drawLine(
-                code.location.bottomLeftCorner,
-                code.location.topLeftCorner,
-                "#FF3B58"
-              );
-
-              if (code.data && code.data !== scannedData) {
-                console.log("✅ QR detectado:", code.data);
-                setScannedData(code.data);
-                // NO llamar a requestAnimationFrame aquí
-                return;
-              }
-            }
-          }
-
-          // Continuar el loop solo si seguimos escaneando
-          if (isScanningRef.current) {
-            animationFrameIdRef.current = requestAnimationFrame(tick);
-          }
+        video.onplaying = () => {
+          setIsLoading(false);
+          startScanningLoop();
         };
 
-        // Iniciar el loop de escaneo
-        animationFrameIdRef.current = requestAnimationFrame(tick);
+        video.onerror = () => {
+          setError("Error en el elemento de video");
+          setIsLoading(false);
+        };
       } catch (err) {
-        console.error("Camera error:", err);
-        setError("No se pudo acceder a la cámara: " + (err as Error).message);
+        console.error("Camera initialization error:", err);
+        let errorMessage = "No se pudo acceder a la cámara: ";
+
+        if (err.name === "NotAllowedError") {
+          errorMessage +=
+            "Permisos denegados. Por favor permite el acceso a la cámara.";
+        } else if (err.name === "NotFoundError") {
+          errorMessage += "No se encontró cámara en el dispositivo.";
+        } else if (err.name === "NotSupportedError") {
+          errorMessage += "Navegador no compatible con cámara.";
+        } else if (err.name === "NotReadableError") {
+          errorMessage += "La cámara está siendo usada por otra aplicación.";
+        } else {
+          errorMessage += err.message;
+        }
+
+        setError(errorMessage);
         setIsLoading(false);
       }
+    };
+
+    const startScanningLoop = () => {
+      const video = videoRef.current;
+      const canvasElement = canvasRef.current;
+      const canvas = canvasElement?.getContext("2d");
+
+      if (!video || !canvasElement || !canvas) return;
+
+      const tick = () => {
+        if (!isScanningRef.current || !streamRef.current) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvasElement.height = video.videoHeight;
+          canvasElement.width = video.videoWidth;
+
+          canvas.drawImage(
+            video,
+            0,
+            0,
+            canvasElement.width,
+            canvasElement.height
+          );
+
+          const imageData = canvas.getImageData(
+            0,
+            0,
+            canvasElement.width,
+            canvasElement.height
+          );
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "attemptBoth",
+          });
+
+          if (code?.data && code.data !== scannedData) {
+            setScannedData(code.data);
+            return; // Detener el loop cuando se encuentra un código
+          }
+        }
+
+        if (isScanningRef.current) {
+          animationFrameIdRef.current = requestAnimationFrame(tick);
+        }
+      };
+
+      animationFrameIdRef.current = requestAnimationFrame(tick);
     };
 
     initializeScanner();
 
-    // Cleanup function - se ejecuta cuando el componente se desmonta o cuando isScanning cambia
     return () => {
-      console.log("🧹 Ejecutando cleanup");
-      if (!isScanning) {
-        stopCamera();
-      }
+      stopCamera();
     };
-  }, [isScanning, stopCamera]); // Solo dependemos de isScanning y stopCamera
+  }, [isScanning, stopCamera]);
 
   const restartScanning = () => {
-    console.log("🔄 Reiniciando escaneo");
     setScannedData(null);
     setError(null);
     setIsScanning(true);
   };
 
   const stopScanning = () => {
-    console.log("⏹️ Deteniendo escaneo manualmente");
     setIsScanning(false);
   };
 
   // Efecto adicional para detener cámara cuando el componente se desmonta
   useEffect(() => {
     return () => {
-      console.log("🗑️ Componente desmontándose - limpiando todo");
       stopCamera();
     };
   }, [stopCamera]);
@@ -260,13 +250,28 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
       )}
 
       <div className="relative">
-        <video ref={videoRef} style={{ display: "none" }} />
-        <canvas
-          ref={canvasRef}
-          className={`w-full max-w-md mx-auto border-2 ${
-            scannedData ? "border-green-500" : "border-gray-300"
-          } rounded-lg ${!isScanning ? "opacity-50" : ""}`}
-        />
+        <div className="relative">
+          <video
+            ref={videoRef}
+            style={{
+              display: "none",
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+            }}
+          />
+          <canvas
+            ref={canvasRef}
+            className={`w-full max-w-md mx-auto border-2 ${
+              scannedData ? "border-green-500" : "border-gray-300"
+            } rounded-lg ${!isScanning ? "opacity-50" : ""}`}
+            style={{
+              width: "100%",
+              height: "auto",
+              maxHeight: "60vh",
+            }}
+          />
+        </div>
 
         {!isScanning && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
