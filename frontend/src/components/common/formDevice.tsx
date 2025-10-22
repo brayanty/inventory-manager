@@ -5,7 +5,7 @@ import FaultsInput from "./FaultsInput";
 
 interface DeviceFormEntry {
   onChange: (e: React.ChangeEvent<Element>) => void;
-  onSubmit: (e) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   isEditing: boolean;
 }
 
@@ -136,7 +136,7 @@ const DeviceForm = ({
               id="pay"
               type="checkbox"
               checked={deviceForm.pay}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 onChange({ target: { name: "pay", value: e.target.checked } })
               }
               className="absolute opacity-0 h-0 w-0 peer"
