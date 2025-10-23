@@ -1,6 +1,7 @@
 import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { Product } from "../types/product";
 import { useDeviceFormStore } from "../store/useDeviceFormStore";
+import { IP_HOST } from "../constants/endpoint.js";
 
 interface FaultsInputProps {
   value: string[];
@@ -21,7 +22,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
 
       try {
         const response = await fetch(
-          `http://localhost:3000/api/repairs/?search=${inputValue}`
+          `http://${IP_HOST}:3000/api/repairs/?search=${inputValue}`
         );
         const data = await response.json();
 
