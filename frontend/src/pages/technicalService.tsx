@@ -134,8 +134,15 @@ const TechnicalService = () => {
         setIsEditing(false);
         setEditingDeviceId(null);
       } else {
-        const createdDevice = await createDevice(deviceData);
-        setDevices((prev) => [...prev, createdDevice]);
+        const response = await createDevice(deviceData);
+        if (response.success) {
+          setDevices((prev) => [...prev, response.data]);
+          toast.success("Dispositivo guardado correctamente.");
+          toast.warning(`${response.message.message}`);
+        } else {
+          toast.error(`${response.message}`);
+          return;
+        }
       }
       clearForm();
     } catch (error) {
