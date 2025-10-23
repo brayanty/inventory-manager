@@ -1,6 +1,6 @@
 import { TechnicalServiceEntryNoID } from "../types/technicalService";
 import { IP_HOST } from "../constants/endpoint.js";
-const DEVICE_ENDPOINT = `https://${IP_HOST}:3000/api/devices`;
+const DEVICE_ENDPOINT = `${IP_HOST}/devices`;
 
 export async function getDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id);
@@ -18,9 +18,7 @@ export async function createDevice(device: TechnicalServiceEntryNoID) {
     body: JSON.stringify(device),
   });
   const data = await response.json();
-  if (data.success) {
-    return data.data;
-  }
+  return data;
 }
 export async function updateDevice(
   id: string,
