@@ -1,5 +1,5 @@
 import { IP_HOST } from "../constants/endpoint.js";
-const API_ENDPOINT = `${IP_HOST}/api/`;
+const API_ENDPOINT = `${IP_HOST}`;
 
 const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
 const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
