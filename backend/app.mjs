@@ -78,13 +78,13 @@ app.use((error, req, res, next) => {
 //   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
 // });
 
-app.listen(PORT, IP_LOCAL, null, () => {
-  console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
-  console.log(
-    `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
-  );
-});
-
-// https.createServer(options, app).listen(PORT, () => {
-//   console.log(`Servidor HTTPS corriendo en el puerto ${PORT}`);
+// app.listen(PORT, IP_LOCAL, null, () => {
+//   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+//   console.log(
+//     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
+//   );
 // });
+
+https.createServer(options, app).listen(PORT, () => {
+  console.log(`Servidor HTTPS corriendo en el puerto ${PORT}`);
+});
