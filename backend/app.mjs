@@ -13,7 +13,7 @@ import SSL_CONFIG from "./config/ssl.js";
 
 // Variables de entorno
 const PORT = process.env.PORT || process.env.production || 3000;
-const IP_LOCAL = process.env.IP_LOCALHOST;
+const IP_LOCAL = process.env.IP_LOCALHOST || "192.168.0.108:300";
 
 const options = {
   key: await fs.readFile(SSL_CONFIG.keyPath),
@@ -27,7 +27,12 @@ app.use(json());
 app.use(morgan("short"));
 app.use(
   cors({
-    origin: ["https://192.168.0.108:5173", "https://192.168.0.108:5173:3000"],
+    origin: [
+      "http://localhost:5173",
+      "https://localhost:5173",
+      "https://192.168.0.108:5173",
+      "http://192.168.0.108:5173:",
+    ],
     credentials: true,
   })
 );
@@ -73,13 +78,13 @@ app.use((error, req, res, next) => {
 //   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
 // });
 
-// app.listen(PORT, IP_LOCAL, null, () => {
-//   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
-//   console.log(
-//     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
-//   );
-// });
-
-https.createServer(options, app).listen(3000, () => {
-  console.log("Servidor HTTPS corriendo en el puerto 3000");
+app.listen(PORT, IP_LOCAL, null, () => {
+  console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+  console.log(
+    `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
+  );
 });
+
+// https.createServer(options, app).listen(PORT, () => {
+//   console.log(`Servidor HTTPS corriendo en el puerto ${PORT}`);
+// });
