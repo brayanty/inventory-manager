@@ -22,7 +22,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
 
       try {
         const response = await fetch(
-          `https://${IP_HOST}:3000/api/repairs/?search=${inputValue}`
+          `${IP_HOST}/repairs/?search=${inputValue}`
         );
         const data = await response.json();
 
