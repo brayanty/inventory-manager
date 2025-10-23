@@ -1,6 +1,6 @@
 import { TechnicalServiceEntryNoID } from "../types/technicalService";
-
-const DEVICE_ENDPOINT = "https://192.168.0.108:3000/api/devices";
+import { IP_HOST } from "../constants/endpoint.js";
+const DEVICE_ENDPOINT = `https://${IP_HOST}:3000/api/devices`;
 
 export async function getDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id);
