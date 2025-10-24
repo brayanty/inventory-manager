@@ -70,7 +70,7 @@ function FormRender({
           {fields.map((field) => (
             <label
               key={field.name}
-              className="flex flex-col w-full max-w-48"
+              className="flex flex-col w-full max-w-md gap-1"
               htmlFor={field.name}
             >
               <span>{field.label}:</span>
