@@ -1,6 +1,6 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CategoryList } from "../types/product";
 import { toast } from "react-toastify";
 
@@ -15,6 +15,7 @@ interface FormFieldProps {
 }
 
 interface FormRenderProps {
+  dataEdit?: Record<string, any> | null;
   title: string;
   isForm: boolean;
   closeForm: () => void;
@@ -23,13 +24,20 @@ interface FormRenderProps {
 }
 
 function FormRender({
+  dataEdit = null,
   title,
   isForm,
   closeForm,
   fields,
   onSubmit,
 }: FormRenderProps) {
-  const [dataForm, setDataForm] = useState<Record<string, any>>({});
+  const [dataForm, setDataForm] = useState<Record<string, any>>(dataEdit || {});
+
+  useEffect(() => {
+    if (dataEdit) {
+      setDataForm(dataEdit);
+    }
+  }, [dataEdit]);
 
   const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
     const { name, value } = e.target;
@@ -42,7 +50,7 @@ function FormRender({
   };
 
   const handlePriceChange = (name: string, value: string) => {
-    setDataForm((prev) => ({ ...prev, [name]: value }));
+    setDataForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
   };
 
   const handlerSubmit = (e: React.FormEvent) => {
