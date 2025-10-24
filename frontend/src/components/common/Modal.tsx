@@ -7,7 +7,6 @@ function Modal({
   children,
   showCloseButton = true,
   overlayClickCloses = true,
-  width = "max-w-md max-h-md",
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -15,7 +14,6 @@ function Modal({
   children: React.ReactNode;
   showCloseButton?: boolean;
   overlayClickCloses?: boolean;
-  width?: string;
 }) {
   if (!isOpen) return null;
 
@@ -31,7 +29,7 @@ function Modal({
       onClick={handleOverlayClick}
     >
       <div
-        className={`p-2 bg-white rounded-lg shadow-lg relative w-full ${width}`}
+        className={`p-2 bg-white rounded-lg shadow-lg relative w-full h-[400px]  min-h-min max-w-md max-h-[80vh] overflow-y-auto`}
       >
         {showCloseButton && (
           <button
