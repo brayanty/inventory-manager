@@ -1,19 +1,32 @@
 import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/layout/ui/Paginator";
-import { createCategory, createProduct } from "@/components/services/products";
+import {
+  createCategory,
+  createProduct,
+  updateProduct,
+} from "@/components/services/products";
 import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useCategoryListStore } from "@/components/store/category";
 import Button from "@/components/common/button";
+import { ProductBase, ProductForm } from "@/components/types/product";
 
 function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
+  const [editFormProduct, setEditFormProduct] = useState<ProductForm>();
+  const [isFormEdit, setIsFormEdit] = useState(false);
   const { products, addProducts } = useProductsStore();
   const { categoryList, setCategoryList } = useCategoryListStore();
 
   const [isOpenAddCategory, setOpenAddCategory] = useState(false);
+
+  const handlerEditableProduct = (product: ProductBase) => {
+    setIsFormEdit(true);
+    setEditFormProduct(product);
+    setOpenAddProduct(true);
+  };
 
   const handleSubmitCategory = async (data: Record<string, []>) => {
     const newCategory = await createCategory(data);
@@ -23,18 +36,42 @@ function ProductsInventory() {
     setOpenAddCategory(false);
   };
 
-  const handleSubmit = async (data: Record<string, []>) => {
+  const handleSubmit = async (data: ProductForm & { id?: string }) => {
     if (!data) return;
 
-    const newProducts = await createProduct(data);
+    try {
+      const newProduct = isFormEdit
+        ? await updateProduct(data.id, data)
+        : await createProduct(data);
 
-    if (newProducts) {
-      {
-        setOpenAddProduct(false);
-        addProducts(newProducts);
+      if (!newProduct) {
+        toast.error("No se pudo procesar el producto.");
+        return;
+      }
 
+      if (isFormEdit) {
+        toast.success("Producto actualizado correctamente");
+        setIsFormEdit(false);
+        addProducts([
+          ...products.filter((p) => p.id !== newProduct.id),
+          newProduct,
+        ]);
+      } else {
+        addProducts(newProduct);
         toast.success("Producto agregado correctamente");
       }
+
+      setOpenAddProduct(false);
+      setEditFormProduct({
+        id: "",
+        name: "",
+        category: "",
+        price: 0,
+        sales: 0,
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al procesar el producto.");
     }
   };
 
@@ -86,7 +123,7 @@ function ProductsInventory() {
             </tr>
           </thead>
           <tbody>
-            <RenderProducts />
+            <RenderProducts handlerEditableProduct={handlerEditableProduct} />
           </tbody>
         </table>
       </div>
@@ -108,9 +145,24 @@ function ProductsInventory() {
       />
       {/* Formulario para agregar productos */}
       <FormRender
-        title="Formulario para agregar productos"
+        title={
+          isFormEdit
+            ? "Formulario para editar producto"
+            : "Formulario para agregar productos"
+        }
         isForm={isOpenAddProduct}
-        closeForm={() => setOpenAddProduct(false)}
+        closeForm={() => {
+          setOpenAddProduct(false);
+          setIsFormEdit(false);
+          setEditFormProduct({
+            id: "",
+            name: "",
+            category: "",
+            price: 0,
+            sales: 0,
+          });
+        }}
+        dataEdit={editFormProduct}
         onSubmit={(data) => handleSubmit(data)}
         fields={[
           {
