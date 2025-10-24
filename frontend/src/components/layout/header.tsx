@@ -27,7 +27,7 @@ function Header() {
           id="search"
           type="text"
           placeholder="Buscar..."
-          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm w-60"
+          className="p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-[#2b2f38] text-sm sm:w-30 max-md:w-50 w-60 md:w-80 lg:w-96"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
