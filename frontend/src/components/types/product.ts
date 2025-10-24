@@ -18,6 +18,8 @@ export interface ProductBase {
   total: number;
 }
 
+export type ProductForm = Omit<ProductBase, "total">;
+
 /** Producto estándar */
 export type Product = ProductBase;
 
