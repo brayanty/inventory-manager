@@ -14,10 +14,14 @@ import {
 import usePage from "@/components/store/page";
 import { useHandleController } from "../hooks/useHandleController";
 import { Product } from "@/components/types/product";
-import Button from "@/components/common/button";
 import { toast } from "react-toastify";
+import { DropDown } from "@/components/common/dropdown";
 
-function RenderProducts() {
+function RenderProducts({
+  handlerEditableProduct,
+}: {
+  handlerEditableProduct: (product: Product) => void;
+}) {
   const { products, addProducts } = useProductsStore();
   const { setShoppingCart } = useHandleController();
 
@@ -25,6 +29,7 @@ function RenderProducts() {
   const { search } = useSearchStore();
   const { page, setTotalPages } = usePage();
   const [isLoading, setIsLoading] = useState(true);
+  const opcion = ["Detalles", "Editar", "Eliminar", "Agregar al carrito"];
 
   // Cargar categorías al inicio
   useEffect(() => {
@@ -62,6 +67,28 @@ function RenderProducts() {
     const updatedProducts = products.filter((product) => product.id !== id);
     deleteProduct(id);
     addProducts(updatedProducts);
+  };
+
+  const handleOpcionProduct = (option: string, product: Product) => {
+    if (
+      option === "Eliminar" &&
+      confirm("¿Estás seguro de que deseas eliminar este producto?")
+    ) {
+      handleDeleteProduct(product.id);
+      toast.success("Producto eliminado correctamente");
+      return;
+    }
+    if (option === "Detalles") {
+      console.log(product.id);
+      return;
+    }
+    if (option === "Editar") {
+      handlerEditableProduct(product);
+      return;
+    }
+    if (option === "Agregar al carrito" && confirm("¿Agregar al carrito?")) {
+      setShoppingCart(product);
+    }
   };
 
   const filteredProducts = products.filter((product) => {
@@ -105,7 +132,6 @@ function RenderProducts() {
         <tr
           key={product.id}
           className="border-b dark:border-gray-700 border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer"
-          onClick={() => setShoppingCart(product)}
         >
           <th
             scope="row"
@@ -118,14 +144,11 @@ function RenderProducts() {
           <td className="px-6 py-4">{product.total}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
           <td className="px-6 py-4">
-            {
-              <Button
-                className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
-                onClick={() => handleDeleteProduct(product.id)}
-              >
-                Eliminar
-              </Button>
-            }
+            <DropDown
+              items={opcion}
+              onSelect={(option) => handleOpcionProduct(option, product)}
+            />
+            {}
           </td>
         </tr>
       ))}
