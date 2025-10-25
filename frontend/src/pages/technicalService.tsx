@@ -15,6 +15,7 @@ import { DropDown } from "@/components/common/dropdown";
 import DeviceForm from "@/components/common/formDevice";
 import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 import ReadQR from "@/components/readQR/readQR";
+import Button from "@/components/common/button";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
@@ -266,27 +267,29 @@ const TechnicalService = () => {
   }, [devices, categorySelect]);
 
   return (
-    <div className="w-full h-full  p-4 text-white">
-      <div className="flex justify-between p-3 items-center">
-        <h2 className="text-xl font-bold mb-4">Servicio Técnico</h2>
-        <button
-          onClick={() => {
-            setisFormTechnical(true);
-          }}
-          type="button"
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Formulario de Ingreso
-        </button>
-        <button
-          onClick={() => {
-            setOpenQR(true);
-          }}
-          type="button"
-          className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          Buscar por QR
-        </button>
+    <div className="w-full h-full p-2 text-white">
+      <div className="flex justify-between p-3 max-md:p-2 items-center">
+        <h2 className="max-md:text-[1em] text-xl font-bold mb-4">
+          Servicio Técnico
+        </h2>
+        <div className="flex justify-between gap-2">
+          <Button
+            onClick={() => {
+              setisFormTechnical(true);
+            }}
+            className="bg-blue-600 text-[.8em] px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Formulario de Ingreso
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenQR(true);
+            }}
+            className="bg-blue-600 text-[.8em]  px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Buscar por QR
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-x-auto overflow-y-auto min-h-[60vh] max-h-[50vh]">
