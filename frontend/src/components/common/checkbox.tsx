@@ -1,25 +1,29 @@
 import { ChangeEvent } from "react";
 
 interface Checkbox {
+  title?: string;
   ID: string;
   checked: boolean;
-  onChange: (checked: boolean) => void;
+  onChange: (checked: ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
 }
-function Checkbox({ ID, checked, onChange }: Checkbox) {
+function Checkbox({ title, ID, checked, onChange, className }: Checkbox) {
   return (
-    <div>
-      <label className="text-white" htmlFor={ID}>
-        <input
-          id={ID}
-          type="checkbox"
-          checked={checked}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            onChange(e.target.checked)
-          }
-          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
-        />
-      </label>
-    </div>
+    <label
+      className={`flex justify-center items-center gap-2 text-black cursor-pointer select-none ${className}`}
+      htmlFor={ID}
+    >
+      <input
+        id={ID}
+        type="checkbox"
+        defaultChecked
+        checked={checked}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e)}
+        className="checkbox checkbox-info"
+      />
+
+      {title}
+    </label>
   );
 }
 
