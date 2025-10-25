@@ -78,10 +78,12 @@ function ProductsInventory() {
   return (
     <div className="h-full w-full flex flex-col">
       <div className="flex justify-between p-3 items-center">
-        <h2 className="text-xl font-bold mb-4">Inventario de Productos</h2>
+        <h2 className="text-xl max-md:text-[1em] font-bold mb-4">
+          Inventario de Productos
+        </h2>
         <div className="flex gap-2">
           <Button
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition"
+            className="bg-blue-600 text-[.8em] px-4 py-2 rounded hover:bg-blue-700 transition"
             onClick={() => {
               setOpenAddProduct(true);
             }}
@@ -89,7 +91,7 @@ function ProductsInventory() {
             Agregar Producto
           </Button>
           <Button
-            className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition"
+            className="bg-green-600 text-[.8em] px-4 py-2 rounded hover:bg-green-700 transition"
             onClick={() => {
               setOpenAddCategory(true);
             }}
