@@ -1,6 +1,7 @@
 import models from "../constants/models";
 import { useDeviceFormStore } from "../store/useDeviceFormStore";
 import { formatCOP } from "../utils/format";
+import Checkbox from "./checkbox";
 import FaultsInput from "./FaultsInput";
 
 interface DeviceFormEntry {
@@ -118,32 +119,14 @@ const DeviceForm = ({
         <FaultsInput value={deviceForm.faults} onChange={onChange} />
       </div>
       <div className="flex flex-row justify-between w-full max-w-md gap-2">
-        <label htmlFor="pay" className="flex flex-col w-full max-w-md gap-1">
-          {/* Checkbox oculto */}
-          <input
-            name="pay"
-            id="pay"
-            type="checkbox"
-            checked={deviceForm.pay}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onChange({ target: { name: "pay", value: e.target.checked } })
-            }
-            className="absolute opacity-0 h-0 w-0 peer"
-          />
-
-          <div
-            className="peer-checked:bg-[#4e7cd1] peer-checked:rounded-md peer-checked:animate-pulsebox 
-          h-6 w-6 bg-gray-300 rounded-full transition duration-300 relative"
-          >
-            <div
-              className="hidden peer-checked:block absolute left-[0.45em] top-[0.25em] w-[0.25em] h-[0.5em] 
-            border-[0.15em] border-t-0 border-l-0 border-solid border-[#E0E0E2] 
-            rotate-45 origin-top-left"
-            ></div>
-          </div>
-
-          <span className="ml-3 text-base text-black">¿Esta pagado?</span>
-        </label>
+        <Checkbox
+          title="Esta pagado"
+          ID="pay"
+          checked={deviceForm.pay}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange({ target: { name: "pay", value: e.target.checked } })
+          }
+        ></Checkbox>
 
         <span className="">{formatCOP(deviceForm.price)}</span>
       </div>
