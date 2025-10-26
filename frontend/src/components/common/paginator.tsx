@@ -27,6 +27,7 @@ export default function Paginator() {
 
       <button
         onClick={handleNext}
+        disabled={page === totalPages}
         className="px-3 py-1 rounded bg-gray-300 dark:bg-gray-600 disabled:opacity-50"
       >
         ➡
