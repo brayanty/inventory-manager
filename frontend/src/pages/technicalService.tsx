@@ -16,6 +16,8 @@ import DeviceForm from "@/components/common/formDevice";
 import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 import ReadQR from "@/components/readQR/readQR";
 import Button from "@/components/common/button";
+import Paginator from "@/components/common/paginator";
+import usePageStore from "@/components/store/page";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
@@ -34,6 +36,7 @@ const TechnicalService = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { categorySelect, setCategoryList } = useCategoryListStore();
   const { search } = useSearchStore();
+  const { page, setPage, setTotalPages } = usePageStore();
 
   const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
@@ -46,9 +49,12 @@ const TechnicalService = () => {
     const getDevices = async () => {
       setIsLoading(true);
       try {
-        const devices = await searchDevices(search);
-        if (devices) {
-          setDevices(devices);
+        const data = await searchDevices(search, page);
+        if (data) {
+          console.log(data);
+          setDevices(data.devices);
+          setPage(data.page);
+          setTotalPages(data.totalPages);
         }
       } finally {
         setIsLoading(false);
@@ -56,7 +62,7 @@ const TechnicalService = () => {
     };
     getDevices();
     setCategoryList(FAKE_CATEGORIES);
-  }, [search, setCategoryList]);
+  }, [search, setCategoryList, page, setPage, setTotalPages]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -389,6 +395,7 @@ const TechnicalService = () => {
           </tbody>
         </table>
       </div>
+      <Paginator />
       <Modal
         title="Detalles del dispositivo"
         isOpen={isOpenDetail}
