@@ -1,6 +1,6 @@
 import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
-import Paginator from "@/components/layout/ui/Paginator";
+import Paginator from "@/components/common/paginator";
 import {
   createCategory,
   createProduct,
