@@ -48,8 +48,10 @@ export async function deleteDevice(id: string) {
     return data.data;
   }
 }
-export async function searchDevices(query: string) {
-  const response = await fetch(DEVICE_ENDPOINT + "?" + "search=" + query);
+export async function searchDevices(query: string, page: number) {
+  const response = await fetch(
+    DEVICE_ENDPOINT + "?" + "search=" + query + `&page=${page}`
+  );
   const data = await response.json();
   if (data.success) {
     return data.data;
