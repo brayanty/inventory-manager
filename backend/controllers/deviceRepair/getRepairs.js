@@ -13,7 +13,11 @@ export default async function getRepairs(req, res) {
     const repairTypeAvailable = await readData(FILES.PRODUCTS);
 
     const filterRepairType = repairTypeAvailable.filter((repair) => {
-      return repair.category == "repuesto" || repair.category == "display";
+      return (
+        repair.category == "repuesto" ||
+        repair.category == "display" ||
+        repair.category == "servicio"
+      );
     });
     const fuse = new Fuse(filterRepairType, {
       keys: ["name"],
