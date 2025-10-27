@@ -2,6 +2,7 @@ import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { Product } from "../types/product";
 import { useDeviceFormStore } from "../store/useDeviceFormStore";
 import { IP_HOST } from "../constants/endpoint.js";
+import { toast } from "react-toastify";
 
 interface FaultsInputProps {
   value: string[];
@@ -21,11 +22,13 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ value, onChange }) => {
       }
 
       try {
-        const response = await fetch(
-          `${IP_HOST}repairs/?search=${inputValue}`
-        );
+        const response = await fetch(`${IP_HOST}repairs/?search=${inputValue}`);
         const data = await response.json();
-
+        if (data.status === 404) {
+          setReplacement([]);
+          toast.error("No se encontraron tipo de reparacione o producto.");
+          return;
+        }
         setReplacement(data.data);
       } catch (error) {
         console.error("Error fetching repair types:", error);
