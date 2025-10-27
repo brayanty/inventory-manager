@@ -1,6 +1,6 @@
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: "http://192.168.0.108:3000/imprimir",
+  baseUrl: "http://localhost/8000/imprimir",
   headers: { "Content-Type": "application/json" },
   lineWidth: 31,
 };
@@ -35,16 +35,22 @@ const PRINTER_OPERATIONS = {
 // Servicio base para comunicación con la impresora
 class PrinterService {
   static async sendToPrinter(data) {
+    const newData = {
+      serial: "",
+      nombreImpresora: "lp0",
+      operaciones: data.operaciones,
+    };
+
     try {
       const response = await fetch(PRINTER_CONFIG.baseUrl, {
         method: "POST",
         headers: PRINTER_CONFIG.headers,
-        body: JSON.stringify(data),
+        body: JSON.stringify(newData),
       });
 
       await response.json();
 
-      return { success: true };
+      return { success: true, message: "Impresión enviada con éxito" };
     } catch (error) {
       console.error("Error al conectar con el server de impresión:");
       return {
