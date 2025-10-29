@@ -88,8 +88,7 @@ export default async function createDevice(req, res) {
     };
 
     const repairs = products.filter((product) => {
-      console.log(product);
-      return deviceData.faults.some((fault) => fault === product.name);
+      return deviceData.faults.some((fault) => fault.name === product.name);
     });
 
     const statusPrinter = await postTechnicalServicePrinter(
