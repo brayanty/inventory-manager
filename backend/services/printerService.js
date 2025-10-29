@@ -2,7 +2,7 @@
 const PRINTER_CONFIG = {
   baseUrl: "http://localhost/8000/imprimir",
   headers: { "Content-Type": "application/json" },
-  lineWidth: 31,
+  lineWidth: 32,
 };
 
 const COMPANY_INFO = {
