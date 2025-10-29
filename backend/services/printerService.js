@@ -1,6 +1,6 @@
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: "http://localhost/8000/imprimir",
+  baseUrl: "http://localhost:8000/imprimir",
   headers: { "Content-Type": "application/json" },
   lineWidth: 32,
 };
