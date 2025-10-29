@@ -116,7 +116,7 @@ const DeviceForm = ({
       </label>
       <div className="flex flex-col w-full max-w-md gap-1">
         {/* Tipos de raparaciones*/}
-        <FaultsInput value={deviceForm.faults} onChange={onChange} />
+        <FaultsInput onChange={onChange} />
       </div>
       <div className="flex flex-row justify-between w-full max-w-md gap-2">
         <Checkbox
