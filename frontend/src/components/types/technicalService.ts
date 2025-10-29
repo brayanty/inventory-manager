@@ -1,3 +1,5 @@
+import { Product } from "./product";
+
 export type TechnicalServiceEntry = {
   id: string;
   client: string;
@@ -12,7 +14,7 @@ export type TechnicalServiceEntry = {
   warrantLimit: string | null;
   price: number;
   detail: string;
-  faults: string[];
+  faults: Product[];
   pay: boolean;
 };
 
