@@ -410,7 +410,7 @@ const TechnicalService = () => {
           <div className="flex gap-1 text-wrap">
             <span>Fallas: </span>
             {deviceDetail?.faults.map((f) => {
-              return <p key={f}>{f},</p>;
+              return <p key={f.id}>{f.name},</p>;
             })}
           </div>
           <div>Esta pagado: {deviceDetail?.pay ? "Si" : "No"}</div>
