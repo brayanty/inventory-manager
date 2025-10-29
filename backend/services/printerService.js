@@ -6,7 +6,7 @@ const PRINTER_CONFIG = {
 };
 
 const COMPANY_INFO = {
-  name: "Centro Tecnológico",
+  name: "Centro Tecnologico",
   nit: "NIT: 71319344-8",
   phone: "Tel: 3145494395",
 };
@@ -263,7 +263,7 @@ class TechnicalServicePrintService {
       .addAlignedContent(0)
       .addSeparator()
       .addFooter(
-        "\nGARANTIA: 30 dias por defectos de mano de obra y repuestos instalados. No cubre danos por mal uso o problemas no relacionados con la reparación. Conserva este ticket"
+        "\nGARANTIA: 30 dias por defectos de mano de obra y repuestos instalados. No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket"
       )
 
       .addAlignedContent(1)
