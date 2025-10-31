@@ -16,7 +16,6 @@ function Checkbox({ title, ID, checked, onChange, className }: Checkbox) {
       <input
         id={ID}
         type="checkbox"
-        defaultChecked
         checked={checked}
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e)}
         className="checkbox checkbox-info"
