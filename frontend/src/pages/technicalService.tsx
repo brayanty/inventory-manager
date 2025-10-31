@@ -1,10 +1,9 @@
 import { useCategoryListStore } from "@/components/store/category";
-import { useSearchStore } from "@/components/store/filters";
+import useLodingDevice from "@/components/hooks/useLodingDevice";
 import React, { useEffect, useState, useMemo } from "react";
 import { formatCOP } from "@/components/utils/format";
 import Modal from "@/components/common/Modal";
 import {
-  searchDevices,
   deleteDevice,
   createDevice,
   updateDevice,
@@ -17,7 +16,6 @@ import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 import ReadQR from "@/components/readQR/readQR";
 import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
-import usePageStore from "@/components/store/page";
 
 const FAKE_CATEGORIES = [
   { category: "Sin Solución" },
@@ -29,14 +27,12 @@ const DEVICES_STATUS = ["Reparado", "Sin Solución", "En Revisión"];
 const LIST_OPCIONES = ["Editar", "Entregado", "Eliminar"];
 
 const TechnicalService = () => {
-  const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
+  const { devices, setDevices, isLoading } = useLodingDevice();
+  const { categorySelect, setCategoryList } = useCategoryListStore();
+
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { categorySelect, setCategoryList } = useCategoryListStore();
-  const { search } = useSearchStore();
-  const { page, setPage, setTotalPages } = usePageStore();
 
   const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
@@ -46,23 +42,8 @@ const TechnicalService = () => {
   const [isOpenDetail, setOpenDetail] = useState(false);
 
   useEffect(() => {
-    const getDevices = async () => {
-      setIsLoading(true);
-      try {
-        const data = await searchDevices(search, page);
-        if (data) {
-          console.log(data);
-          setDevices(data.devices);
-          setPage(data.page);
-          setTotalPages(data.totalPages);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    getDevices();
     setCategoryList(FAKE_CATEGORIES);
-  }, [search, setCategoryList, page, setPage, setTotalPages]);
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<
