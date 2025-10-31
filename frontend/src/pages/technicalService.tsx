@@ -396,6 +396,7 @@ const TechnicalService = () => {
         </table>
       </div>
       <Paginator />
+      {/* Device details */}
       <Modal
         title="Detalles del dispositivo"
         isOpen={isOpenDetail}
@@ -403,21 +404,39 @@ const TechnicalService = () => {
           setOpenDetail(false);
         }}
       >
-        <div className="text-black">
-          <div>Cliente: {deviceDetail?.client}</div>
-          <div>Dispositivo: {deviceDetail?.device}</div>
-          <div>Modelo: {deviceDetail?.model}</div>
-          <div className="flex gap-1 text-wrap">
-            <span>Fallas: </span>
-            {deviceDetail?.faults.map((f) => {
-              return <p key={f.id}>{f.name},</p>;
-            })}
+        <div className="flex flex-row justify-between bg-white text-black">
+          <div>
+            <div>Cliente: {deviceDetail?.client}</div>
+            <div>Dispositivo: {deviceDetail?.device}</div>
+            <div>Modelo: {deviceDetail?.model}</div>
+            <div className="flex gap-1 text-wrap">
+              <span>Fallas: </span>
+              {deviceDetail?.faults.map((f) => {
+                return <p key={f.id}>{f.name},</p>;
+              })}
+            </div>
+            <div>Esta pagado: {deviceDetail?.pay ? "Si" : "No"}</div>
+            <div>Recibido: {deviceDetail?.entryDate}</div>
+            <div>Esta entregado: {deviceDetail?.output}</div>
+            <div>Observaciones: {deviceDetail?.detail}</div>
+            <div>IMEI: {deviceDetail?.IMEI}</div>
           </div>
-          <div>Esta pagado: {deviceDetail?.pay ? "Si" : "No"}</div>
-          <div>Recibido: {deviceDetail?.entryDate}</div>
-          <div>Esta entregado: {deviceDetail?.output}</div>
-          <div>Observaciones: {deviceDetail?.detail}</div>
-          <div>IMEI: {deviceDetail?.IMEI}</div>
+          <div className="self-end">
+            <DropDown
+              className="bg-white text-black"
+              items={LIST_OPCIONES}
+              title="Opciones"
+              onSelect={(newStatus) =>
+                newStatus === "Editar"
+                  ? handlerEditDevice(deviceDetail)
+                  : newStatus === "Entregado"
+                  ? handleOutput(deviceDetail.id, true)
+                  : newStatus === "Eliminar"
+                  ? handleDeleteDevice(deviceDetail.id)
+                  : null
+              }
+            />
+          </div>
         </div>
       </Modal>
 
