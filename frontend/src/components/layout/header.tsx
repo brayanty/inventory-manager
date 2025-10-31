@@ -14,7 +14,7 @@ function Header() {
   return (
     <header
       className="
-        grid grid-cols-3 items-center gap-4 
+        flex justify-between gap-4 
         p-4 w-full max-w-full
         bg-white dark:bg-[#1f232b] dark:text-white
         border-b border-gray-200 dark:border-gray-700
@@ -59,11 +59,11 @@ function Header() {
       </div>
 
       {/* Selector de categoría */}
-      <div className="flex justify-end">
+      <div className="flex justify-end max-w-fit sm:max-w-none">
         <select
           className={`
             ${newCategory.length === 0 ? "hidden" : ""}
-            p-2 rounded-md border capitalize
+            p-2 rounded-md border min-h-min capitalize
             border-gray-300 dark:border-gray-600 
             dark:bg-[#2b2f38] text-sm
             focus:outline-none focus:ring-2 focus:ring-blue-500
