@@ -1,13 +1,18 @@
-import { useCategoryListStore } from "@/components/store/category";
-import useLodingDevice from "@/components/hooks/useLodingDevice";
 import React, { useEffect, useState, useMemo } from "react";
 import { formatCOP } from "@/components/utils/format";
+import {
+  DEVICE_CATEGORY,
+  DEVICES_STATUS,
+  DEVICE_LIST_OPTION,
+} from "@/components/constants/constTecnicalService";
 import Modal from "@/components/common/Modal";
 import {
   deleteDevice,
   createDevice,
   updateDevice,
 } from "@/components/services/devices.js";
+import useLodingDevice from "@/components/hooks/useLodingDevice";
+import { useCategoryListStore } from "@/components/store/category";
 import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 import { toast } from "react-toastify";
 import { DropDown } from "@/components/common/dropdown";
@@ -16,15 +21,6 @@ import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 import ReadQR from "@/components/readQR/readQR";
 import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
-
-const FAKE_CATEGORIES = [
-  { category: "Sin Solución" },
-  { category: "Reparado" },
-  { category: "En Revisión" },
-];
-
-const DEVICES_STATUS = ["Reparado", "Sin Solución", "En Revisión"];
-const LIST_OPCIONES = ["Editar", "Entregado", "Eliminar"];
 
 const TechnicalService = () => {
   const { devices, setDevices, isLoading } = useLodingDevice();
@@ -42,7 +38,7 @@ const TechnicalService = () => {
   const [isOpenDetail, setOpenDetail] = useState(false);
 
   useEffect(() => {
-    setCategoryList(FAKE_CATEGORIES);
+    setCategoryList(DEVICE_CATEGORY);
   }, []);
 
   const handleInputChange = (
@@ -357,7 +353,7 @@ const TechnicalService = () => {
                   <td className="p-2">{d.exitDate || "-"}</td>
                   <td className="p-2">
                     <DropDown
-                      items={LIST_OPCIONES}
+                      items={DEVICE_LIST_OPTION}
                       title="Opciones"
                       onSelect={(newStatus) =>
                         newStatus === "Editar"
@@ -405,7 +401,7 @@ const TechnicalService = () => {
           <div className="self-end">
             <DropDown
               className="bg-white text-black"
-              items={LIST_OPCIONES}
+              items={DEVICE_LIST_OPTION}
               title="Opciones"
               onSelect={(newStatus) =>
                 newStatus === "Editar"
