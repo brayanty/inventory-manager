@@ -1,6 +1,7 @@
 import React from "react";
 
 interface DropDownProps {
+  className?: string;
   items: string[];
   select?: string;
   title?: string;
@@ -8,6 +9,7 @@ interface DropDownProps {
 }
 
 export const DropDown: React.FC<DropDownProps> = ({
+  className = "bg-base-100 text-base-content",
   items,
   select,
   title = "Seleccionar",
@@ -15,12 +17,12 @@ export const DropDown: React.FC<DropDownProps> = ({
 }) => {
   return (
     <div className="relative dropdown dropdown-end dropdown-center">
-      <div tabIndex={0} role="button" className="btn w-32 m-1">
+      <div tabIndex={0} role="button" className="btn w-20 max-w-fit m-1">
         {select || title}
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-100 rounded-box z-50 min-w-32 max-w-60 p-2 shadow-sm"
+        className={`${className} dropdown-content menu rounded-box z-50 min-w-20 max-w-40 p-2 shadow-sm`}
       >
         {items.map((item) => {
           return (
