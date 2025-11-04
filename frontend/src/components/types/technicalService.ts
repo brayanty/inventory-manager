@@ -4,6 +4,7 @@ export type TechnicalServiceEntry = {
   id: string;
   client: string;
   device: string;
+  cel: string;
   damage: string;
   model: string;
   IMEI: string;
@@ -22,6 +23,7 @@ export type DeviceEntry = Pick<
   TechnicalServiceEntry,
   | "client"
   | "device"
+  | "cel"
   | "damage"
   | "model"
   | "IMEI"
