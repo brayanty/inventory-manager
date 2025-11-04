@@ -54,6 +54,7 @@ const TechnicalService = () => {
     setDeviceFormEdit({
       client: "",
       device: "",
+      cel: "",
       damage: "",
       detail: "",
       model: "",
@@ -223,6 +224,7 @@ const TechnicalService = () => {
     setDeviceFormEdit({
       client: d.client,
       device: d.device,
+      cel: d.cel,
       damage: d.damage,
       model: d.model,
       IMEI: d.IMEI,
