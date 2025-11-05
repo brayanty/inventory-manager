@@ -4,7 +4,10 @@ import { DeviceEntry } from "../types/technicalService";
 interface DeviceFormState {
   deviceForm: DeviceEntry;
   setPriceForm: (price: number) => void;
-  setDeviceForm: (name: keyof DeviceEntry, value: DeviceEntry[keyof DeviceEntry]) => void;
+  setDeviceForm: (
+    name: keyof DeviceEntry,
+    value: DeviceEntry[keyof DeviceEntry]
+  ) => void;
   setDeviceFormEdit: (editDevice: DeviceEntry) => void;
 }
 
@@ -12,6 +15,7 @@ export const useDeviceFormStore = create<DeviceFormState>((set) => ({
   deviceForm: {
     client: "",
     device: "",
+    cel: "",
     damage: "",
     model: "",
     IMEI: "",
@@ -19,6 +23,7 @@ export const useDeviceFormStore = create<DeviceFormState>((set) => ({
     detail: "",
     faults: [],
     pay: false,
+    pricePay: 0,
   },
   setPriceForm: (price) =>
     set((state) => ({
