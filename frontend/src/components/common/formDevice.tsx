@@ -5,6 +5,8 @@ import { formatCOP } from "../utils/format";
 import Checkbox from "./checkbox";
 import FaultsInput from "./FaultsInput";
 import ContactPhone from "./contactPhone";
+import { useEffect } from "react";
+import { on } from "events";
 
 interface DeviceFormEntry {
   onChange: (e: React.ChangeEvent<Element>) => void;
@@ -56,30 +58,30 @@ const DeviceForm = ({
           />
         </label>
 
-        {/* Precio
-          <label className="flex flex-col" htmlFor="price">
-            <span>Precio:</span>
-            <NumericFormat
-              id="price"
-              name="price"
-              value={formData.price}
-              thousandSeparator="."
-              decimalSeparator=","
-              decimalScale={2}
-              fixedDecimalScale
-              allowNegative={false}
-              onValueChange={(values) =>
-                onChange({
-                  target: {
-                    name: "price",
-                    value: values.value,
-                  },
-                })
-              }
-              className="p-2 rounded border"
-              placeholder="40.000"
-            />
-          </label> */}
+        {/* Precio */}
+        <label className="flex flex-col" htmlFor="price">
+          <span>Precio Abonado:</span>
+          <NumericFormat
+            id="pricePay"
+            name="pricePay"
+            value={deviceForm.pricePay}
+            thousandSeparator="."
+            decimalSeparator=","
+            decimalScale={2}
+            fixedDecimalScale
+            allowNegative={false}
+            onValueChange={(values) =>
+              onChange({
+                target: {
+                  name: "pricePay",
+                  value: values.value,
+                },
+              })
+            }
+            className="p-2 rounded border"
+            placeholder="40.000"
+          />
+        </label>
 
         {/* Modelo */}
         <label className="flex flex-col" htmlFor="model">
@@ -133,8 +135,12 @@ const DeviceForm = ({
             onChange({ target: { name: "pay", value: e.target.checked } })
           }
         />
-
-        <span className="">{formatCOP(deviceForm.price)}</span>
+        <div className="flex flex-col items-end gap-1 ">
+          <label className="flex flex-col items-end" htmlFor="priceView">
+            <span className="">Total: </span>
+            {formatCOP(deviceForm.price)}
+          </label>
+        </div>
       </div>
       {/* Observaciones */}
       <label className="flex flex-col w-full" htmlFor="detail">
