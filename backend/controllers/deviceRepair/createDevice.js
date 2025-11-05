@@ -3,24 +3,10 @@ import { readData, writeData } from "../../utils/file.js";
 import { FILES } from "../../config/file.js";
 import { v4 as uuidv4 } from "uuid";
 import { postTechnicalServicePrinter } from "../../services/printerService.js";
+import validateIMEI from "../../utils/validateIMEI.js";
 
 export default async function createDevice(req, res) {
   const deviceData = req.body;
-  // {
-  //   client,
-  //   device,
-  //   model,
-  //   IMEI,
-  //   status,
-  //   output,
-  //   entryDate,
-  //   exitDate,
-  //   warrantLimit,
-  //   price,
-  //   detail,
-  //   faults,
-  //   pay,
-  // } = req.body;
 
   // Descomentar si quieres usar validación
   // const validationError = validateEntryData({
@@ -36,19 +22,14 @@ export default async function createDevice(req, res) {
   // });
   // if (validationError) return handleError(req, res, validationError, 400);
   try {
-    const devices = await readData(FILES.DEVICES);
-
-    // Verifica que el IMEI no se encuentre
-    if (devices.find((device) => device.IMEI === deviceData.IMEI)) {
-      if (deviceData.IMEI !== "000000000000000") {
-        handleError(
-          req,
-          res,
-          `El IMEI ${deviceData.IMEI} ya se encuentra en la base de datos`,
-          409
-        );
-        return;
-      }
+    if (validateIMEI(deviceData.IMEI)) {
+      handleError(
+        req,
+        res,
+        `El IMEI ${deviceData.IMEI} ya se encuentra en la base de datos o no es un IMEI valido`,
+        409
+      );
+      return;
     }
 
     const products = await readData(FILES.PRODUCTS);
