@@ -231,7 +231,7 @@ class TechnicalServicePrintService {
     //Escribe el nombre del dispositivo a reparar
     lines.push({
       nombre: "EscribirTexto",
-      argumentos: [`Dispositivo: ${device.device}\n`],
+      argumentos: [`Dispositivo: ${device.model} ${device.device}\n`],
     });
 
     //Reparaciones realizadas
@@ -241,7 +241,10 @@ class TechnicalServicePrintService {
     });
 
     const repairLines = repairs.map((repair) =>
-      LineFormatter.formatDeviceLine(repair.name, repair.price)
+      LineFormatter.formatDeviceLine(
+        `${repair.name} ${repair.category}`,
+        repair.price
+      )
     );
     lines.push(...repairLines);
 
