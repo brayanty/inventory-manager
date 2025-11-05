@@ -62,6 +62,7 @@ const TechnicalService = () => {
       price: 0,
       faults: [],
       pay: false,
+      pricePay: 0,
     });
     setisFormTechnical(false);
   };
@@ -98,6 +99,7 @@ const TechnicalService = () => {
       exitDate: editingDevice?.exitDate || null,
       warrantLimit: editingDevice?.warrantLimit || null,
       price: newPrice,
+      pricePay: deviceForm.pricePay,
       detail: deviceForm.detail,
       faults: deviceForm.faults,
       output: editingDevice?.output || false,
@@ -232,6 +234,7 @@ const TechnicalService = () => {
       detail: d.detail || "",
       faults: d.faults,
       pay: d.pay,
+      pricePay: d.pricePay || 0,
     });
     setIsEditing(true);
     setEditingDeviceId(d.id || "");
