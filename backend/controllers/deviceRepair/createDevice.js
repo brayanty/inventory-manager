@@ -76,6 +76,7 @@ export default async function createDevice(req, res) {
       {
         name: newDevice.client,
         device: newDevice.device,
+        model: newDevice.model,
         pay: newDevice.pay,
         id: newDevice.id,
       },
