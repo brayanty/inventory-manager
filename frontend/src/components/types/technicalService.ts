@@ -17,6 +17,7 @@ export type TechnicalServiceEntry = {
   detail: string;
   faults: Product[];
   pay: boolean;
+  pricePay: number;
 };
 
 export type DeviceEntry = Pick<
@@ -31,6 +32,7 @@ export type DeviceEntry = Pick<
   | "detail"
   | "faults"
   | "pay"
+  | "pricePay"
 >;
 
 export type TechnicalServiceEntryNoID = Partial<
