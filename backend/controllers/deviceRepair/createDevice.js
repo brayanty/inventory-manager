@@ -66,6 +66,7 @@ export default async function createDevice(req, res) {
       faults: deviceData.faults,
       pay: typeof deviceData.pay === "boolean" ? deviceData.pay : false,
       output: deviceData.output,
+      pricePay: deviceData.pricePay ? deviceData.pricePay : 0,
     };
 
     const repairs = products.filter((product) => {
@@ -78,6 +79,7 @@ export default async function createDevice(req, res) {
         device: newDevice.device,
         model: newDevice.model,
         pay: newDevice.pay,
+        pricePay: newDevice.pricePay,
         id: newDevice.id,
       },
       repairs
