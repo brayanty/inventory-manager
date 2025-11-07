@@ -135,6 +135,13 @@ class DocumentBuilder {
     });
     return this;
   }
+  addPricePay(total, label = "ABONADO") {
+    this.operations.push({
+      nombre: "EscribirTexto",
+      argumentos: [`${label}: $${total.toLocaleString("es-CO")}\n`],
+    });
+    return this;
+  }
 
   addQR(data) {
     this.operations.push({
@@ -220,10 +227,16 @@ class TechnicalServicePrintService {
     });
     // Alinear al centro
     lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
-    // Establece si esta pagado la reparacion
+    // Establece si esta abonado o pagado
     lines.push({
       nombre: "EscribirTexto",
-      argumentos: [device.pay ? "PAGADO\n" : "NO PAGADO\n"],
+      argumentos: [
+        device.pricePay >= 1000
+          ? "ABONADO\n"
+          : device.pay
+          ? "PAGADO\n"
+          : "NO PAGADO\n",
+      ],
     });
     //Establece alineacion a la izquierda
     lines.push({ nombre: "EstablecerAlineacion", argumentos: [0] });
@@ -262,11 +275,12 @@ class TechnicalServicePrintService {
       .addSeparator()
       .addAlignedContent(2)
       .addTotal(total)
+      .addPricePay(device.pricePay || 0)
       // PRIMERO el footer (garantía)
       .addAlignedContent(0)
       .addSeparator()
       .addFooter(
-        "\nGARANTIA: 30 dias por defectos de mano de obra y repuestos instalados. No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket"
+        "\nGARANTIA: 30 dias por defectos de mano de obra, No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket"
       )
 
       .addAlignedContent(1)
