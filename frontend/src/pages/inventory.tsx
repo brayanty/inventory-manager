@@ -12,6 +12,8 @@ import { toast } from "react-toastify";
 import { useCategoryListStore } from "@/components/store/category";
 import Button from "@/components/common/button";
 import { ProductBase, ProductForm } from "@/components/types/product";
+import { DEVICE_TABLE_TITLE } from "@/components/constants/constTecnicalService";
+import { TableTitleHead } from "@/components/common/tableComponets";
 
 function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
@@ -104,24 +106,7 @@ function ProductsInventory() {
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="sticky top-0 z-10 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Producto
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Categoría
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Vendidos
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Total
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Precio
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Opciones
-              </th>
+              <TableTitleHead itemsTitle={DEVICE_TABLE_TITLE} />
             </tr>
           </thead>
           <tbody>
