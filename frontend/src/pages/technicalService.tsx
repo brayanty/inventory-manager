@@ -4,7 +4,7 @@ import {
   DEVICE_CATEGORY,
   DEVICES_STATUS,
   DEVICE_LIST_OPTION,
-} from "@/components/constants/constTecnicalService";
+} from "@/components/constants/tecnicalService.const";
 import Modal from "@/components/common/Modal";
 import {
   deleteDevice,
