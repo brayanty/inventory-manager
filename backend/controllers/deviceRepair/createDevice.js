@@ -21,6 +21,10 @@ export default async function createDevice(req, res) {
   //   faults
   // });
   // if (validationError) return handleError(req, res, validationError, 400);
+  if (!deviceData) {
+    handleError(req, res, "No se proporcionaron datos del dispositivo", 400);
+    return;
+  }
   try {
     if (validateIMEI(deviceData.IMEI)) {
       handleError(
