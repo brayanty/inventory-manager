@@ -2,17 +2,21 @@ import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import { postProductsPrinter } from "../../services/printerService.js";
 import { v4 as uuidv4 } from "uuid";
-import { readData } from "../../utils/file.js";
+import { overwriteData, readData, writeData } from "../../utils/file.js";
 
 export async function soldProduct(req, res) {
-  const soldProducts = req.body;
-
-  if (!soldProducts) {
-    handleError(req, res, "Los productos a vender esta vacios o son invalidos");
-    return;
-  }
-
   try {
+    const soldProducts = req.body;
+
+    if (!soldProducts) {
+      handleError(
+        req,
+        res,
+        "Los productos a vender esta vacios o son invalidos"
+      );
+      return;
+    }
+
     // Validar entrada
     if (!Array.isArray(soldProducts) || soldProducts.length === 0) {
       return handleError(
@@ -41,7 +45,7 @@ export async function soldProduct(req, res) {
     }
 
     // Leer datos de productos
-    const productsData = await readData(PRODUCTS_FILE);
+    const productsData = await readData(FILES.PRODUCTS);
 
     // Verificar si todos los IDs de productos existen
     const invalidProduct = soldProducts.find(
@@ -103,8 +107,14 @@ export async function soldProduct(req, res) {
     // Enviar a la impresor
     const printerSuccess = await postProductsPrinter(printableProducts);
 
-    handleSuccess(req, res, { printer: printerSuccess, updatedProducts }, 201);
-  } catch {
+    handleSuccess(
+      req,
+      res,
+      { printer: printerSuccess, data: updatedProducts },
+      201
+    );
+  } catch (error) {
+    console.error("Error al procesar la venta:", error);
     handleError(req, res, "Error al procesar la venta");
   }
 }
