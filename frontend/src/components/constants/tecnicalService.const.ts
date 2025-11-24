@@ -7,7 +7,7 @@ export const DEVICE_CATEGORY = [
 export const DEVICES_STATUS = ["Reparado", "Sin Solución", "En Revisión"];
 export const DEVICE_LIST_OPTION = ["Editar", "Entregado", "Eliminar"];
 
-export const DEVICE_TABLE_HEADERS = [
+export const DEVICE_SERVICE_HEADERS = [
   "Cliente",
   "Dispositivo",
   "IMEI",

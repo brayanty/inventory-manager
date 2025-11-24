@@ -4,6 +4,7 @@ import {
   DEVICE_CATEGORY,
   DEVICES_STATUS,
   DEVICE_LIST_OPTION,
+  DEVICE_SERVICE_HEADERS,
 } from "@/components/constants/tecnicalService.const";
 import Modal from "@/components/common/Modal";
 import {
@@ -21,6 +22,7 @@ import { useDeviceFormStore } from "@/components/store/useDeviceFormStore";
 import ReadQR from "@/components/readQR/readQR";
 import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
+import { TableTitleHead } from "@/components/common/tableComponets";
 
 const TechnicalService = () => {
   const { devices, setDevices, isLoading } = useLodingDevice();
@@ -284,36 +286,7 @@ const TechnicalService = () => {
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="sticky top-0 z-5 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Cliente
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Dispositivo
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                IMEI
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Precio
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Estado
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Ingreso
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Garantia
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Entregado
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Salida
-              </th>
-              <th className="px-4 py-2 cursor-pointer whitespace-nowrap">
-                Opciones
-              </th>
+              <TableTitleHead itemsTitle={DEVICE_SERVICE_HEADERS} />
             </tr>
           </thead>
           <tbody>
