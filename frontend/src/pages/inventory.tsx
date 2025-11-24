@@ -12,8 +12,8 @@ import { toast } from "react-toastify";
 import { useCategoryListStore } from "@/components/store/category";
 import Button from "@/components/common/button";
 import { ProductBase, ProductForm } from "@/components/types/product";
-import { DEVICE_TABLE_HEADERS } from "@/components/constants/tecnicalService.const.ts";
 import { TableTitleHead } from "@/components/common/tableComponets";
+import { INVENTORY_TABLE_HEADERS } from "@/components/constants/inventory.const";
 
 function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
@@ -106,7 +106,7 @@ function ProductsInventory() {
         <table className="w-full text-sm text-left text-gray-300 border-collapse">
           <thead className="sticky top-0 z-10 text-xs text-gray-700 uppercase bg-gray-400 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
             <tr>
-              <TableTitleHead itemsTitle={DEVICE_TABLE_HEADERS} />
+              <TableTitleHead itemsTitle={INVENTORY_TABLE_HEADERS} />
             </tr>
           </thead>
           <tbody>
