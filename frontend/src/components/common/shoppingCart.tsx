@@ -5,13 +5,11 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { ProductBase, ProductsCart } from "../types/product";
 import { soldProducts } from "../services/products";
-import useProductsStore from "../store/products";
 
 const ShoppingCart = () => {
   const { productsCart, addProductShopping, clearProductCart } =
     useShoppingCartStore();
   const [priceTotal, setPriceTotal] = useState(0);
-  const { addProducts } = useProductsStore();
 
   useEffect(() => {
     if (productsCart && productsCart.length > 0) {
@@ -112,7 +110,6 @@ const ShoppingCart = () => {
         toast("Error al vender los productos");
         return;
       }
-      addProducts(updatedProducts as ProductBase[]);
       toast("Productos vendidos exitosamente");
       clearProductCart();
     } catch {
