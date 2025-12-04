@@ -1,5 +1,4 @@
-import { IP_HOST } from "../constants/endpoint.js";
-const API_ENDPOINT = `${IP_HOST}`;
+import { API_ENDPOINT } from "../constants/endpoint.js";
 
 const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
 const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
@@ -106,4 +105,18 @@ export async function updateCategory(id, category) {
   });
   const data = await response.json();
   return data.data;
+}
+export async function getSoldProducts(date, page, limit = 10) {
+  console.log(SOLDPRODUCTS_ENDPOINT);
+  const response = await fetch(
+    `${SOLDPRODUCTS_ENDPOINT}?date=${date}&page=${page}&limit=${limit}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
 }
