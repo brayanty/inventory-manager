@@ -1,29 +1,27 @@
 @font-face {
-    font-family: Roboto;
-    src: "@fontsource/roboto/400.css";
+  font-family: Roboto;
+  src: "@fontsource/roboto/400.css";
 }
 
 @import "tailwindcss";
 @plugin "daisyui";
 
-
-body{
-    font-family: Roboto;
-    background-color: black;
+body {
+  font-family: Roboto;
 }
 /*Ocultar barra de desplazamiento*/
 
 @layer utilities {
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .no-scrollbar {
-      -ms-overflow-style: none;  /* Para Internet Explorer y Edge */
-      scrollbar-width: none;  /* Para Firefox */
-    }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-  
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* Para Internet Explorer y Edge */
+    scrollbar-width: none; /* Para Firefox */
+  }
+}
+
 /*estilos para el navbar izquierdo*/
 
 .navbar {
