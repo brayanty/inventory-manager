@@ -17,9 +17,11 @@
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "pnpm": "^10.12.2"
+    "pnpm": "^10.24.0"
   },
   "dependencies": {
-    "mysql": "^2.18.1"
+    "express": "^5.2.1",
+    "mysql": "^2.18.1",
+    "pg": "^8.16.3"
   }
 }
