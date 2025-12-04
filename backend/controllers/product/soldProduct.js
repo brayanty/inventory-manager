@@ -1,8 +1,9 @@
+import { v4 } from "uuid";
 import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import { postProductsPrinter } from "../../services/printerService.js";
-import { v4 as uuidv4 } from "uuid";
-import { overwriteData, readData, writeData } from "../../utils/file.js";
+import { overwriteData, readData } from "../../utils/file.js";
+import { saveSale } from "../../utils/saveSaleProduct.js";
 
 export async function soldProduct(req, res) {
   try {
@@ -83,29 +84,26 @@ export async function soldProduct(req, res) {
     if (res.headersSent) {
       return;
     }
-
-    // Datos para la impresora
-    const printableProducts = soldProducts.map((item) => {
+    // Preparar datos de venta para guardar e imprimir
+    const saleProducts = soldProducts.map((item) => {
       const product = productsData.find((p) => p.id === item.id);
       return {
+        id: v4(),
         name: product.name,
         price: product.price,
         amount: item.amount,
+        category: product.category,
       };
     });
-    const sale = {
-      id: uuidv4(),
-      timestamp: new Date().toLocaleDateString(),
-      products: soldProducts,
-    };
+
     // Agregar o guardar en un archivo de ventas
-    await writeData(sale, FILES.SALES);
+    saveSale(saleProducts);
 
     // Guardar productos actualizados
     await overwriteData(updatedProducts, FILES.PRODUCTS);
 
     // Enviar a la impresor
-    const printerSuccess = await postProductsPrinter(printableProducts);
+    const printerSuccess = await postProductsPrinter(saleProducts);
 
     handleSuccess(
       req,
