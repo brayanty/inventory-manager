@@ -48,8 +48,6 @@ app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
 app.use("/api", categoryRouters);
 
-// ... tus middlewares y rutas existentes ...
-
 // Manejo de rutas no encontradas
 app.use((req, res) => {
   handleError(req, res, `Ruta no encontrada: ${req.method} ${req.url}`, 404);
@@ -60,8 +58,6 @@ app.use((error, req, res, next) => {
   console.error("Error global:", error);
   handleError(req, res, "Error interno del servidor", 500);
 });
-
-// Iniciar servidor// ... tus middlewares y rutas existentes ...
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
