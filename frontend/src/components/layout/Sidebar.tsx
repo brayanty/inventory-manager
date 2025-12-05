@@ -1,6 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { IconNote, IconSmartPhone } from "./ui/imgs";
-import { LucideMoreHorizontal } from "lucide-react";
+import { BadgeDollarSign, LucideMoreHorizontal } from "lucide-react";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -48,6 +48,19 @@ const Sidebar = () => {
           >
             <IconSmartPhone />
             Servicio Tecnico
+          </NavLink>
+          <NavLink
+            to="/salesstatistics"
+            className={({ isActive }) =>
+              `flex items-center gap-2 p-2 rounded-md transition-colors ${
+                isActive
+                  ? "bg-blue-100 text-blue-600 font-semibold"
+                  : "text-white hover:bg-gray-700"
+              }`
+            }
+          >
+            <BadgeDollarSign />
+            Estadisticas de Ventas
           </NavLink>
 
           <li className="">
