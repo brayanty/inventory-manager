@@ -24,7 +24,7 @@ const app = express();
 
 // Middlewares
 app.use(json());
-app.use(morgan("short"));
+app.use(morgan("dev"));
 app.use(
   cors({
     origin: [
@@ -74,9 +74,9 @@ app.use((error, req, res, next) => {
   handleError(req, res, "Error interno del servidor", 500);
 });
 
-// app.listen(0, (host) => {
-//   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
+});
 
 // app.listen(PORT, IP_LOCAL, null, () => {
 //   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
@@ -85,6 +85,6 @@ app.use((error, req, res, next) => {
 //   );
 // });
 
-https.createServer(options, app).listen(PORT, () => {
-  console.log(`Servidor HTTPS corriendo en el puerto ${PORT}`);
-});
+// https.createServer(options, app).listen(PORT, () => {
+//   console.log(`Servidor HTTPS corriendo en el puerto ${PORT}`);
+// });
