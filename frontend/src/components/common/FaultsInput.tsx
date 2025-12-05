@@ -1,7 +1,7 @@
 import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { Product } from "../types/product";
 import { useDeviceFormStore } from "../store/useDeviceFormStore";
-import { IP_HOST } from "../constants/endpoint.js";
+import { API_ENDPOINT } from "../constants/endpoint.js";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
@@ -22,7 +22,9 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
 
     const fetchTypingFaults = async () => {
       try {
-        const response = await fetch(`${IP_HOST}repairs/?search=${inputValue}`);
+        const response = await fetch(
+          `${API_ENDPOINT}repairs/?search=${inputValue}`
+        );
         const data = await response.json();
 
         if (data.status === 404) {
