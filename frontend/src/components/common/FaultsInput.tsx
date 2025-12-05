@@ -1,7 +1,7 @@
 import React, { useState, KeyboardEvent, ChangeEvent, useEffect } from "react";
 import { Product } from "../types/product";
 import { useDeviceFormStore } from "../store/useDeviceFormStore";
-import { API_ENDPOINT } from "../constants/endpoint.js";
+import { API_ENDPOINT } from "../constants/endpoint.tsx";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
 
