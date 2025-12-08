@@ -1,18 +1,18 @@
-import { v4 as uuidv4 } from "uuid";
+import pool from "../../config/db.js";
 import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { overwriteData, readData } from "../../utils/file.js";
+import { readData } from "../../utils/file.js";
 
 export async function createProduct(req, res) {
-  const { name, category } = req.body;
+  const { name, category, sales } = req.body;
 
   const price = parseFloat(req.body.price);
-  const total = parseFloat(req.body.total);
-  const products = await readData(FILES.PRODUCTS);
+  const stock = parseFloat(req.body.total);
   const categoriesList = await readData(FILES.CATEGORIES);
   const categoryExists = categoriesList.find(
     (cat) => cat.category === category
   );
+
   if (!categoryExists) {
     return handleError(req, res, "La categoría proporcionada no existe", 400);
   }
@@ -24,6 +24,7 @@ export async function createProduct(req, res) {
       "El precio debe ser un número válido y no negativo"
     );
   }
+
   if (!name || typeof name !== "string" || name.trim() === "")
     return handleError(
       req,
@@ -31,26 +32,25 @@ export async function createProduct(req, res) {
       "El campo 'name' debe ser una cadena no vacía",
       400
     );
-  if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
+
+  if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
     return handleError(
       req,
       res,
-      "El campo 'total' debe ser un número válido y no negativo"
+      "El campo 'stock' debe ser un número válido y no negativo"
     );
 
-  const newProduct = {
-    id: uuidv4(),
-    sales: 0,
-    name: name,
-    category: categoryExists.category,
-    total: total,
-    price: price,
-  };
-  products.push(newProduct);
-  try {
-    overwriteData(products, FILES.PRODUCTS);
-    handleSuccess(req, res, products);
-  } catch {
-    handleError(req, res, "Hubo un error interno");
+  const result = await pool.query(
+    `INSERT INTO products (name, category, price, stock, sales)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+    [name, category, price, stock ?? 0, sales ?? null]
+  );
+
+  if (result.rows.length > 0) {
+    return handleSuccess(req, res, result.rows[0], 201);
   }
+  handleError(req, res, "Error al crear el producto", 500);
+
+  return;
 }
