@@ -22,7 +22,7 @@ export default function Layout() {
           <Header />
         </div>
         {/* Main */}
-        <main className="h-full">
+        <main className="">
           <Outlet /> {/* Aquí se renderiza la página actual */}
         </main>
       </div>
