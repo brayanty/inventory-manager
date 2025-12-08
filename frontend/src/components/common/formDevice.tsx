@@ -5,8 +5,6 @@ import { formatCOP } from "../utils/format";
 import Checkbox from "./checkbox";
 import FaultsInput from "./FaultsInput";
 import ContactPhone from "./contactPhone";
-import { useEffect } from "react";
-import { on } from "events";
 
 interface DeviceFormEntry {
   onChange: (e: React.ChangeEvent<Element>) => void;
