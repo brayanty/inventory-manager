@@ -7,7 +7,7 @@ export async function createProduct(req, res) {
   const { name, category, sales } = req.body;
 
   const price = parseFloat(req.body.price);
-  const stock = parseFloat(req.body.total);
+  const stock = parseInt(req.body.total);
   const categoriesList = await readData(FILES.CATEGORIES);
   const categoryExists = categoriesList.find(
     (cat) => cat.category === category
@@ -50,7 +50,6 @@ export async function createProduct(req, res) {
   if (result.rows.length > 0) {
     return handleSuccess(req, res, result.rows[0], 201);
   }
-  handleError(req, res, "Error al crear el producto", 500);
 
-  return;
+  return handleError(req, res, "Error al crear el producto", 500);
 }
