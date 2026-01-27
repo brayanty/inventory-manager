@@ -4,38 +4,44 @@ import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 export async function getProduct(req, res) {
   const { search, page = 1, limit = 10 } = req.query;
 
-  const pageNum = parseInt(page) || 1;
-  const limitNum = parseInt(limit) || 10;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    let where = "";
+    // condición base
+    let whereConditions = ["deleted_at IS NULL"];
     let params = [];
 
+    // condición en caso de que search no este basio
     if (search) {
-      where = "WHERE name ILIKE $1";
       params.push(`%${search}%`);
+      whereConditions.push(`name ILIKE $${params.length}`);
     }
+
+    // union de las condiciones separado por "AND"
+    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
 
     const productsQuery = `
       SELECT *
       FROM products
-      ${where}
+      ${whereClause}
       ORDER BY id DESC
-      LIMIT ${limitNum} OFFSET ${offset};
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2};
     `;
-
-    const products = await pool.query(productsQuery, params);
 
     const countQuery = `
       SELECT COUNT(*) AS total
       FROM products
-      ${where};
+      ${whereClause};
     `;
 
-    const total = await pool.query(countQuery, params);
+    const [productsResult, countResult] = await Promise.all([
+      pool.query(productsQuery, [...params, limitNum, offset]),
+      pool.query(countQuery, params),
+    ]);
 
-    const totalItems = parseInt(total.rows[0].total);
+    const totalItems = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limitNum);
 
     return handleSuccess(req, res, {
@@ -43,7 +49,7 @@ export async function getProduct(req, res) {
       limit: limitNum,
       totalItems,
       totalPages,
-      products: products.rows,
+      products: productsResult.rows,
     });
   } catch (error) {
     console.error(error);
