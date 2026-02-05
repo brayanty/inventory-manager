@@ -1,44 +1,51 @@
-import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { overwriteData, readData } from "../../utils/file.js";
+import pool from "../../config/db.js";
+import { allowedFields } from "../../constants/product.const.js";
 
+// Función para editar un producto
+// Falta agregar la función para validar las categorias
 export async function updateProduct(req, res) {
-  const { name, price } = req.body;
-  const total = Number(req.body.total);
+  const fields = req.body;
+  const { id } = req.params;
 
-  if (!name || typeof name !== "string" || name.trim() === "")
+  // Valida que los fields en existan
+  const keys = Object.keys(fields).filter((k) => allowedFields.includes(k));
+  // Valida que la keys no este vacia
+  if (keys.length == 0)
     return handleError(
       req,
       res,
-      "El campo 'name' debe ser una cadena no vacía",
-      400
-    );
-  if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
-    return handleError(
-      req,
-      res,
-      "El campo 'price' debe ser un número válido y no negativo",
-      400
-    );
-  if (total == null || typeof total !== "number" || isNaN(total) || total < 0)
-    return handleError(
-      req,
-      res,
-      "El campo 'total' debe ser un número válido y no negativo",
-      400
+      "No se encuentran datos validos para actulizar",
     );
 
+  const setQuery = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
+  const values = keys.map((k) => fields[k]);
+
+  const client = await pool.connect();
   try {
-    const products = await readData(FILES.PRODUCTS);
-    const index = products.findIndex((p) => p.id === req.params.id);
-    if (index === -1)
-      return handleError(req, res, "Producto no encontrado", 400);
+    await client.query("BEGIN");
 
-    const updated = { ...products[index], name: name.trim(), price, total };
-    products[index] = updated;
-    await overwriteData(products, FILES.PRODUCTS);
-    handleSuccess(req, res, updated, 201);
-  } catch {
-    handleError(req, res, "Error al actualizar el producto");
+    const { rowCount, rows } = await client.query(
+      `
+      UPDATE product
+      SET ${setQuery}
+      WHERE id = $${keys.length + 1}
+      RETURNING *
+      `,
+      [...values, id],
+    );
+
+    if (rowCount === 0) {
+      await client.query("ROLLBACK");
+      return handleError(req, res, "Producto no encontrado", 404);
+    }
+
+    await client.query("COMMIT");
+    return handleSuccess(req, res, rows[0]);
+  } catch (err) {
+    await client.query("ROLLBACK");
+    handleError(req, res, "Error al actualizar el producto", err);
+  } finally {
+    client.release();
   }
 }
