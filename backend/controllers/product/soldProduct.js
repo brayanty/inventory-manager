@@ -1,118 +1,92 @@
-import { v4 } from "uuid";
-import { FILES } from "../../config/file.js";
-import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { postProductsPrinter } from "../../services/printerService.js";
-import { overwriteData, readData } from "../../utils/file.js";
-import { saveSale } from "../../utils/saveSaleProduct.js";
+import { handleSuccess, handleError } from "../../modules/handleResponse.js";
+import pool from "../../config/db.js";
 
 export async function soldProduct(req, res) {
+  const { nameClient, productSale } = req.body[0];
+
+  if (!Array.isArray(productSale) || productSale.length === 0) {
+    return handleError(req, res, "Se requiere un arreglo de productos", 400);
+  }
+
+  const client = await pool.connect();
+
   try {
-    const soldProducts = req.body;
+    await client.query("BEGIN");
 
-    if (!soldProducts) {
-      handleError(
-        req,
-        res,
-        "Los productos a vender esta vacios o son invalidos"
-      );
-      return;
-    }
-
-    // Validar entrada
-    if (!Array.isArray(soldProducts) || soldProducts.length === 0) {
-      return handleError(
-        req,
-        res,
-        "Se requiere un arreglo no vacío de productos vendidos"
-      );
-    }
-
-    // Validar cada producto
-    for (const item of soldProducts) {
-      if (!item.id || typeof item.id !== "string" || item.id.trim() === "") {
-        return handleError(
-          req,
-          res,
-          `ID inválido para el producto: ${JSON.stringify(item)}`
-        );
-      }
-      if (!Number.isInteger(item.amount) || item.amount <= 0) {
-        return handleError(
-          req,
-          res,
-          `Cantidad inválida para el producto con ID ${item.id}`
-        );
-      }
-    }
-
-    // Leer datos de productos
-    const productsData = await readData(FILES.PRODUCTS);
-
-    // Verificar si todos los IDs de productos existen
-    const invalidProduct = soldProducts.find(
-      (item) => !productsData.some((product) => product.id === item.id)
+    // Bloquear filas y obtener datos frescos en un solo paso
+    const soldIds = productSale.map((p) => p.id);
+    const { rows: dbProducts } = await client.query(
+      `SELECT id, name, stock, price, category FROM product 
+       WHERE id = ANY($1::int[]) FOR UPDATE`,
+      [soldIds],
     );
-    if (invalidProduct) {
-      return handleError(
-        req,
-        res,
-        `Producto con ID ${invalidProduct.id} no encontrado`
-      );
+
+    // Validar los datos recibidos
+    if (dbProducts.length !== soldIds.length) {
+      throw new Error("NOT_FOUND");
     }
 
-    // Verificar inventario y preparar actualizaciones
-    const updatedProducts = productsData.map((product) => {
-      const soldItem = soldProducts.find((item) => item.id === product.id);
-      if (soldItem) {
-        if (product.total < soldItem.amount) {
-          return handleError(
-            req,
-            res,
-            `No hay suficiente stock para el producto ${product.name} (disponible: ${product.total}, solicitado: ${soldItem.amount})`
-          );
-        }
-        return {
-          ...product,
-          total: product.total - soldItem.amount,
-          sales: product.sales + soldItem.amount,
-        };
-      }
-      return product;
-    });
-
-    // Verificar si ya se envió una respuesta (por ejemplo, por falta de stock)
-    if (res.headersSent) {
-      return;
+    for (const item of productSale) {
+      const dbP = dbProducts.find((p) => p.id === item.id);
+      if (dbP.stock < item.sales) throw new Error("INSUFFICIENT_STOCK");
     }
-    // Preparar datos de venta para guardar e imprimir
-    const saleProducts = soldProducts.map((item) => {
-      const product = productsData.find((p) => p.id === item.id);
-      return {
-        id: v4(),
-        name: product.name,
-        price: product.price,
-        amount: item.amount,
-        category: product.category,
-      };
+
+    // Actualizar el stock
+    await client.query(
+      `UPDATE product p
+       SET stock = p.stock - x.sales
+       FROM jsonb_to_recordset($1::jsonb) AS x(id INT, sales INT)
+       WHERE p.id = x.id`,
+      [JSON.stringify(productSale)],
+    );
+
+    // Registrar venta
+    const saleRecords = productSale.map((item) => {
+      const dbP = dbProducts.find((p) => p.id === item.id);
+      return { productID: item.id, sales: item.sales, price: dbP.price };
     });
 
-    // Agregar o guardar en un archivo de ventas
-    saveSale(saleProducts);
+    await client.query(
+      `INSERT INTO soldProduct (sales, price, productID)
+       SELECT sales, price, productID
+       FROM jsonb_to_recordset($1::jsonb) AS t(sales int, price numeric, productID int)`,
+      [JSON.stringify(saleRecords)],
+    );
 
-    // Guardar productos actualizados
-    await overwriteData(updatedProducts, FILES.PRODUCTS);
+    await client.query("COMMIT");
 
-    // Enviar a la impresor
-    const printerSuccess = await postProductsPrinter(saleProducts);
+    // Enviar los datos de imprecion
+    const printerData = dbProducts.map((p) => ({
+      ...p,
+      sales: productSale.find((s) => s.id === p.id).sales,
+    }));
+
+    const printerSuccess = await postProductsPrinter(printerData);
 
     handleSuccess(
       req,
       res,
-      { printer: printerSuccess, data: updatedProducts },
-      201
+      { printer: printerSuccess, data: printerData },
+      201,
     );
-  } catch (error) {
-    console.error("Error al procesar la venta:", error);
-    handleError(req, res, "Error al procesar la venta");
+  } catch (err) {
+    await client.query("ROLLBACK");
+
+    if (err.message === "NOT_FOUND") {
+      return handleError(req, res, "Uno o más productos no existen", 404);
+    }
+    if (err.message === "INSUFFICIENT_STOCK") {
+      return handleError(
+        req,
+        res,
+        "Stock insuficiente para la transacción",
+        400,
+      );
+    }
+
+    console.error("Error en la venta:", err);
+    handleError(req, res, "Error interno al procesar la venta", 500);
+  } finally {
+    client.release();
   }
 }
