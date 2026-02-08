@@ -21,7 +21,8 @@
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
