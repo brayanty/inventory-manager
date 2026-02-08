@@ -1,41 +1,64 @@
-import Fuse from "fuse.js";
-import { FILES } from "../../config/file.js";
-import { readData } from "../../utils/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import pool from "../../config/db.js";
 
 export default async function getAllDevice(req, res) {
-  const { search, page = 1, limit = 10 } = req.query;
+  const { search, page = 1, limit = 10 } = req.body;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const offset = (pageNum - 1) * limitNum;
 
+  const client = await pool.connect();
   try {
-    const devices = await readData(FILES.DEVICES);
+    let whereConditions = ["deleted_at IS NULL"];
+    let params = [];
 
-    let filtered = devices;
-    // Filtrar si hay búsqueda
+    // Condición en caso de que search no este vacio
     if (search) {
-      const fuse = new Fuse(devices, {
-        keys: ["device", "client"],
-        includeScore: true,
-        threshold: 0.3,
-      });
-      filtered = fuse.search(search).map((r) => r.item);
+      await client.query("BEGIN");
+
+      params.push(`%${search}%`, `%${search}%`);
+      whereConditions.push(
+        `client_name ILIKE $${params.length - 1} OR device ILIKE $${params.length}`,
+      );
     }
+    //Unir todas los condiciones
+    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
+    //Unir todas query para hacer la query
+    const devicesQuery = `
+      SELECT *
+      FROM device
+      ${whereClause}
+      ORDER BY id DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2};
+    `;
+    //Clausula para obtener la cantidad de columnas para la paginación
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM device
+      ${whereClause};
+    `;
+    //Dispara los consultas para las devicesQuery y countQuery
+    const [devicesResult, countResult] = await Promise.all([
+      pool.query(devicesQuery, [...params, limitNum, offset]),
+      pool.query(countQuery, params),
+    ]);
 
-    // Calcular paginado
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 10;
-    const totalItems = filtered.length;
+    await client.query("COMMIT");
+    //Total de devices y total de paginas
+    const totalItems = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limitNum);
-    const start = (pageNum - 1) * limitNum;
-    const paginated = filtered.slice(start, start + limitNum);
 
-    handleSuccess(req, res, {
+    return handleSuccess(req, res, {
       page: pageNum,
       limit: limitNum,
       totalItems,
       totalPages,
-      devices: paginated,
+      products: devicesResult.rows,
     });
-  } catch {
+  } catch (err) {
+    console.error(err);
     handleError(req, res, "Error al leer las entradas");
+  } finally {
+    client.release();
   }
 }
