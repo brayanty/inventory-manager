@@ -23,17 +23,3 @@ export const deviceSchema = z.object({
   detail: z.string().optional(),
   faults: z.array(faultSchema).min(1),
 });
-
-export function validateDevice(req, res, next) {
-  const result = deviceSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return res.status(400).json({
-      message: "Datos inválidos",
-      errors: result.error.flatten(),
-    });
-  }
-
-  req.body = result.data;
-  next();
-}
