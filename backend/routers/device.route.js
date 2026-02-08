@@ -5,11 +5,12 @@ import getDevice from "../controllers/deviceRepair/getDevice.js";
 import updateDevice from "../controllers/deviceRepair/updateDevice.js";
 import deleteDevice from "../controllers/deviceRepair/deleteDevice.js";
 import getRepairs from "../controllers/deviceRepair/getRepairs.js";
+import { validateDevice } from "../middleware/validateDevices.js";
 
 const router = Router();
 
 //Create new device
-router.post("/devices", createDevice);
+router.post("/devices", validateDevice, createDevice);
 //Get all device
 router.get("/devices", getAllDevice);
 //Get one device
