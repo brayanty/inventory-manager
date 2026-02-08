@@ -1,98 +1,70 @@
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { readData, writeData } from "../../utils/file.js";
-import { FILES } from "../../config/file.js";
-import { v4 as uuidv4 } from "uuid";
 import { postTechnicalServicePrinter } from "../../services/printerService.js";
-import validateIMEI from "../../utils/validateIMEI.js";
+import pool from "../../config/db.js";
 
 export default async function createDevice(req, res) {
-  const deviceData = req.body;
+  const {
+    client_name,
+    device,
+    model,
+    IMEI,
+    repair_status,
+    price,
+    price_pay,
+    detail,
+    faults,
+  } = req.body;
 
-  // Descomentar si quieres usar validación
-  // const validationError = validateEntryData({
-  //   client,
-  //   device,
-  //   model,
-  //   IMEI,
-  //   status,
-  //   output,
-  //   entryDate,
-  //   price,
-  //   faults
-  // });
-  // if (validationError) return handleError(req, res, validationError, 400);
-  if (!deviceData) {
-    handleError(req, res, "No se proporcionaron datos del dispositivo", 400);
-    return;
-  }
+  const client = await pool.connect();
   try {
-    if (validateIMEI(deviceData.IMEI)) {
-      handleError(
+    await client.query("BEGIN");
+    // Enviar datos la base de datos
+    const { rows, rowCount } = await client.query(
+      "INSERT INTO device (client_name,device,model,imei,repair_status,price,detail,faults,price_pay) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING*",
+      [
+        client_name,
+        device,
+        model,
+        IMEI,
+        repair_status,
+        parseFloat(price),
+        detail,
+        JSON.stringify(faults),
+        parseFloat(price_pay),
+      ],
+    );
+    //Verifica que se guardaron los datos
+    if (rowCount != 1)
+      return handleError(
         req,
         res,
-        `El IMEI ${deviceData.IMEI} ya se encuentra en la base de datos o no es un IMEI valido`,
-        409
+        "No se pudo guardar el registro de dispositivo",
+        404,
       );
-      return;
-    }
-
-    const products = await readData(FILES.PRODUCTS);
-
-    if (deviceData.price < 0) {
-      handleError(req, res, "El precio del dispositivo es inválido", 406);
-      return;
-    }
-
-    const newDevice = {
-      id: uuidv4(),
-      client: deviceData.client,
-      device: deviceData.device,
-      model:
-        deviceData.model && typeof deviceData.model === "string"
-          ? deviceData.model
-          : null,
-      IMEI: deviceData.IMEI,
-      status: deviceData.status,
-      entryDate: deviceData.entryDate,
-      exitDate:
-        deviceData.exitDate && !isNaN(Date.parse(deviceData.exitDate))
-          ? deviceData.exitDate
-          : null,
-      warrantLimit:
-        deviceData.warrantLimit && !isNaN(Date.parse(deviceData.warrantLimit))
-          ? deviceData.warrantLimit
-          : null,
-      price: deviceData.price,
-      detail:
-        deviceData.detail && typeof deviceData.detail === "string"
-          ? deviceData.detail
-          : null,
-      faults: deviceData.faults,
-      pay: typeof deviceData.pay === "boolean" ? deviceData.pay : false,
-      output: deviceData.output,
-      pricePay: deviceData.pricePay ? deviceData.pricePay : 0,
-    };
-
-    const repairs = products.filter((product) => {
-      return deviceData.faults.some((fault) => fault.name === product.name);
+    // Nombre de las fallas para imprimir
+    const repairs = rows.filter((product) => {
+      return faults.some((fault) => fault.name === product.name);
     });
-
+    //Datos para impresora
     const statusPrinter = await postTechnicalServicePrinter(
       {
-        name: newDevice.client,
-        device: newDevice.device,
-        model: newDevice.model,
-        pay: newDevice.pay,
-        pricePay: newDevice.pricePay,
-        id: newDevice.id,
+        name: rows[0].client_name,
+        device: rows[0].device,
+        model: rows[0].model,
+        pay: rows[0].pay,
+        pricePay: rows[0].pricePay,
+        id: rows[0].id,
       },
-      repairs
+      repairs,
     );
 
-    await writeData(newDevice, FILES.DEVICES);
-    handleSuccess(req, res, newDevice, statusPrinter);
+    await client.query("COMMIT");
+
+    return handleSuccess(req, res, rows[0], statusPrinter);
   } catch (error) {
-    handleError(req, res, "Hubo un error al crear el dispositivo", 500);
-    console.error("Hubo un error al conectar con la impresora:", error);
+    await client.query("ROLLBACK");
+    return handleError(req, res, "Hubo un error al crear el dispositivo", 500);
+  } finally {
+    client.release();
   }
 }
