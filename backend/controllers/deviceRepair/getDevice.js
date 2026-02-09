@@ -1,24 +1,25 @@
-import { FILES } from "../../config/file.js";
+import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { readData } from "../../utils/file.js";
 
 export default async function getDevice(req, res) {
   const deviceID = req.params.id;
-  const devices = await readData(FILES.DEVICES);
-  try {
-    const device = devices.find((e) => {
-      return e.id === deviceID;
-    });
 
-    if (!devices) {
-      return handleError(
-        req,
-        res,
-        "No se encontro el dispositivo en la base de datos"
-      );
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const { rows, rowCount } = await client.query(
+      "SELECT * FROM device WHERE id = $1 AND deleted_at IS NULL",
+      [deviceID],
+    );
+
+    if (rowCount < 1) {
+      return handleError(req, res, "No hay datos para este producto", 404);
     }
-    handleSuccess(req, res, device);
-  } catch {
+
+    handleSuccess(req, res, rows);
+  } catch (err) {
+    console.error(err);
     handleError(req, res, "Error al leer la entrada");
   }
 }
