@@ -1,0 +1,16 @@
+export const deviceFieldsAllowed = [
+  "client_name",
+  "device",
+  "model",
+  "price",
+  "detail",
+  "faults",
+  "repair_status",
+  "pay",
+  "output_status",
+  "price_pay",
+  "imei",
+  "entry_date",
+  "exit_date",
+  "warrant_limit",
+];
