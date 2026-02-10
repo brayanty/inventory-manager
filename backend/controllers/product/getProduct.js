@@ -2,29 +2,29 @@ import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 export async function getProduct(req, res) {
-  const { search, page = 1, limit = 10 } = req.query;
+  const { search, page = 1, limit = 10 } = req.params;
 
   const pageNum = Math.max(1, parseInt(page) || 1);
   const limitNum = Math.max(1, parseInt(limit) || 10);
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    // condición base
+    // Condición base
     let whereConditions = ["deleted_at IS NULL"];
     let params = [];
 
-    // condición en caso de que search no este basio
+    // Condición en caso de que search no este vacio
     if (search) {
       params.push(`%${search}%`);
       whereConditions.push(`name ILIKE $${params.length}`);
     }
 
-    // union de las condiciones separado por "AND"
+    // Union de las condiciones separado por "AND"
     const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
 
     const productsQuery = `
       SELECT *
-      FROM products
+      FROM product
       ${whereClause}
       ORDER BY id DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2};
@@ -32,7 +32,7 @@ export async function getProduct(req, res) {
 
     const countQuery = `
       SELECT COUNT(*) AS total
-      FROM products
+      FROM product
       ${whereClause};
     `;
 
