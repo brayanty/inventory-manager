@@ -15,18 +15,14 @@ export default async function deleteDevice(req, res) {
       [deviceID],
     );
     if (rows.length != 1) {
-      throw new Error("ROLLBACK");
+      return handleError(req, res, `El dispositivo ${deviceID} no existe`, 406);
     }
 
     await client.query("COMMIT");
     return handleSuccess(req, res, deviceID, "Dispositivo eliminado");
   } catch (err) {
-    console.log(err);
-    if (err.messege == "ROLLBACK") {
-      await client.query("ROLLBACK");
-      handleError(req, res, "El dispositivo no existe");
-    }
-    return handleError(req, res, "Error al eliminar el dispositivo");
+    await client.query("ROLLBACK");
+    return handleError(req, res, "Error al eliminar el dispositivo", 500);
   } finally {
     client.release();
   }
