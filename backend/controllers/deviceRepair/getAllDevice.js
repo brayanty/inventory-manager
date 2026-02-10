@@ -53,7 +53,7 @@ export default async function getAllDevice(req, res) {
       limit: limitNum,
       totalItems,
       totalPages,
-      products: devicesResult.rows,
+      devices: devicesResult.rows,
     });
   } catch (err) {
     console.error(err);
