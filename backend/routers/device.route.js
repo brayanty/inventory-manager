@@ -16,7 +16,7 @@ router.get("/devices", getAllDevice);
 //Get one device
 router.get("/devices/:id", getDevice);
 //Update device
-router.post("/devices/:id", updateDevice);
+router.put("/devices/:id", updateDevice);
 //Delete device
 router.delete("/devices/:id", deleteDevice);
 //Get Repairs
