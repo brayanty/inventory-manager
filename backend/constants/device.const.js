@@ -10,7 +10,4 @@ export const deviceFieldsAllowed = [
   "output_status",
   "price_pay",
   "imei",
-  "entry_date",
-  "exit_date",
-  "warrant_limit",
 ];
