@@ -30,7 +30,7 @@ const TechnicalService = () => {
 
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
+  const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
 
   const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
@@ -46,25 +46,26 @@ const TechnicalService = () => {
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
+    console.log(name, value);
     setDeviceForm(name, value);
   };
 
   const clearForm = () => {
     setDeviceFormEdit({
-      client: "",
+      client_name: "",
       device: "",
-      cel: "",
+      number_phone: "",
       damage: "",
       detail: "",
       model: "",
-      IMEI: "",
+      imei: "",
       price: 0,
       faults: [],
       pay: false,
-      pricePay: 0,
+      price_pay: 0,
     });
     setisFormTechnical(false);
   };
@@ -74,13 +75,13 @@ const TechnicalService = () => {
 
     e.preventDefault();
     if (
-      !deviceForm.client.trim() ||
+      !deviceForm.client_name.trim() ||
       !deviceForm.device.trim() ||
       !deviceForm.model ||
       newPrice <= 0
     ) {
       toast.warning(
-        "Verifica los campos: cliente, dispositivo, modelo, precio."
+        "Verifica los campos: cliente, dispositivo, modelo, precio.",
       );
       return;
     }
@@ -89,22 +90,19 @@ const TechnicalService = () => {
       : null;
 
     const deviceData = {
-      client: deviceForm.client.trim(),
+      client_name: deviceForm.client_name.trim(),
       device: deviceForm.device.trim(),
-      damage: deviceForm.device.trim(),
       model: deviceForm.model,
-      IMEI: deviceForm.IMEI || "000000000000000",
-      status: (editingDevice?.status ||
-        "En Revisión") as TechnicalServiceEntry["status"],
-      entryDate:
-        editingDevice?.entryDate || new Date().toISOString().split("T")[0],
-      exitDate: editingDevice?.exitDate || null,
-      warrantLimit: editingDevice?.warrantLimit || null,
+      imei: deviceForm.imei || "000000000000000",
+      number_phone: deviceForm.number_phone,
+      repair_status: (editingDevice?.repair_status ||
+        "En Revisión") as TechnicalServiceEntry["repair_status"],
       price: newPrice,
-      pricePay: deviceForm.pricePay,
+      price_pay: deviceForm.price_pay || 0,
       detail: deviceForm.detail,
       faults: deviceForm.faults,
-      output: editingDevice?.output || false,
+      output_status: editingDevice?.output_status || false,
+      pay: deviceForm.pay,
     };
 
     try {
@@ -113,12 +111,9 @@ const TechnicalService = () => {
         setDevices((prev) =>
           prev.map((d) =>
             d.id === editingDeviceId
-              ? ({
-                  ...deviceData,
-                  id: editingDeviceId,
-                } as TechnicalServiceEntry)
-              : d
-          )
+              ? (deviceData as TechnicalServiceEntry)
+              : d,
+          ),
         );
         setIsEditing(false);
         setEditingDeviceId(null);
@@ -150,15 +145,15 @@ const TechnicalService = () => {
     }
   };
 
-  const handleOutput = async (id: string, output: boolean) => {
+  const handleOutput = async (id: string, output_status: boolean) => {
     const newUpdatedDevice = devices.find((dev) => dev.id === id);
 
     if (!newUpdatedDevice) return;
-    if (output && newUpdatedDevice.output) {
+    if (output_status && newUpdatedDevice.output_status) {
       toast.warning("El dispositivo ya está entregado.");
       return;
     }
-    if (newUpdatedDevice.status == "En Revisión") {
+    if (newUpdatedDevice.repair_status == "En Revisión") {
       toast.warning("Hey!!, todavia no se a revisado el dispositivo.");
       return;
     }
@@ -168,17 +163,17 @@ const TechnicalService = () => {
 
     const newDevice = {
       ...newUpdatedDevice,
-      output,
-      exitDate: output ? new Date().toISOString().split("T")[0] : null,
+      output_status: output_status,
+      exitDate: output_status ? new Date().toISOString().split("T")[0] : null,
       warrantLimit:
-        newUpdatedDevice.status === "Reparado"
+        newUpdatedDevice.repair_status === "Reparado"
           ? warrantLimit.toISOString().split("T")[0]
           : null,
     };
     try {
       await updateDevice(id, newDevice);
       setDevices((prev) =>
-        prev.map((dev) => (dev.id === id ? newDevice : dev))
+        prev.map((dev) => (dev.id === id ? newDevice : dev)),
       );
       toast.success("Dispositivo actualizado correctamente.");
     } catch (error) {
@@ -189,12 +184,12 @@ const TechnicalService = () => {
 
   const handleStatusChange = async (
     id: string,
-    output: boolean,
-    status: TechnicalServiceEntry["status"]
+    output_status: boolean,
+    repair_status: TechnicalServiceEntry["repair_status"],
   ) => {
-    if (output) {
+    if (output_status) {
       toast.warning(
-        "No se puede cambiar el estado de un dispositivo entregado."
+        "No se puede cambiar el estado de un dispositivo entregado.",
       );
       return;
     }
@@ -204,14 +199,18 @@ const TechnicalService = () => {
 
     const newDevice = {
       ...updatedDevice,
-      status,
-      output,
+      repair_status,
+      output_status:
+        repair_status === "En Revisión" ? false : updatedDevice.output_status,
     };
 
     try {
-      await updateDevice(id, { status, output });
+      await updateDevice(id, {
+        repair_status,
+        output_status: newDevice.output_status,
+      });
       setDevices((prev) =>
-        prev.map((dev) => (dev.id === id ? newDevice : dev))
+        prev.map((dev) => (dev.id === id ? newDevice : dev)),
       );
     } catch (error) {
       console.error("Failed to update device status:", error);
@@ -220,23 +219,23 @@ const TechnicalService = () => {
   };
 
   const handlerEditDevice = (d: TechnicalServiceEntry) => {
-    if (d.output) {
+    if (d.output_status) {
       toast.warning("No se puede editar un dispositivo entregado.");
       return;
     }
 
     setDeviceFormEdit({
-      client: d.client,
+      client_name: d.client_name,
       device: d.device,
-      cel: d.cel,
+      number_phone: d.number_phone,
       damage: d.damage,
       model: d.model,
-      IMEI: d.IMEI,
+      imei: d.imei,
       price: d.price,
       detail: d.detail || "",
       faults: d.faults,
       pay: d.pay,
-      pricePay: d.pricePay || 0,
+      price_pay: d.price_pay || 0,
     });
     setIsEditing(true);
     setEditingDeviceId(d.id || "");
@@ -252,7 +251,7 @@ const TechnicalService = () => {
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
       if (categorySelect === "todos") return true;
-      return device.status === categorySelect;
+      return device.repair_status === categorySelect;
     });
   }, [devices, categorySelect]);
 
@@ -308,27 +307,27 @@ const TechnicalService = () => {
                   key={d.id}
                   className="border-b border-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700"
                 >
-                  <td className="p-2">{d.client}</td>
+                  <td className="p-2">{d.client_name}</td>
                   <td className="p-2">{d.device}</td>
-                  <td className="p-2">{d.IMEI}</td>
+                  <td className="p-2">{d.imei}</td>
                   <td className="p-2">{formatCOP(d.price)}</td>
                   <td className="p-2">
                     <DropDown
                       items={DEVICES_STATUS}
-                      select={d.status}
+                      select={d.repair_status}
                       onSelect={(newStatus) =>
                         handleStatusChange(
                           d.id,
-                          d.output,
-                          newStatus as TechnicalServiceEntry["status"]
+                          d.output_status,
+                          newStatus as TechnicalServiceEntry["repair_status"],
                         )
                       }
                     />
                   </td>
-                  <td className="p-2">{d.entryDate}</td>
-                  <td className="p-2">{d.warrantLimit || "-"}</td>
-                  <td className="p-2">{d.output ? "Si" : "No"}</td>
-                  <td className="p-2">{d.exitDate || "-"}</td>
+                  <td className="p-2">{d.entry_date}</td>
+                  <td className="p-2">{d.warrant_limit || "-"}</td>
+                  <td className="p-2">{d.output_status ? "Si" : "No"}</td>
+                  <td className="p-2">{d.exit_date || "-"}</td>
                   <td className="p-2">
                     <DropDown
                       items={DEVICE_LIST_OPTION}
@@ -337,10 +336,10 @@ const TechnicalService = () => {
                         newStatus === "Editar"
                           ? handlerEditDevice(d)
                           : newStatus === "Entregado"
-                          ? handleOutput(d.id, true)
-                          : newStatus === "Eliminar"
-                          ? handleDeleteDevice(d.id)
-                          : null
+                            ? handleOutput(d.id, true)
+                            : newStatus === "Eliminar"
+                              ? handleDeleteDevice(d.id)
+                              : null
                       }
                     />
                   </td>
@@ -361,7 +360,7 @@ const TechnicalService = () => {
       >
         <div className="flex flex-row justify-between bg-white text-black">
           <div>
-            <div>Cliente: {deviceDetail?.client}</div>
+            <div>Cliente: {deviceDetail?.client_name}</div>
             <div>Dispositivo: {deviceDetail?.device}</div>
             <div>Modelo: {deviceDetail?.model}</div>
             <div className="flex gap-1 text-wrap">
@@ -371,10 +370,12 @@ const TechnicalService = () => {
               })}
             </div>
             <div>Esta pagado: {deviceDetail?.pay ? "Si" : "No"}</div>
-            <div>Recibido: {deviceDetail?.entryDate}</div>
-            <div>Esta entregado: {deviceDetail?.output}</div>
+            <div>Recibido: {deviceDetail?.entry_date}</div>
+            <div>
+              Esta entregado: {deviceDetail?.output_status ? "Si" : "No"}
+            </div>
             <div>Observaciones: {deviceDetail?.detail}</div>
-            <div>IMEI: {deviceDetail?.IMEI}</div>
+            <div>IMEI: {deviceDetail?.imei}</div>
           </div>
           <div className="self-end">
             <DropDown
@@ -385,10 +386,10 @@ const TechnicalService = () => {
                 newStatus === "Editar"
                   ? handlerEditDevice(deviceDetail)
                   : newStatus === "Entregado"
-                  ? handleOutput(deviceDetail.id, true)
-                  : newStatus === "Eliminar"
-                  ? handleDeleteDevice(deviceDetail.id)
-                  : null
+                    ? handleOutput(deviceDetail.id, true)
+                    : newStatus === "Eliminar"
+                      ? handleDeleteDevice(deviceDetail.id)
+                      : null
               }
             />
           </div>
@@ -407,7 +408,7 @@ const TechnicalService = () => {
         <DeviceForm
           onChange={handleInputChange}
           onSubmit={handleFormSubmit}
-          isEditing={false}
+          isEditing={isEditing}
         />
       </Modal>
       <Modal

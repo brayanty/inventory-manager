@@ -26,20 +26,28 @@ const DeviceForm = ({
     >
       <div className="grid grid-cols-2 gap-4 w-full max-w-4xl">
         {/* Cliente */}
-        <label className="flex flex-col " htmlFor="client">
+        <label className="flex flex-col " htmlFor="client_name">
           <span>Cliente:</span>
           <input
             type="text"
-            name="client"
-            id="client"
+            name="client_name"
+            id="client_name"
             placeholder="Petrolino Sinforoso"
             className="input validator bg-white tabular-nums border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={deviceForm.client}
+            value={deviceForm.client_name}
             onChange={onChange}
             aria-label="Nombre del cliente"
           />
         </label>
-        <ContactPhone id="cel" onChange={onChange} value={deviceForm.cel} />
+        <ContactPhone
+          id="number_phone"
+          onChange={(e) =>
+            onChange({
+              target: { name: "number_phone", value: e },
+            })
+          }
+          value={deviceForm.number_phone}
+        />
 
         {/* Dispositivo */}
         <label className="flex flex-col" htmlFor="device">
@@ -60,9 +68,9 @@ const DeviceForm = ({
         <label className="flex flex-col" htmlFor="price">
           <span>Precio Abonado:</span>
           <NumericFormat
-            id="pricePay"
-            name="pricePay"
-            value={deviceForm.pricePay}
+            id="price_pay"
+            name="price_pay"
+            value={deviceForm.price_pay}
             thousandSeparator="."
             decimalSeparator=","
             decimalScale={2}
@@ -71,7 +79,7 @@ const DeviceForm = ({
             onValueChange={(values) =>
               onChange({
                 target: {
-                  name: "pricePay",
+                  name: "price_pay",
                   value: values.value,
                 },
               })
@@ -107,14 +115,15 @@ const DeviceForm = ({
           <span>IMEI:</span>
           <input
             type="text"
-            name="IMEI"
-            id="IMEI"
-            maxLength={15}
+            name="imei"
+            id="imei"
             inputMode="numeric"
-            pattern="\d*"
+            pattern="\d{15}"
+            maxLength={15}
+            required
             placeholder="Escriba el IMEI del dispositivo"
             className="input validator bg-white tabular-nums border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={deviceForm.IMEI}
+            value={deviceForm.imei}
             onChange={onChange}
             aria-label="Número IMEI"
           />
@@ -156,7 +165,7 @@ const DeviceForm = ({
       {/* Botón de envío */}
       <button
         type="submit"
-        disabled={!deviceForm.client || !deviceForm.device}
+        disabled={!deviceForm.client_name || !deviceForm.device}
         className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         {isEditing ? "Actualizar dispositivo" : "Registrar ingreso"}

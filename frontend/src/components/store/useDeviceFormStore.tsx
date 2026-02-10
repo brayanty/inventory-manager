@@ -6,7 +6,7 @@ interface DeviceFormState {
   setPriceForm: (price: number) => void;
   setDeviceForm: (
     name: keyof DeviceEntry,
-    value: DeviceEntry[keyof DeviceEntry]
+    value: DeviceEntry[keyof DeviceEntry],
   ) => void;
   setDeviceFormEdit: (editDevice: DeviceEntry) => void;
 }
@@ -15,15 +15,15 @@ export const useDeviceFormStore = create<DeviceFormState>((set) => ({
   deviceForm: {
     client: "",
     device: "",
-    cel: "",
+    number_phone: "",
     damage: "",
     model: "",
-    IMEI: "",
+    imei: "",
     price: 0,
     detail: "",
     faults: [],
     pay: false,
-    pricePay: 0,
+    price_pay: 0,
   },
   setPriceForm: (price) =>
     set((state) => ({

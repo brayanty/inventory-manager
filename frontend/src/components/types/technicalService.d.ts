@@ -2,37 +2,37 @@ import { Product } from "./product";
 
 export type TechnicalServiceEntry = {
   id: string;
-  client: string;
+  client_name: string;
   device: string;
-  cel: string;
+  number_phone: string;
   damage: string;
   model: string;
-  IMEI: string;
-  status: "Reparado" | "Sin Solución" | "En Revisión";
-  output: boolean;
-  entryDate: string;
-  exitDate: string | null;
-  warrantLimit: string | null;
+  imei: string;
+  repair_status: "Reparado" | "Sin Solución" | "En Revisión";
+  output_status: boolean;
+  entry_date: string;
+  exit_date: string | null;
+  warrant_limit: string | null;
   price: number;
   detail: string;
   faults: Product[];
   pay: boolean;
-  pricePay: number;
+  price_pay: number;
 };
 
 export type DeviceEntry = Pick<
   TechnicalServiceEntry,
-  | "client"
+  | "client_name"
   | "device"
-  | "cel"
+  | "number_phone"
   | "damage"
   | "model"
-  | "IMEI"
+  | "imei"
   | "price"
   | "detail"
   | "faults"
   | "pay"
-  | "pricePay"
+  | "price_pay"
 >;
 
 export type TechnicalServiceEntryNoID = Partial<
