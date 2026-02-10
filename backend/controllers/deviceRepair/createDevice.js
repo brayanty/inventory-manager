@@ -3,34 +3,25 @@ import { postTechnicalServicePrinter } from "../../services/printerService.js";
 import pool from "../../config/db.js";
 
 export default async function createDevice(req, res) {
-  const {
-    client_name,
-    device,
-    model,
-    IMEI,
-    repair_status,
-    price,
-    price_pay,
-    detail,
-    faults,
-  } = req.body;
+  const { client_name, device, model, imei, price, price_pay, detail, faults } =
+    req.body;
 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     // Enviar datos la base de datos
     const { rows, rowCount } = await client.query(
-      "INSERT INTO device (client_name,device,model,imei,repair_status,price,detail,faults,price_pay) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING*",
+      "INSERT INTO device (client_name,device,model,price,detail,faults,repair_status,pay,price_pay,imei) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING*",
       [
         client_name,
         device,
         model,
-        IMEI,
-        repair_status,
         parseFloat(price),
+        "En Revisión",
         detail,
         JSON.stringify(faults),
         parseFloat(price_pay),
+        imei,
       ],
     );
     //Verifica que se guardaron los datos
@@ -63,6 +54,7 @@ export default async function createDevice(req, res) {
     return handleSuccess(req, res, rows[0], statusPrinter);
   } catch (error) {
     await client.query("ROLLBACK");
+    console.error(error);
     return handleError(req, res, "Hubo un error al crear el dispositivo", 500);
   } finally {
     client.release();
