@@ -1,32 +1,23 @@
-import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { overwriteData, readData } from "../../utils/file.js";
 
 export default async function deleteCategory(req, res) {
-  const newCategoryID = req.params.id;
+  const CategoryID = req.params.id;
+  const client = await pool.connect();
   try {
-    const categories = await readData(FILES.CATEGORIES);
+    const { rows } = await client.query(
+      "UPDATE category SET deleted_at = NOW() WHERE id = $1 RETURNING *",
+      [CategoryID],
+    );
 
-    const categoryExits = categories.findIndex((cat) => {
-      return cat.id === newCategoryID;
-    });
-    if (categoryExits === -1) {
-      return handleError(
-        req,
-        res,
-        `La categoria ${newCategoryID} no existe`,
-        406
-      );
+    if (rows.length === 0) {
+      return handleError(req, res, `La categoria ${CategoryID} no existe`, 406);
     }
 
-    const newCategories = categories.filter((c) => {
-      return c.id !== newCategoryID;
-    });
-
-    await overwriteData(newCategories, FILES.CATEGORIES);
-
-    handleSuccess(req, res, newCategoryID, "Categoría eliminada", 200);
-  } catch {
+    handleSuccess(req, res, rows[0], "Categoría eliminada", 200);
+  } catch (err) {
+    console.error(err);
     handleError(req, res, "Error al eliminar la categoría", 500);
+  } finally {
+    client.release();
   }
 }
