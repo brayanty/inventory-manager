@@ -1,12 +1,17 @@
-import { FILES } from "../../config/file.js";
+import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { readData } from "../../utils/file.js";
 
 export default async function getAllCategory(req, res) {
+  const client = await pool.connect();
   try {
-    const categories = await readData(FILES.CATEGORIES);
-    handleSuccess(req, res, categories);
-  } catch {
+    const { rows } = await client.query(
+      "SELECT * FROM category WHERE deleted_at IS NULL",
+    );
+    handleSuccess(req, res, rows);
+  } catch (err) {
+    console.error(err);
     handleError(req, res, "No se pudo obtener las categorias");
+  } finally {
+    client.release();
   }
 }
