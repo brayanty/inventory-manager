@@ -1,5 +1,6 @@
 import { handleSuccess, handleError } from "../../modules/handleResponse.js";
 import pool from "../../config/db.js";
+import { postProductsPrinter } from "../../services/printerService.js";
 
 export async function soldProduct(req, res) {
   const { nameClient, productSale } = req.body[0];
