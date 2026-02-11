@@ -12,11 +12,11 @@ export default async function getRepairs(req, res) {
   const client = await pool.connect();
   try {
     const queryRepairs =
-      "SELECT * FROM product WHERE category = $1 OR category = $2 OR category = $3 AND name ILIKE $4 AND deleted_at IS NULL AND stock >= 1 ";
+      "SELECT * FROM product WHERE (category = $1 OR category = $2 OR category = $3) AND name ILIKE $4 AND deleted_at IS NULL AND stock >= 1 ";
 
     const { rows, rowCount } = await client.query(queryRepairs, [
       ...repairCategoryAvailable,
-      search,
+      `%${search}%`,
     ]);
     console.log(rows);
     if (rowCount <= 0) {
