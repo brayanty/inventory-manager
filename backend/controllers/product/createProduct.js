@@ -1,55 +1,62 @@
 import pool from "../../config/db.js";
-import { FILES } from "../../config/file.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
-import { readData } from "../../utils/file.js";
 
 export async function createProduct(req, res) {
   const { name, category, sales } = req.body;
 
   const price = parseFloat(req.body.price);
   const stock = parseInt(req.body.total);
-  const categoriesList = await readData(FILES.CATEGORIES);
-  const categoryExists = categoriesList.find(
-    (cat) => cat.category === category
-  );
+  const client = await pool.connect();
 
-  if (!categoryExists) {
-    return handleError(req, res, "La categoría proporcionada no existe", 400);
-  }
-
-  if (isNaN(price) || price < 0) {
-    return handleError(
-      req,
-      res,
-      "El precio debe ser un número válido y no negativo"
+  try {
+    const { rows: categoriesList } = await client.query(
+      "SELECT * FROM category WHERE deleted_at IS NULL",
     );
-  }
-
-  if (!name || typeof name !== "string" || name.trim() === "")
-    return handleError(
-      req,
-      res,
-      "El campo 'name' debe ser una cadena no vacía",
-      400
+    const categoryExists = categoriesList.find(
+      (cat) => cat.category === category,
     );
 
-  if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
-    return handleError(
-      req,
-      res,
-      "El campo 'stock' debe ser un número válido y no negativo"
-    );
+    if (!categoryExists) {
+      return handleError(req, res, "La categoría proporcionada no existe", 400);
+    }
 
-  const result = await pool.query(
-    `INSERT INTO products (name, category, price, stock, sales)
-       VALUES ($1, $2, $3, $4, $5)
+    if (isNaN(price) || price < 0) {
+      return handleError(
+        req,
+        res,
+        "El precio debe ser un número válido y no negativo",
+      );
+    }
+
+    if (!name || typeof name !== "string" || name.trim() === "")
+      return handleError(
+        req,
+        res,
+        "El campo 'name' debe ser una cadena no vacía",
+        400,
+      );
+
+    if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
+      return handleError(
+        req,
+        res,
+        "El campo 'stock' debe ser un número válido y no negativo",
+      );
+
+    const result = await client.query(
+      `INSERT INTO product (name, category, price, stock)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-    [name, category, price, stock ?? 0, sales ?? null]
-  );
+      [name, category, price, stock ?? 0],
+    );
 
-  if (result.rows.length > 0) {
-    return handleSuccess(req, res, result.rows[0], 201);
+    if (result.rows.length > 0) {
+      return handleSuccess(req, res, result.rows[0], 201);
+    }
+  } catch (err) {
+    console.error(err);
+    return handleError(req, res, "Error al crear el producto", 500);
+  } finally {
+    client.release();
   }
-
-  return handleError(req, res, "Error al crear el producto", 500);
 }
