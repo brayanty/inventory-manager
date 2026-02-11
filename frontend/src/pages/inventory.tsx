@@ -40,7 +40,6 @@ function ProductsInventory() {
 
   const handleSubmit = async (data: ProductForm & { id?: string }) => {
     if (!data) return;
-
     try {
       const newProduct = isFormEdit
         ? await updateProduct(data.id, data)
@@ -59,7 +58,7 @@ function ProductsInventory() {
           newProduct,
         ]);
       } else {
-        addProducts(newProduct);
+        addProducts([...products, newProduct]);
         toast.success("Producto agregado correctamente");
       }
 
