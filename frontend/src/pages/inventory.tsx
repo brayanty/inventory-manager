@@ -32,7 +32,13 @@ function ProductsInventory() {
 
   const handleSubmitCategory = async (data: Record<string, []>) => {
     const newCategory = await createCategory(data);
-    const newCategories = [...categoryList, newCategory];
+
+    if (!newCategory.success) {
+      toast.error(newCategory.message || "No se pudo agregar la categoría.");
+      console.error(newCategory.message);
+      return;
+    }
+    const newCategories = [...categoryList, newCategory.data];
     setCategoryList(newCategories);
     toast.success("Categoría agregada correctamente");
     setOpenAddCategory(false);

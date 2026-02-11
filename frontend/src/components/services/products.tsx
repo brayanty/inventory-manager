@@ -59,7 +59,7 @@ export async function soldProducts(productSales) {
 
 export async function getProducts(search: string, page: number = 1) {
   const response = await fetch(
-    PRODUCTS_ENDPOINT + "?" + "search=" + search + "&page=" + page
+    PRODUCTS_ENDPOINT + "?" + "search=" + search + "&page=" + page,
   );
   const data = await response.json();
 
@@ -81,7 +81,7 @@ export async function createCategory(category) {
     body: JSON.stringify(category),
   });
   const data = await response.json();
-  return data.data;
+  return { success: data.success, data: data.data, message: data.message };
 }
 
 export async function deleteCategory(id) {
@@ -115,7 +115,7 @@ export async function getSoldProducts(date, page, limit = 10) {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
   const data = await response.json();
   return data;
