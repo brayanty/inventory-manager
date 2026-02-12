@@ -1,5 +1,6 @@
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import pool from "../../config/db.js";
+
 export default async function createCategory(req, res) {
   let { category } = req.body;
 
@@ -8,6 +9,15 @@ export default async function createCategory(req, res) {
   const client = await pool.connect();
 
   try {
+    const existingCategoryCheck = await client.query(
+      "SELECT * FROM category WHERE category = $1",
+      [category],
+    );
+
+    if (existingCategoryCheck.rows.length > 0) {
+      return handleError(req, res, "La categoría ya existe", 404);
+    }
+
     await client.query(
       "CREATE TABLE IF NOT EXISTS category(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, category VARCHAR(250))",
     );
