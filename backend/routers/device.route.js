@@ -1,5 +1,5 @@
 import { Router } from "express";
-import createDevice from "../controllers/deviceRepair/createDevice.js";
+import { createDevice } from "../controllers/deviceRepair/createDevice.controller.js";
 import getAllDevice from "../controllers/deviceRepair/getAllDevice.js";
 import getDevice from "../controllers/deviceRepair/getDevice.js";
 import updateDevice from "../controllers/deviceRepair/updateDevice.js";
