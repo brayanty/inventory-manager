@@ -2,10 +2,10 @@ import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 export async function createProduct(req, res) {
-  const { name, category, sales } = req.body;
+  const { name, category } = req.body;
 
   const price = parseFloat(req.body.price);
-  const stock = parseInt(req.body.total);
+  const stock = parseInt(req.body.stock);
   const client = await pool.connect();
 
   try {
