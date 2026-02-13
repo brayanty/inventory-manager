@@ -6,12 +6,12 @@ export const useHandleController = () => {
   const { productsCart, addProductShopping } = useShoppingCartStore();
 
   const setShoppingCart = (product: Product) => {
-    if (product.total === 0 || !product) {
+    if (product.stock === 0 || !product) {
       toast.error("No hay stock disponible");
       return;
     }
     const indexSearch = productsCart.findIndex(
-      (productCart) => productCart.id === product.id
+      (productCart) => productCart.id === product.id,
     );
     const newProductCart = { ...product, amount: 1 };
 

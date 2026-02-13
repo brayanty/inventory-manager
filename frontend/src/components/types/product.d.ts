@@ -15,10 +15,10 @@ export interface ProductBase {
   /** Ventas acumuladas (unidades) */
   sales: number;
   /** Total monetario (price * quantity) — puede calcularse en runtime */
-  total: number;
+  stock: number;
 }
 
-export type ProductForm = Omit<ProductBase, "total">;
+export type ProductForm = Omit<ProductBase, "stock">;
 
 /** Producto estándar */
 export type Product = ProductBase;

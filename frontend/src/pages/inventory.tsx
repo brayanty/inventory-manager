@@ -74,6 +74,7 @@ function ProductsInventory() {
         name: "",
         category: "",
         price: 0,
+        stock: 0,
         sales: 0,
       });
     } catch (error) {
@@ -151,6 +152,7 @@ function ProductsInventory() {
             name: "",
             category: "",
             price: 0,
+            stock: 0,
             sales: 0,
           });
         }}
@@ -169,7 +171,7 @@ function ProductsInventory() {
             type: "select",
             items: categoryList,
           },
-          { label: "Total", name: "total", type: "number" },
+          { label: "Stock", name: "stock", type: "number" },
           {
             label: "Precio",
             name: "price",
