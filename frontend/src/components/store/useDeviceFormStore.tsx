@@ -13,7 +13,7 @@ interface DeviceFormState {
 
 export const useDeviceFormStore = create<DeviceFormState>((set) => ({
   deviceForm: {
-    client: "",
+    client_name: "",
     device: "",
     number_phone: "",
     damage: "",
