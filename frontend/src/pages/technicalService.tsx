@@ -71,7 +71,8 @@ const TechnicalService = () => {
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    const newPrice = deviceForm.price;
+    const newPrice = Number(deviceForm.price);
+    const newNumberPhone = deviceForm.number_phone.split("-").join("");
 
     e.preventDefault();
     if (
@@ -85,24 +86,17 @@ const TechnicalService = () => {
       );
       return;
     }
-    const editingDevice = isEditing
-      ? devices.find((d) => d.id === editingDeviceId)
-      : null;
 
     const deviceData = {
       client_name: deviceForm.client_name.trim(),
       device: deviceForm.device.trim(),
       model: deviceForm.model,
       imei: deviceForm.imei || "000000000000000",
-      number_phone: deviceForm.number_phone,
-      repair_status: (editingDevice?.repair_status ||
-        "En Revisión") as TechnicalServiceEntry["repair_status"],
+      number_phone: newNumberPhone,
       price: newPrice,
-      price_pay: deviceForm.price_pay || 0,
+      price_pay: Number(deviceForm.price_pay) || 0,
       detail: deviceForm.detail,
       faults: deviceForm.faults,
-      output_status: editingDevice?.output_status || false,
-      pay: deviceForm.pay,
     };
 
     try {
