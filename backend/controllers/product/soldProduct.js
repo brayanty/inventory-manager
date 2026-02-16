@@ -3,8 +3,7 @@ import pool from "../../config/db.js";
 import { postProductsPrinter } from "../../services/printerService.js";
 
 export async function soldProduct(req, res) {
-  const { nameClient, productSale } = req.body[0];
-
+  const productSale = req.body;
   if (!Array.isArray(productSale) || productSale.length === 0) {
     return handleError(req, res, "Se requiere un arreglo de productos", 400);
   }
@@ -29,28 +28,32 @@ export async function soldProduct(req, res) {
 
     for (const item of productSale) {
       const dbP = dbProducts.find((p) => p.id === item.id);
-      if (dbP.stock < item.sales) throw new Error("INSUFFICIENT_STOCK");
+      if (dbP.stock < item.stock) throw new Error("INSUFFICIENT_STOCK");
     }
 
     // Actualizar el stock
     await client.query(
       `UPDATE product p
-       SET stock = p.stock - x.sales
-       FROM jsonb_to_recordset($1::jsonb) AS x(id INT, sales INT)
+       SET stock = p.stock - x.stock
+       FROM jsonb_to_recordset($1::jsonb) AS x(id INT, stock INT)
        WHERE p.id = x.id`,
       [JSON.stringify(productSale)],
     );
-
     // Registrar venta
     const saleRecords = productSale.map((item) => {
       const dbP = dbProducts.find((p) => p.id === item.id);
-      return { productID: item.id, sales: item.sales, price: dbP.price };
+      return {
+        stock: item.stock,
+        price: dbP.price,
+        category: dbP.category,
+        product_id: item.id,
+      };
     });
 
     await client.query(
-      `INSERT INTO soldProduct (sales, price, productID)
-       SELECT sales, price, productID
-       FROM jsonb_to_recordset($1::jsonb) AS t(sales int, price numeric, productID int)`,
+      `INSERT INTO soldProduct (client_name, sales, price,category, product_id,sold_at)
+       SELECT client_name, stock, price, category, product_id, NOW()
+       FROM jsonb_to_recordset($1::jsonb) AS t(client_name varchar(250), stock int, price numeric(10,2), category varchar(100), product_id int)`,
       [JSON.stringify(saleRecords)],
     );
 
@@ -59,7 +62,7 @@ export async function soldProduct(req, res) {
     // Enviar los datos de imprecion
     const printerData = dbProducts.map((p) => ({
       ...p,
-      sales: productSale.find((s) => s.id === p.id).sales,
+      stock: productSale.find((s) => s.id === p.id).stock,
     }));
 
     const printerSuccess = await postProductsPrinter(printerData);
