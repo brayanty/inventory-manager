@@ -10,4 +10,5 @@ export const deviceFieldsAllowed = [
   "output_status",
   "price_pay",
   "imei",
+  "stock",
 ];
