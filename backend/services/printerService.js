@@ -102,7 +102,7 @@ class DocumentBuilder {
       { nombre: "EscribirTexto", argumentos: [`${title}\n`] },
       { nombre: "EscribirTexto", argumentos: [`${COMPANY_INFO.name}\n`] },
       { nombre: "EscribirTexto", argumentos: [`${COMPANY_INFO.nit}\n`] },
-      { nombre: "EscribirTexto", argumentos: [`${COMPANY_INFO.phone}\n\n`] }
+      { nombre: "EscribirTexto", argumentos: [`${COMPANY_INFO.phone}\n\n`] },
     );
     return this;
   }
@@ -165,7 +165,7 @@ class DocumentBuilder {
       {
         nombre: "EscribirTexto",
         argumentos: [`${message}\n`],
-      }
+      },
     );
     return this;
   }
@@ -187,13 +187,13 @@ class ProductPrintService {
       LineFormatter.formatProductLine(
         product.name,
         product.price,
-        product.amount
-      )
+        product.stock,
+      ),
     );
 
     const total = products.reduce(
-      (sum, product) => sum + product.price * (product.amount || 1),
-      0
+      (sum, product) => sum + product.price * (product.stock || 1),
+      0,
     );
 
     const data = new DocumentBuilder()
@@ -234,8 +234,8 @@ class TechnicalServicePrintService {
         device.pricePay >= 1000
           ? "ABONADO\n"
           : device.pay
-          ? "PAGADO\n"
-          : "NO PAGADO\n",
+            ? "PAGADO\n"
+            : "NO PAGADO\n",
       ],
     });
     //Establece alineacion a la izquierda
@@ -256,15 +256,15 @@ class TechnicalServicePrintService {
     const repairLines = repairs.map((repair) =>
       LineFormatter.formatDeviceLine(
         `${repair.name} ${repair.category}`,
-        repair.price
-      )
+        repair.price,
+      ),
     );
     lines.push(...repairLines);
 
     // Total a pagar
     const total = repairs.reduce(
       (sum, repair) => sum + repair.price,
-      device.price || 0
+      device.price || 0,
     );
 
     const data = new DocumentBuilder()
@@ -280,7 +280,7 @@ class TechnicalServicePrintService {
       .addAlignedContent(0)
       .addSeparator()
       .addFooter(
-        "\nGARANTIA: 30 dias por defectos de mano de obra, No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket"
+        "\nGARANTIA: 30 dias por defectos de mano de obra, No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket",
       )
 
       .addAlignedContent(1)
