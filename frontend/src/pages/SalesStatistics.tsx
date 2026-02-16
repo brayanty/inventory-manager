@@ -1,63 +1,64 @@
-import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
 import { TableMain } from "@/components/common/tableComponets";
 import { Title } from "@/components/common/title.tsx";
 import { getSoldProducts } from "@/components/services/products";
-import { formatCOP } from "@/components/utils/format";
 import { useEffect, useRef, useState } from "react";
 import usePageStore from "@/components/store/page.tsx";
+import { toast } from "react-toastify";
+import { TableItem } from "@/components/types/tableComponets";
 
 function useLodingSaleProducts() {
-  const [soldProducts, setProducts] = useState();
+  const [soldProducts, setProducts] = useState<TableItem[]>([]);
   const { page, setPage, setTotalPages } = usePageStore();
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // Formato 2026-02-15
 
-  const handleDate = (date: Date) => {
-    const newDate = new Date(date);
-    setDate(newDate);
+  const handleDate = (date: string) => {
+    console.log("Selected date:", date);
+    setDate(date);
   };
 
   useEffect(() => {
     async function getProduct() {
-      const pageData = await getSoldProducts(
-        date.toISOString().split("T")[0],
-        page
-      );
-      const newProducts = pageData.data.soldProduct.flatMap((product) =>
-        product.sold.map((soldItem) => ({
-          title: product.date,
-          id: soldItem.id,
-          items: [
-            soldItem.name,
-            soldItem.category,
-            formatCOP(soldItem.price),
-            soldItem.amount,
-          ],
-        }))
-      );
+      const {
+        totalPages,
+        totalItems = 0,
+        page: currentPage,
+        soldProduct = [],
+        success = false,
+      } = await getSoldProducts(date, page);
+
+      if (!success) {
+        setProducts([]);
+        toast.error("No se encontraron datos de productos vendidos");
+        return;
+      }
+      if (totalItems <= 0) {
+        toast.warn("No hay productos");
+        throw new Error("No hay productos");
+      }
+      const newProducts: TableItem[] = soldProduct.map((product) => ({
+        title: product.sold_at.split("T")[0],
+        id: product.id,
+        items: [
+          product.category,
+          product.product_name,
+          product.price,
+          product.sales.toString(),
+        ],
+      }));
+      console.log(newProducts);
       setProducts(newProducts);
-      setPage(pageData.data.page);
-      setTotalPages(pageData.data.totalPages);
+      setPage(currentPage);
+      setTotalPages(totalPages);
     }
     getProduct();
   }, [page, setPage, setTotalPages, date]);
-  return { soldProducts, handleDate };
+  return { soldProducts, handleDate, date };
 }
 
 export default function SalesStatistics() {
   const { soldProducts, handleDate, date } = useLodingSaleProducts();
   const dateRef = useRef<HTMLInputElement | null>(null);
-
-  if (soldProducts === undefined) {
-    return <div>Cargando...</div>;
-  }
-
-  const handleFilter = () => {
-    const value = dateRef.current?.value;
-    const newDate = value ? new Date(value) : new Date();
-    handleDate(newDate);
-    console.log(newDate);
-  };
 
   return (
     <div className="flex flex-row w-full h-full p-4 gap-2 text-white">
@@ -72,26 +73,29 @@ export default function SalesStatistics() {
           />
           <div className="flex flex-row justify-center items-center gap-4 mt-4">
             <div className="flex flex-row justify-center items-center gap-4 mt-4">
-              <input ref={dateRef} value={date} type="date" className="input" />
-            </div>
-            <div className="flex items-center justify-center">
-              <Button onClick={() => handleFilter()} className="bg-blue-600">
-                Filtrar
-              </Button>
+              <input
+                ref={dateRef}
+                value={date}
+                onChange={(e) => handleDate(e.target.value)}
+                type="date"
+                className="input"
+              />
             </div>
           </div>
         </header>
         <main className="">
-          <TableMain
-            itemsTitle={[
-              "Fecha",
-              "Producto",
-              "Categoría",
-              "Precio Unitario",
-              "Total Vendido",
-            ]}
-            itemsBody={soldProducts}
-          />
+          {soldProducts && (
+            <TableMain
+              itemsTitle={[
+                "Fecha",
+                "Producto",
+                "Categoría",
+                "Precio Unitario",
+                "Total Vendido",
+              ]}
+              itemsBody={soldProducts}
+            />
+          )}
         </main>
         <Paginator />
       </div>

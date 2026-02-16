@@ -1,4 +1,5 @@
 import { API_ENDPOINT } from "../constants/endpoint.js";
+import { productSold } from "../types/product.js";
 
 const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
 const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
@@ -106,17 +107,32 @@ export async function updateCategory(id, category) {
   const data = await response.json();
   return data.data;
 }
-export async function getSoldProducts(date, page, limit = 10) {
-  console.log(SOLDPRODUCTS_ENDPOINT);
+
+export async function getSoldProducts(
+  date: string,
+  page: number,
+  limit = 10,
+): Promise<{
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  success: boolean;
+  soldProduct: productSold[];
+}> {
   const response = await fetch(
     `${SOLDPRODUCTS_ENDPOINT}?date=${date}&page=${page}&limit=${limit}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
   );
   const data = await response.json();
-  return data;
+
+  const result = data.data || {};
+
+  return {
+    soldProduct: result.soldProduct || [],
+    totalItems: result.totalItems || 0,
+    totalPages: result.totalPages || 0,
+    page: result.page || 1,
+    limit: result.limit || 10,
+    success: data.success || false,
+  };
 }
