@@ -4,34 +4,34 @@ import { testDate } from "../../utils/validateDate.js";
 
 // Obtener productos con paginación y búsqueda
 export async function getSoldProduct(req, res) {
-  const { page = 1, limit = 10, date1, date2 } = req.query;
+  const { page = 1, limit = 10, date } = req.query;
 
-  // Valida las fechas
-  if (!testDate.test(date1) || !testDate.test(date2)) {
-    return handleError(req, res, "Las fechas no son correctas", 409);
+  if (!date || !testDate.test(date)) {
+    return handleError(req, res, "La fecha no es correcta", 409);
   }
-  // Valida que limit no se un numero mayor a 100
-  if (isNaN(page) || isNaN(limit) || limit > 100 || page < 1)
+
+  if (isNaN(page) || isNaN(limit) || limit > 100 || page < 1) {
     return handleError(
       req,
       res,
       "El numero de pagina no es valido o limite excede el valor de 100",
       404,
-      `page = ${page} limit = ${limit}`,
     );
+  }
 
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
   const offset = (pageNum - 1) * limitNum;
 
-  let where = `WHERE sold_at >= $1::date AND sold_at < $2::date + INTERVAL '1 day'`;
-  let params = [date1, date2];
+  const where = `WHERE s.sold_at <= $1::date 
+                 AND s.sold_at >= $1::date - INTERVAL '1 month'`;
+
+  const params = [date];
 
   try {
-    // Total de registros
     const countQuery = `
       SELECT COUNT(*) 
-      FROM soldProduct
+      FROM soldProduct s
       ${where}
     `;
 
@@ -39,20 +39,25 @@ export async function getSoldProduct(req, res) {
     const totalItems = parseInt(totalResult.rows[0].count);
     const totalPages = Math.ceil(totalItems / limitNum);
 
-    // Datos paginados
     const dataQuery = `
-      SELECT *
-      FROM soldProduct
+      SELECT 
+        s.*,
+        p.name AS product_name
+      FROM soldProduct s
+      JOIN product p ON p.id = s.product_id
       ${where}
-      ORDER BY sold_at DESC
-      LIMIT $${params.length + 1}
-      OFFSET $${params.length + 2}
+      ORDER BY s.sold_at DESC
+      LIMIT $2
+      OFFSET $3
     `;
 
-    const dataParams = [...params, limitNum, offset];
-    const soldProductQuery = await pool.query(dataQuery, dataParams);
+    const soldProductQuery = await pool.query(dataQuery, [
+      ...params,
+      limitNum,
+      offset,
+    ]);
 
-    if (soldProductQuery.rowCount == 0) {
+    if (soldProductQuery.rowCount === 0) {
       return handleError(req, res, "No se encontraron datos de venta", 404);
     }
 
@@ -64,7 +69,7 @@ export async function getSoldProduct(req, res) {
       soldProduct: soldProductQuery.rows,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return handleError(req, res, "Error del servidor", 500);
   }
 }
