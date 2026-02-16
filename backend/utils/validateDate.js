@@ -1,1 +1,1 @@
-export const testDate = /^\d{2}-\d{2}-\d{4}$/;
+export const testDate = /^\d{4}-\d{2}-\d{2}$/;
