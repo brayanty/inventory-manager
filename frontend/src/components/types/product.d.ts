@@ -11,25 +11,25 @@ export interface ProductBase {
   /** Categoría del producto */
   category: string;
   /** Precio unitario */
-  price: number;
+  price: string;
   /** Ventas acumuladas (unidades) */
   sales: number;
-  /** Total monetario (price * quantity) — puede calcularse en runtime */
+  /** stock monetario (price * quantity) — puede calcularse en runtime */
   stock: number;
 }
 
-export type ProductForm = Omit<ProductBase, "stock">;
+export type ProductForm = Omit<ProductBase, "sales">;
 
 /** Producto estándar */
 export type Product = ProductBase;
 
 /** Producto en el carrito: incluye la cantidad seleccionada */
 export interface ProductCart extends ProductBase {
-  amount: number;
+  stock: number;
 }
 
 /** Mantiene compatibilidad con el nombre anterior */
-export type ProductsCart = ProductCart;
+export type ProductsCart = ProductCart & { maxStock: number };
 
 /** Lista simple de categorías */
 export type CategoryList = {
