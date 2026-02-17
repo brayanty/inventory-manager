@@ -35,3 +35,14 @@ export type ProductsCart = ProductCart & { maxStock: number };
 export type CategoryList = {
   category: string;
 };
+
+/** Tipo para productos vendidos */
+export type productSold = ProductBase & {
+  product_name: string;
+  sold_at: string;
+  name: string;
+  category: string;
+  price: string;
+  sales: number;
+  stock: number;
+};
