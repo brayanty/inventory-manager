@@ -13,7 +13,7 @@ export const useHandleController = () => {
     const indexSearch = productsCart.findIndex(
       (productCart) => productCart.id === product.id,
     );
-    const newProductCart = { ...product, amount: 1 };
+    const newProductCart = { ...product, stock: 1, maxStock: product.stock };
 
     if (indexSearch === -1) {
       addProductShopping(newProductCart);
