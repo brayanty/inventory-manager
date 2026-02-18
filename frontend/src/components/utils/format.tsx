@@ -1,5 +1,7 @@
-export const formatCOP = (valor: number) =>
-  new Intl.NumberFormat("es-CO", {
+export const formatCOP = (valor: number | string) => {
+  const newValor = typeof valor === "string" ? parseFloat(valor) : valor;
+  return new Intl.NumberFormat("es-CO", {
     style: "currency",
     currency: "COP",
-  }).format(valor);
+  }).format(newValor);
+};
