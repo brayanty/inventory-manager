@@ -1,65 +1,28 @@
 import Paginator from "@/components/common/paginator";
 import { TableMain } from "@/components/common/tableComponets";
 import { Title } from "@/components/common/title.tsx";
-import { getSoldProducts } from "@/components/services/products";
+import { useLodingSaleProducts } from "@/components/hooks/useLodingSaleProducts";
+import { getTopProduct } from "@/components/services/products";
 import { useEffect, useRef, useState } from "react";
-import usePageStore from "@/components/store/page.tsx";
-import { toast } from "react-toastify";
-import { TableItem } from "@/components/types/tableComponets";
 
-function useLodingSaleProducts() {
-  const [soldProducts, setProducts] = useState<TableItem[]>([]);
-  const { page, setPage, setTotalPages } = usePageStore();
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // Formato 2026-02-15
-
-  const handleDate = (date: string) => {
-    console.log("Selected date:", date);
-    setDate(date);
-  };
-
-  useEffect(() => {
-    async function getProduct() {
-      const {
-        totalPages,
-        totalItems = 0,
-        page: currentPage,
-        soldProduct = [],
-        success = false,
-      } = await getSoldProducts(date, page);
-
-      if (!success) {
-        setProducts([]);
-        toast.error("No se encontraron datos de productos vendidos");
-        return;
-      }
-      if (totalItems <= 0) {
-        toast.warn("No hay productos");
-        throw new Error("No hay productos");
-      }
-      const newProducts: TableItem[] = soldProduct.map((product) => ({
-        title: product.sold_at.split("T")[0],
-        id: product.id,
-        items: [
-          product.category,
-          product.product_name,
-          product.price,
-          product.sales.toString(),
-        ],
-      }));
-      console.log(newProducts);
-      setProducts(newProducts);
-      setPage(currentPage);
-      setTotalPages(totalPages);
-    }
-    getProduct();
-  }, [page, setPage, setTotalPages, date]);
-  return { soldProducts, handleDate, date };
+interface TopProduct {
+  id: string;
+  name: string;
+  sales: string;
 }
-
 export default function SalesStatistics() {
   const { soldProducts, handleDate, date } = useLodingSaleProducts();
   const dateRef = useRef<HTMLInputElement | null>(null);
 
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+
+  useEffect(() => {
+    async function getTopProducts() {
+      const newTopProducts = await getTopProduct(10);
+      setTopProducts(newTopProducts);
+    }
+    getTopProducts();
+  }, []);
   return (
     <div className="flex flex-row w-full h-full p-4 gap-2 text-white">
       <div className="w-full flex flex-col">
@@ -108,9 +71,12 @@ export default function SalesStatistics() {
         </header>
         <main className="p-3 flex gap-4">
           <ul>
-            <li>Display iphone 11</li>
-            <li>Display iphone 11</li>
-            <li>Display iphone 11</li>
+            {topProducts &&
+              topProducts.map((product) => (
+                <li key={product.id}>
+                  {product.name} - {product.sales}
+                </li>
+              ))}
           </ul>
         </main>
       </div>
