@@ -14,8 +14,8 @@ const ShoppingCart = () => {
   useEffect(() => {
     if (productsCart && productsCart.length > 0) {
       const total = productsCart.reduce(
-        (acc, product) => acc + product.price * product.amount,
-        0
+        (acc, product) => acc + parseFloat(product.price) * product.stock,
+        0,
       );
       setPriceTotal(total);
     } else {
@@ -24,18 +24,17 @@ const ShoppingCart = () => {
   }, [productsCart]);
 
   if (!productsCart) {
-    toast("No hay productos");
+    toast.warn("No hay productos");
     return null;
   }
 
   // funcion para aumentar el valor de la cantidad de productos a vender
   const handleAmount = (id: string, value: number) => {
     const product = productsCart.find((product) => product.id === id);
-
     if (product) {
       const updatedProduct = {
         ...product,
-        amount: value > product.total ? product.total : value,
+        stock: value > product.maxStock ? product.maxStock : value,
       };
       addProductShopping(updatedProduct);
     }
@@ -45,6 +44,7 @@ const ShoppingCart = () => {
     const updatedProducts = productsCart.filter((product) => product.id !== id);
     clearProductCart();
     updatedProducts.forEach((product) => addProductShopping(product));
+    toast.info("Producto eliminado del carrito");
   };
 
   const renderProductRow = (product: ProductsCart) => {
@@ -63,18 +63,18 @@ const ShoppingCart = () => {
         <td className="px-4 py-2 text-[14px]">
           <input
             id={product.name}
-            className="w-[60px] text-center bg-[rgba(36,40,50,1)] border border-gray-300 rounded px-1"
+            className="text-center bg-[rgba(36,40,50,1)] border border-gray-300 rounded px-1"
             type="number"
-            max={product.total}
+            max={product.maxStock}
             min={1}
             onChange={(e) =>
               handleAmount(product.id, Number(e.currentTarget.value))
             }
-            value={product.amount}
+            value={product.stock}
           />
         </td>
         <td className="px-4 py-2 text-[14px]">
-          {formatCOP(product.price * product.amount)}
+          {formatCOP(parseFloat(product.price) * product.stock)}
         </td>
         <td className="px-4 py-2 text-[14px]">
           <Button
@@ -99,26 +99,27 @@ const ShoppingCart = () => {
     }
     try {
       const soldProductId = productsCart.map((item) => {
-        const { id, amount } = item;
-        return { id, amount };
+        const { id, stock } = item;
+        return { id, stock };
       });
 
       const updatedProducts = (await soldProducts(
-        soldProductId
+        soldProductId,
       )) as ProductBase[];
       if (!updatedProducts) {
-        toast("Error al vender los productos");
+        toast.error("Error al vender los productos");
         return;
       }
-      toast("Productos vendidos exitosamente");
+      toast.success("Productos vendidos exitosamente");
       clearProductCart();
-    } catch {
-      toast("Oooh no, se cayo el server");
+    } catch (error) {
+      toast.warning("Oooh no, se cayo el server");
+      console.error(error);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 h-[500px] relative text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
+    <div className="grid grid-cols-1 relative text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
       <div className="sticky top-0 row-span-2 p-2 text-xs text-gray-700 bg-gray-400/95 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
         <header className="p-4">
           <h4 className="text-center text-xl font-bold">Ticket</h4>
@@ -161,7 +162,7 @@ const ShoppingCart = () => {
           <Button onClick={() => saleProducts()} className="bg-green-500">
             Vender
           </Button>
-          <Button onClick={clearProductCart} className="bg-red-600">
+          <Button onClick={handleDeleteAll} className="bg-red-600">
             Limpiar
           </Button>
         </div>
