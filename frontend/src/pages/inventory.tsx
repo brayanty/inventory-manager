@@ -73,9 +73,8 @@ function ProductsInventory() {
         id: "",
         name: "",
         category: "",
-        price: 0,
+        price: "0",
         stock: 0,
-        sales: 0,
       });
     } catch (error) {
       console.error(error);
@@ -151,9 +150,8 @@ function ProductsInventory() {
             id: "",
             name: "",
             category: "",
-            price: 0,
+            price: "0",
             stock: 0,
-            sales: 0,
           });
         }}
         dataEdit={editFormProduct}
