@@ -136,3 +136,11 @@ export async function getSoldProducts(
     success: data.success || false,
   };
 }
+
+export async function getTopProduct(limit: number) {
+  const response = await fetch(`${API_ENDPOINT}getTopSold?limit=${limit}`);
+
+  const data = await response.json();
+
+  return data.data;
+}
