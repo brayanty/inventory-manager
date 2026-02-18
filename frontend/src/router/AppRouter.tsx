@@ -1,7 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import ProductsInventory from "@/pages/inventory";
 import TechnicalService from "@/pages/technicalService";
-import SalesStatistics from "@/pages/SalesStatistics.tsx";
+import SalesStatistics from "@/pages/SalesStatistics";
 import { Route, Routes } from "react-router";
 
 export default function AppRoutes() {
