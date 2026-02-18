@@ -23,7 +23,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
     const fetchTypingFaults = async () => {
       try {
         const response = await fetch(
-          `${API_ENDPOINT}repairs/?search=${inputValue}`
+          `${API_ENDPOINT}repairs/?search=${inputValue}`,
         );
         const data = await response.json();
 
@@ -44,7 +44,10 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
   }, [inputValue]);
 
   const recalcPrice = (faults: Product[]) => {
-    const total = faults.reduce((acc, f) => acc + (f.price || 0), 0);
+    const total = faults.reduce(
+      (acc, f) => acc + (parseFloat(f.price) || 0),
+      0,
+    );
     setPriceForm(total);
   };
 
@@ -107,11 +110,11 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Escribe una falla o servicio..."
-        className="flex-grow min-w-[150px] outline-none bg-transparent text-sm"
+        className="outline-none bg-transparent text-sm"
       />
 
       {replacement.length > 0 && (
-        <ul className="absolute top-10 left-0 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-[120px] overflow-y-auto z-10 shadow-lg">
+        <ul className="absolute top-10 left-0 w-full bg-white border border-gray-300 rounded-md mt-1  overflow-y-auto z-10 shadow-lg">
           {replacement.map((r) => (
             <li
               key={r.id}
