@@ -2,6 +2,7 @@ import pool from "../config/db.js";
 import * as deviceRepo from "../repositories/device.repository.js";
 import * as productRepo from "../repositories/product.repository.js";
 import { postTechnicalServicePrinter } from "./printerService.js";
+import { deviceFieldsAllowed } from "../constants/device.const.js";
 
 async function createDevice(data) {
   const client = await pool.connect();
@@ -9,7 +10,7 @@ async function createDevice(data) {
   try {
     await client.query("BEGIN");
 
-    // 1️⃣ Validar productos
+    // Validar productos
     const faultIds = data.faults.map((f) => f.id);
 
     const validProducts = await productRepo.getValidProducts(client, faultIds);
@@ -62,6 +63,50 @@ async function createDevice(data) {
   }
 }
 
+async function updateDevice(updateDeviceFields, deviceID) {
+  const client = await pool.connect();
+
+  const keys = Object.keys(updateDeviceFields).filter((key) =>
+    deviceFieldsAllowed.includes(key),
+  );
+
+  if (keys.length < 1) {
+    const error = new Error("No hay datos validos para actualizar");
+    error.status = 400;
+    throw error;
+  }
+
+  const setQuery = keys.map((key, i) => `${key}= $${i + 1}`).join(", ");
+  const values = keys.map((k) =>
+    k === "faults"
+      ? JSON.stringify(updateDeviceFields[k])
+      : updateDeviceFields[k],
+  );
+
+  try {
+    const { rowCount, rows } = await deviceRepo.insertDeviceUpdate(
+      client,
+      setQuery,
+      keys,
+      values,
+      deviceID,
+    );
+
+    if (rowCount < 1) {
+      const error = new Error("Dispositivo no encontrado");
+      error.status = 400;
+      throw error;
+    }
+    return { device: rows[0], rowCount: rowCount };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export default {
   createDevice,
+  updateDevice,
 };

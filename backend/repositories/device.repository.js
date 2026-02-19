@@ -56,3 +56,28 @@ export async function insertHistoryTicket(
     ],
   );
 }
+
+export async function insertDeviceUpdate(
+  client,
+  setQuery,
+  keys,
+  values,
+  deviceID,
+) {
+  const queryDevice = `UPDATE device SET ${setQuery} WHERE id = $${keys.length + 1} RETURNING *`;
+
+  const { rows, rowCount } = await client.query(queryDevice, [
+    ...values,
+    deviceID,
+  ]);
+
+  return { rows, rowCount };
+}
+
+export async function getDeviceByID(client, deviceID) {
+  const { rows, rowCount } = await client.query(
+    "SELECT * FROM device WHERE id = $1 AND deleted_at IS NULL",
+    [deviceID],
+  );
+  return { ...rows[0], ...rowCount };
+}
