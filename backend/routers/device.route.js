@@ -1,11 +1,14 @@
 import { Router } from "express";
 import { createDevice } from "../controllers/deviceRepair/createDevice.controller.js";
-import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
 import getAllDevice from "../controllers/deviceRepair/getAllDevice.js";
 import getDevice from "../controllers/deviceRepair/getDevice.js";
 import deleteDevice from "../controllers/deviceRepair/deleteDevice.js";
 import getRepairs from "../controllers/deviceRepair/getRepairs.js";
-import { validateDevice } from "../middleware/createDevice.middleware.js";
+import {
+  validateDevice,
+  validateUpdateDevice,
+} from "../middleware/device.middleware.js";
+import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
 
 const router = Router();
 
@@ -16,7 +19,7 @@ router.get("/devices", getAllDevice);
 //Get one device
 router.get("/devices/:id", getDevice);
 //Update device
-router.put("/devices/:id", updateDevice);
+router.put("/devices/:id", validateUpdateDevice, updateDevice);
 //Delete device
 router.delete("/devices/:id", deleteDevice);
 //Get Repairs

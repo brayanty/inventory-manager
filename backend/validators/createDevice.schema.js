@@ -21,8 +21,10 @@ export const deviceSchema = z.object({
   number_phone: z
     .string()
     .regex(/[0-9]{10}$/, "Número de teléfono debe tener 10 dígitos"),
-  price: z.number().positive(),
-  price_pay: z.number().min(0),
+  price: z.float64().min(0),
+  price_pay: z.float64().min(0),
   detail: z.string().optional(),
-  faults: z.array(faultSchema).min(1),
+  faults: z.array(faultSchema).optional(),
 });
+
+export const deviceUpdateSchema = deviceSchema.partial();

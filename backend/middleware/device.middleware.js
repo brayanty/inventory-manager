@@ -15,3 +15,13 @@ export function validateDevice(req, res, next) {
   req.body = result.data;
   next();
 }
+
+export function validateUpdateDevice(req, res, next) {
+  const result = deviceUpdateSchema.safeParse(req.body);
+  if (!result.success) {
+    handleError(req, res, result.data, 400);
+    return;
+  }
+  req.body = result.data;
+  next();
+}

@@ -2,7 +2,6 @@ import pool from "../config/db.js";
 import * as deviceRepo from "../repositories/device.repository.js";
 import * as productRepo from "../repositories/product.repository.js";
 import { postTechnicalServicePrinter } from "./printerService.js";
-import { deviceFieldsAllowed } from "../constants/device.const.js";
 
 async function createDevice(data) {
   const client = await pool.connect();
@@ -20,17 +19,26 @@ async function createDevice(data) {
       error.status = 400;
       throw error;
     }
+    // Calcular total
+    const totalPrice = validProducts.reduce(
+      (acc, p) => acc + parseFloat(p.price),
+      0,
+    );
+    // Validar que el pago no sobrepase el total
+    if (data.price_pay > totalPrice) {
+      const error = new Error(
+        `El pago sobre pasa el precio. El precio total es ${totalPrice}`,
+      );
+      error.status = 400;
+      throw error;
+    }
+
     // Actualizar stock de productos
     await productRepo.decrementStock(client, faultIds);
 
     // Insertar device
     const device = await deviceRepo.insertDevice(client, data);
 
-    // Calcular total
-    const totalPrice = validProducts.reduce(
-      (acc, p) => acc + parseFloat(p.price),
-      0,
-    );
     // Guardar historial
     await deviceRepo.insertHistoryTicket(
       client,
@@ -65,11 +73,14 @@ async function createDevice(data) {
 
 async function updateDevice(updateDeviceFields, deviceID) {
   const client = await pool.connect();
+  const device = await deviceRepo.getDeviceByID(client, deviceID);
 
-  const keys = Object.keys(updateDeviceFields).filter((key) =>
-    deviceFieldsAllowed.includes(key),
-  );
-
+  if (!device || device.repair_status === "Entregado") {
+    const error = new Error("Dispositivo no encontrado o ya entregado");
+    error.status = 400;
+    throw error;
+  }
+  const keys = Object.keys(updateDeviceFields).filter((key) => key);
   if (keys.length < 1) {
     const error = new Error("No hay datos validos para actualizar");
     error.status = 400;
@@ -82,6 +93,7 @@ async function updateDevice(updateDeviceFields, deviceID) {
       ? JSON.stringify(updateDeviceFields[k])
       : updateDeviceFields[k],
   );
+  console.log(values);
 
   try {
     const { rowCount, rows } = await deviceRepo.insertDeviceUpdate(

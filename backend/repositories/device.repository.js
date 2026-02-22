@@ -75,9 +75,29 @@ export async function insertDeviceUpdate(
 }
 
 export async function getDeviceByID(client, deviceID) {
-  const { rows, rowCount } = await client.query(
+  const { rows } = await client.query(
     "SELECT * FROM device WHERE id = $1 AND deleted_at IS NULL",
     [deviceID],
   );
-  return { ...rows[0], ...rowCount };
+  return { device: rows[0] };
+}
+
+export async function updateDeviceStatusPay(client, deviceID, outputStatus) {
+  const { rows, rowCount } = await client.query(
+    `
+    UPDATE device SET output_status = $2, exit_date = NOW(), warrant_limit = NOW() + INTERVAL '30 days' WHERE id = $1 RETURNING *
+    `,
+    [deviceID, outputStatus],
+  );
+  return { rows, rowCount };
+}
+
+export async function updateDeviceStatusNoPay(client, deviceID, outputStatus) {
+  const { rows, rowCount } = await client.query(
+    `
+    UPDATE device SET output_status = $2, exit_date = NOW() WHERE id = $1 RETURNING *
+    `,
+    [deviceID, outputStatus],
+  );
+  return { rows, rowCount };
 }
