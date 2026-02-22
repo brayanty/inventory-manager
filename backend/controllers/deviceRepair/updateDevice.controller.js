@@ -2,9 +2,12 @@ import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import deviceService from "../../services/device.service.js";
 
 export default async function updateDevice(req, res) {
-  const { id: deviceID } = req.params;
+  const deviceID = req.params.id;
   const updateFields = req.body;
 
+  if (isNaN(deviceID)) {
+    return handleError(req, res, "ID de dispositivo inválido", 400);
+  }
   try {
     const { device } = await deviceService.updateDevice(updateFields, deviceID);
     return handleSuccess(
@@ -14,12 +17,12 @@ export default async function updateDevice(req, res) {
       "Dispositivo actualizado correctamente",
       201,
     );
-  } catch (error) {
+  } catch (err) {
     return handleError(
       req,
       res,
-      error.message || "Error actualizando dispositivo",
-      error.status || 500,
+      err.message || "Error actualizando dispositivo",
+      err.status || 500,
     );
   }
 }
