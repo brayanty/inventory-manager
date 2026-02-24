@@ -11,6 +11,8 @@ import {
   deleteDevice,
   createDevice,
   updateDevice,
+  updateStatusDevice,
+  searchDevices,
 } from "@/components/services/devices.js";
 import useLodingDevice from "@/components/hooks/useLodingDevice";
 import { useCategoryListStore } from "@/components/store/category";
@@ -25,14 +27,15 @@ import Paginator from "@/components/common/paginator";
 import { TableTitleHead } from "@/components/common/tableComponets";
 
 const TechnicalService = () => {
-  const { devices, setDevices, isLoading } = useLodingDevice();
+  const { devices, setDevices, isLoading, handleGetDevices } =
+    useLodingDevice();
   const { categorySelect, setCategoryList } = useCategoryListStore();
 
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingDeviceId, setEditingDeviceId] = useState<number | null>(null);
+  const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
 
-  const { deviceForm, setDeviceForm, setDeviceFormEdit } = useDeviceFormStore();
+  const { deviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
   const [isOpenQR, setOpenQR] = useState(false);
 
@@ -42,16 +45,6 @@ const TechnicalService = () => {
   useEffect(() => {
     setCategoryList(DEVICE_CATEGORY);
   }, []);
-
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const { name, value } = e.target;
-    console.log(name, value);
-    setDeviceForm(name, value);
-  };
 
   const clearForm = () => {
     setDeviceFormEdit({
@@ -72,6 +65,7 @@ const TechnicalService = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     const newPrice = Number(deviceForm.price);
+    const newPricePay = Number(deviceForm.price_pay);
     const newNumberPhone = deviceForm.number_phone.split("-").join("");
 
     e.preventDefault();
@@ -94,34 +88,21 @@ const TechnicalService = () => {
       imei: deviceForm.imei || "000000000000000",
       number_phone: newNumberPhone,
       price: newPrice,
-      price_pay: Number(deviceForm.price_pay) || 0,
+      price_pay: newPricePay,
       detail: deviceForm.detail,
       faults: deviceForm.faults,
     };
 
     try {
-      if (isEditing && editingDeviceId) {
-        await updateDevice(editingDeviceId, deviceData);
-        setDevices((prev) =>
-          prev.map((d) =>
-            d.id === editingDeviceId
-              ? (deviceData as TechnicalServiceEntry)
-              : d,
-          ),
-        );
-        setIsEditing(false);
-        setEditingDeviceId(null);
-      } else {
-        const response = await createDevice(deviceData);
-        if (response.success) {
-          setDevices((prev) => [...prev, response.data]);
-          toast.success("Dispositivo guardado correctamente.");
-          toast.warning(`${response.message.message}`);
-        } else {
-          toast.error(`${response.message}`);
-          return;
-        }
+      let result = null;
+      if (isEditing) {
+        result = await updateDevice(editingDeviceId, deviceData);
       }
+      if (!isEditing) {
+        result = await createDevice(deviceData);
+      }
+      handleGetDevices();
+      toast.success(result.message || "Dispositivo guardado correctamente.");
       clearForm();
     } catch (error) {
       console.error("Error al guardar el dispositivo:", error);
@@ -152,27 +133,22 @@ const TechnicalService = () => {
       return;
     }
 
-    const warrantLimit = new Date();
-    warrantLimit.setDate(warrantLimit.getDate() + 30);
-
-    const newDevice = {
-      ...newUpdatedDevice,
+    const newStatus = {
       output_status: output_status,
-      exitDate: output_status ? new Date().toISOString().split("T")[0] : null,
-      warrantLimit:
-        newUpdatedDevice.repair_status === "Reparado"
-          ? warrantLimit.toISOString().split("T")[0]
-          : null,
     };
     try {
-      await updateDevice(id, newDevice);
-      setDevices((prev) =>
-        prev.map((dev) => (dev.id === id ? newDevice : dev)),
+      const { data, success, message } = await updateStatusDevice(
+        id,
+        newStatus,
       );
+      if (!success) {
+        toast.warning(message || "No se pudo entregar el dispositivo");
+        throw Error(message);
+      }
+      setDevices((prev) => prev.map((dev) => (dev.id === id ? data : dev)));
       toast.success("Dispositivo actualizado correctamente.");
     } catch (error) {
       console.error("Failed to update device output:", error);
-      toast.warning("Fallo a actualizar el dispositivo. Intente de nuevo.");
     }
   };
 
@@ -191,24 +167,27 @@ const TechnicalService = () => {
     const updatedDevice = devices.find((dev) => dev.id === id);
     if (!updatedDevice) return;
 
-    const newDevice = {
-      ...updatedDevice,
+    const newStatus = {
       repair_status,
-      output_status:
-        repair_status === "En Revisión" ? false : updatedDevice.output_status,
     };
 
     try {
-      await updateDevice(id, {
-        repair_status,
-        output_status: newDevice.output_status,
-      });
+      const {
+        data: newDevice,
+        success,
+        message,
+      } = await updateDevice(id, newStatus);
+      if (!success) {
+        throw Error(message);
+      }
       setDevices((prev) =>
         prev.map((dev) => (dev.id === id ? newDevice : dev)),
       );
     } catch (error) {
       console.error("Failed to update device status:", error);
-      toast.warning("Fallo a actualizar el estado. Intente de nuevo.");
+      toast.warning(
+        error.message || "Fallo a actualizar el estado. Intente de nuevo.",
+      );
     }
   };
 
@@ -232,7 +211,7 @@ const TechnicalService = () => {
       price_pay: d.price_pay || 0,
     });
     setIsEditing(true);
-    setEditingDeviceId(d.id || "");
+    setEditingDeviceId(d.id);
     setisFormTechnical(true);
   };
 
@@ -399,11 +378,7 @@ const TechnicalService = () => {
           setEditingDeviceId(null);
         }}
       >
-        <DeviceForm
-          onChange={handleInputChange}
-          onSubmit={handleFormSubmit}
-          isEditing={isEditing}
-        />
+        <DeviceForm onSubmit={handleFormSubmit} isEditing={isEditing} />
       </Modal>
       <Modal
         title="Buscar dispositivo por QR"
