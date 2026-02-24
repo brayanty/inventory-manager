@@ -12,7 +12,7 @@ interface FaultsInputProps {
 const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
   const [inputValue, setInputValue] = useState("");
   const [replacement, setReplacement] = useState<Product[]>([]);
-  const { deviceForm, setPriceForm, setDeviceForm } = useDeviceFormStore();
+  const { deviceForm, setPrice, updateField } = useDeviceFormStore();
 
   useEffect(() => {
     if (inputValue.trim().length < 2) {
@@ -48,7 +48,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
       (acc, f) => acc + (parseFloat(f.price) || 0),
       0,
     );
-    setPriceForm(total);
+    setPrice(total);
   };
 
   const addFault = (newFault: Product) => {
@@ -57,7 +57,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
 
     const updatedFaults = [...deviceForm.faults, newFault];
     onChange?.({ target: { name: "faults", value: updatedFaults } });
-    setDeviceForm("faults", updatedFaults);
+    updateField("faults", updatedFaults);
     recalcPrice(updatedFaults);
 
     setInputValue("");
@@ -67,7 +67,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
   const removeFault = (index: number) => {
     const updatedFaults = deviceForm.faults.filter((_, i) => i !== index);
     onChange?.({ target: { name: "faults", value: updatedFaults } });
-    setDeviceForm("faults", updatedFaults);
+    updateField("faults", updatedFaults);
     recalcPrice(updatedFaults);
   };
 
