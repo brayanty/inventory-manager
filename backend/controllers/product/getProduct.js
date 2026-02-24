@@ -2,7 +2,7 @@ import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 export async function getProduct(req, res) {
-  const { search, page = 1, limit = 10 } = req.params;
+  const { search, page = 1, limit = 10 } = req.query;
 
   const pageNum = Math.max(1, parseInt(page) || 1);
   const limitNum = Math.max(1, parseInt(limit) || 10);
@@ -16,7 +16,7 @@ export async function getProduct(req, res) {
     // Condición en caso de que search no este vacio
     if (search) {
       params.push(`%${search}%`);
-      whereConditions.push(`name ILIKE $${params.length}`);
+      whereConditions.push(`(name ILIKE $${params.length})`);
     }
 
     // Union de las condiciones separado por "AND"
