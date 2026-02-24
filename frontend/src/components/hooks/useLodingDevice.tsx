@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useDebounce } from "use-debounce";
 import { useSearchStore } from "@/components/store/filters.tsx";
 import usePageStore from "@/components/store/page.tsx";
 import { searchDevices } from "@/components/services/devices.js";
@@ -7,27 +8,36 @@ import { TechnicalServiceEntry } from "@/components/types/technicalService.ts";
 const useLoadingDevice = () => {
   const [devices, setDevices] = useState<TechnicalServiceEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const { search } = useSearchStore();
   const { page, setPage, setTotalPages } = usePageStore();
 
-  useEffect(() => {
-    const getDevices = async () => {
-      setIsLoading(true);
-      try {
-        const data = await searchDevices(search, page);
-        if (data) {
-          setDevices(data.devices);
-          setPage(data.page);
-          setTotalPages(data.totalPages);
-        }
-      } finally {
-        setIsLoading(false);
+  const [debouncedSearch] = useDebounce(search, 800);
+
+  const handleGetDevices = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await searchDevices(debouncedSearch, page);
+      console.log(data.devices);
+      if (data) {
+        setDevices(data.devices);
+        setTotalPages(data.totalPages);
       }
-    };
-    getDevices();
-  }, [search, page, setPage, setTotalPages]);
+    } catch (error) {
+      console.error("Error al cargar dispositivos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearch, page, setTotalPages]);
 
-  return { devices, setDevices, isLoading };
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, setPage]);
+
+  useEffect(() => {
+    handleGetDevices();
+  }, [handleGetDevices]);
+
+  return { devices, setDevices, isLoading, handleGetDevices };
 };
-
 export default useLoadingDevice;
