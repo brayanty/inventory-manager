@@ -19,3 +19,14 @@ export const DEVICE_SERVICE_HEADERS = [
   "Salida",
   "Opciones",
 ];
+
+export const inputAvailable = [
+  "client_name",
+  "number_phone",
+  "device",
+  "price_pay",
+  "model",
+  "imei",
+  "detail",
+  "pay",
+];
