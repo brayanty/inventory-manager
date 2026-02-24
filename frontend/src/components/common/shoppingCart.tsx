@@ -47,6 +47,11 @@ const ShoppingCart = () => {
     toast.info("Producto eliminado del carrito");
   };
 
+  const handleDeleteAll = () => {
+    clearProductCart();
+    toast.info("Carrito limpiado");
+  };
+
   const renderProductRow = (product: ProductsCart) => {
     return (
       <tr key={product.id} className="even:bg-[rgba(36,40,50,0.03)]">
