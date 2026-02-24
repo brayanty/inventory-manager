@@ -3,41 +3,62 @@ import { DeviceEntry } from "../types/technicalService";
 
 interface DeviceFormState {
   deviceForm: DeviceEntry;
-  setPriceForm: (price: number) => void;
-  setDeviceForm: (
-    name: keyof DeviceEntry,
-    value: DeviceEntry[keyof DeviceEntry],
+
+  updateField: <K extends keyof DeviceEntry>(
+    field: K,
+    value: DeviceEntry[K],
   ) => void;
+
+  setPrice: (price: number) => void;
+
   setDeviceFormEdit: (editDevice: DeviceEntry) => void;
+
+  resetForm: () => void;
 }
 
-export const useDeviceFormStore = create<DeviceFormState>((set) => ({
-  deviceForm: {
-    client_name: "",
-    device: "",
-    number_phone: "",
-    damage: "",
-    model: "",
-    imei: "",
-    price: 0,
-    detail: "",
-    faults: [],
-    pay: false,
-    price_pay: 0,
+const initialState: DeviceEntry = {
+  client_name: "",
+  device: "",
+  number_phone: "",
+  damage: "",
+  model: "",
+  imei: "",
+  price: 0,
+  detail: "",
+  faults: [],
+  pay: false,
+  price_pay: 0,
+};
+
+export const useDeviceFormStore = create<DeviceFormState>((set, get) => ({
+  deviceForm: initialState,
+
+  updateField: (field, value) => {
+    set((state) => {
+      const updated = {
+        ...state.deviceForm,
+        [field]: value,
+      };
+
+      if (updated.price === updated.price_pay && updated.price > 0) {
+        updated.pay = true;
+      } else {
+        updated.pay = false;
+      }
+
+      return { deviceForm: updated };
+    });
   },
-  setPriceForm: (price) =>
+
+  setPrice: (price) =>
     set((state) => ({
       deviceForm: {
         ...state.deviceForm,
         price,
       },
     })),
-  setDeviceForm: (name, value) =>
-    set((state) => ({
-      deviceForm: {
-        ...state.deviceForm,
-        [name]: value,
-      },
-    })),
+
   setDeviceFormEdit: (editDevice) => set({ deviceForm: editDevice }),
+
+  resetForm: () => set({ deviceForm: initialState }),
 }));

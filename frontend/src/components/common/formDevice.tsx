@@ -7,17 +7,12 @@ import FaultsInput from "./FaultsInput";
 import ContactPhone from "./contactPhone";
 
 interface DeviceFormEntry {
-  onChange: (e: React.ChangeEvent<Element>) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => void;
   isEditing: boolean;
 }
 
-const DeviceForm = ({
-  onChange,
-  onSubmit,
-  isEditing = false,
-}: DeviceFormEntry) => {
-  const { deviceForm } = useDeviceFormStore();
+const DeviceForm = ({ onSubmit, isEditing = false }: DeviceFormEntry) => {
+  const { deviceForm, updateField } = useDeviceFormStore();
 
   return (
     <form
@@ -35,17 +30,13 @@ const DeviceForm = ({
             placeholder="Petrolino Sinforoso"
             className="input validator bg-white tabular-nums border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={deviceForm.client_name}
-            onChange={onChange}
+            onChange={(e) => updateField("client_name", e.target.value)}
             aria-label="Nombre del cliente"
           />
         </label>
         <ContactPhone
           id="number_phone"
-          onChange={(e) =>
-            onChange({
-              target: { name: "number_phone", value: e },
-            })
-          }
+          onChange={(value) => updateField("number_phone", value)}
           value={deviceForm.number_phone}
         />
 
@@ -59,7 +50,7 @@ const DeviceForm = ({
             placeholder="iPhone 14 Pro Max"
             className="input validator bg-white tabular-nums border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={deviceForm.device}
-            onChange={onChange}
+            onChange={(e) => updateField("device", e.target.value)}
             aria-label="Nombre del dispositivo"
           />
         </label>
@@ -76,16 +67,11 @@ const DeviceForm = ({
             decimalScale={2}
             fixedDecimalScale
             allowNegative={false}
-            onValueChange={(values) =>
-              onChange({
-                target: {
-                  name: "price_pay",
-                  value: values.value,
-                },
-              })
-            }
             className="p-2 rounded border"
             placeholder="40.000"
+            onValueChange={(values) =>
+              updateField("price_pay", values.floatValue ?? 0)
+            }
           />
         </label>
 
@@ -97,7 +83,7 @@ const DeviceForm = ({
             name="model"
             id="model"
             value={deviceForm.model}
-            onChange={onChange}
+            onChange={(e) => updateField("model", e.target.value)}
             aria-label="Modelo del dispositivo"
             required
           >
@@ -124,14 +110,14 @@ const DeviceForm = ({
             placeholder="Escriba el IMEI del dispositivo"
             className="input validator bg-white tabular-nums border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={deviceForm.imei}
-            onChange={onChange}
+            onChange={(e) => updateField("imei", e.target.value)}
             aria-label="Número IMEI"
           />
         </label>
       </div>
       <div className="flex flex-col w-full">
         {/* Tipos de raparaciones*/}
-        <FaultsInput onChange={onChange} />
+        <FaultsInput onChange={(e) => updateField("faults", e.target.value)} />
       </div>
       <div className="flex flex-row justify-between w-full max-w-md gap-2">
         <Checkbox
@@ -139,7 +125,7 @@ const DeviceForm = ({
           ID="pay"
           checked={deviceForm.pay}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange({ target: { name: "pay", value: e.target.checked } })
+            updateField("pay", e.target.checked)
           }
         />
         <div className="flex flex-col items-end gap-1 ">
@@ -158,7 +144,7 @@ const DeviceForm = ({
           placeholder="El dispositivo está apagado, con rayas a los costados"
           className="p-1 rounded border"
           value={deviceForm.detail}
-          onChange={onChange}
+          onChange={(e) => updateField("detail", e.target.value)}
           aria-label="Observaciones del dispositivo"
         ></textarea>
       </label>
