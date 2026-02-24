@@ -93,7 +93,6 @@ async function updateDevice(updateDeviceFields, deviceID) {
       ? JSON.stringify(updateDeviceFields[k])
       : updateDeviceFields[k],
   );
-  console.log(values);
 
   try {
     const { rowCount, rows } = await deviceRepo.insertDeviceUpdate(
@@ -118,7 +117,57 @@ async function updateDevice(updateDeviceFields, deviceID) {
   }
 }
 
+async function updateDeliveredDevice(status, deviceID) {
+  const client = await pool.connect();
+  const { rows, rowCount } = await deviceRepo.getDeviceByID(client, deviceID);
+
+  if (rowCount < 1) {
+    const error = new Error("Dispositivo no encontrado");
+    error.status = 404;
+    throw error;
+  }
+
+  try {
+    await client.query("BEGIN");
+
+    let result;
+    if (rows.repair_status === "Reparado" && rows.pay) {
+      result = await deviceRepo.updateDeviceStatusPay(client, deviceID, status);
+    } else if (rows.repair_status === "Sin Solución") {
+      result = await deviceRepo.updateDeviceStatusNoPay(
+        client,
+        deviceID,
+        status,
+      );
+    } else {
+      const error = new Error(
+        "No se puede entregar un dispositivo en revisión, entregado o no pagado",
+      );
+      error.status = 400;
+      throw error;
+    }
+
+    // Validación unificada
+    if (result.rowCount < 1) {
+      const error = new Error("Dispositivo no actualizado");
+      error.status = 400;
+      throw error;
+    }
+
+    // Commit y retorno unificados
+    await client.query("COMMIT");
+    return { ...result.rows[0] };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.log(err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export default {
   createDevice,
   updateDevice,
+  updateDeliveredDevice,
 };

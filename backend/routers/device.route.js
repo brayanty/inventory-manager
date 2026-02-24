@@ -9,6 +9,7 @@ import {
   validateUpdateDevice,
 } from "../middleware/device.middleware.js";
 import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
+import { updateStatusDevice } from "../controllers/deviceRepair/updateStatusDevice.controller.js";
 
 const router = Router();
 
@@ -24,5 +25,7 @@ router.put("/devices/:id", validateUpdateDevice, updateDevice);
 router.delete("/devices/:id", deleteDevice);
 //Get Repairs
 router.get("/repairs", getRepairs);
+//Update status output
+router.put("/devices/status/:id", updateStatusDevice);
 
 export default router;

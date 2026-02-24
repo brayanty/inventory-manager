@@ -27,4 +27,6 @@ export const deviceSchema = z.object({
   faults: z.array(faultSchema).optional(),
 });
 
-export const deviceUpdateSchema = deviceSchema.partial();
+export const deviceUpdateSchema = deviceSchema
+  .partial()
+  .safeExtend({ repair_status: z.string().optional() });
