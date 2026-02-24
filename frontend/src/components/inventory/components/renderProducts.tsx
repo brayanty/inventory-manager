@@ -39,7 +39,8 @@ function RenderProducts({
         setCategoryList(categories);
       } catch (error) {
         toast.error("Error cargando categorías:");
-        throw new Error("Error cargando categorías\n" + error);
+        console.error("Error cargando categorías\n" + error);
+        return;
       }
     };
     loadCategories();
@@ -55,7 +56,7 @@ function RenderProducts({
         addProducts(response.data.products);
       } catch (error) {
         toast.error("Error cargando productos:");
-        throw new Error("Error cargando productos\n" + error);
+        console.error("Error cargando productos\n" + error);
       } finally {
         setIsLoading(false);
       }
@@ -141,7 +142,7 @@ function RenderProducts({
           </th>
           <td className="px-6 py-4">{product.category}</td>
           <td className="px-6 py-4">{product.sales}</td>
-          <td className="px-6 py-4">{product.total}</td>
+          <td className="px-6 py-4">{product.stock}</td>
           <td className="px-6 py-4">{formatCOP(product.price)}</td>
           <td className="px-6 py-4">
             <DropDown
