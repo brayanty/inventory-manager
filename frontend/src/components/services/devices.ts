@@ -23,7 +23,7 @@ export async function createDevice(device: TechnicalServiceEntryNoID) {
 }
 export async function updateDevice(
   id: string,
-  device: TechnicalServiceEntryNoID
+  device: TechnicalServiceEntryNoID,
 ) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
@@ -37,6 +37,22 @@ export async function updateDevice(
     return data.data;
   }
 }
+
+export async function updateStatusDevice(
+  id: string,
+  device: TechnicalServiceEntryNoID,
+) {
+  const response = await fetch(DEVICE_ENDPOINT + "/status/" + id, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(device),
+  });
+  const { data, success, message } = await response.json();
+  return { data, success, message };
+}
+
 export async function deleteDevice(id: string) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "DELETE",
@@ -51,7 +67,7 @@ export async function deleteDevice(id: string) {
 }
 export async function searchDevices(query: string, page: number) {
   const response = await fetch(
-    DEVICE_ENDPOINT + "?" + "search=" + query + `&page=${page}`
+    DEVICE_ENDPOINT + "?" + "search=" + query + `&page=${page}`,
   );
   const data = await response.json();
   if (data.success) {
