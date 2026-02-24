@@ -75,11 +75,11 @@ export async function insertDeviceUpdate(
 }
 
 export async function getDeviceByID(client, deviceID) {
-  const { rows } = await client.query(
+  const { rows, rowCount } = await client.query(
     "SELECT * FROM device WHERE id = $1 AND deleted_at IS NULL",
     [deviceID],
   );
-  return { device: rows[0] };
+  return { rows: rows[0], rowCount };
 }
 
 export async function updateDeviceStatusPay(client, deviceID, outputStatus) {
