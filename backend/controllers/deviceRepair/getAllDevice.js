@@ -2,23 +2,20 @@ import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import pool from "../../config/db.js";
 
 export default async function getAllDevice(req, res) {
-  const { search, page = 1, limit = 10 } = req.params;
+  const { search, page = 1, limit = 10 } = req.query;
   const pageNum = Math.max(1, parseInt(page) || 1);
   const limitNum = Math.max(1, parseInt(limit) || 10);
   const offset = (pageNum - 1) * limitNum;
 
-  const client = await pool.connect();
   try {
     let whereConditions = ["deleted_at IS NULL"];
     let params = [];
 
     // Condición en caso de que search no este vacio
     if (search) {
-      await client.query("BEGIN");
-
       params.push(`%${search}%`, `%${search}%`);
       whereConditions.push(
-        `client_name ILIKE $${params.length - 1} OR device ILIKE $${params.length}`,
+        `(client_name ILIKE $${params.length - 1} OR device ILIKE $${params.length})`,
       );
     }
     //Unir todas los condiciones
@@ -43,7 +40,6 @@ export default async function getAllDevice(req, res) {
       pool.query(countQuery, params),
     ]);
 
-    await client.query("COMMIT");
     //Total de devices y total de paginas
     const totalItems = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limitNum);
@@ -58,7 +54,5 @@ export default async function getAllDevice(req, res) {
   } catch (err) {
     console.error(err);
     handleError(req, res, "Error al leer las entradas");
-  } finally {
-    client.release();
   }
 }
