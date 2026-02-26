@@ -41,7 +41,7 @@ export async function soldProduct(req, res) {
       [JSON.stringify(productSale)],
     );
     // Registrar venta
-    registerSale(client, productSale);
+    await registerSale(client, productSale);
 
     await client.query("COMMIT");
 
