@@ -79,7 +79,7 @@ export async function getDeviceByID(client, deviceID) {
     "SELECT * FROM device WHERE id = $1 AND deleted_at IS NULL",
     [deviceID],
   );
-  return { rows: rows[0], rowCount };
+  return { rows, rowCount };
 }
 
 export async function updateDeviceStatusPay(client, deviceID, outputStatus) {
