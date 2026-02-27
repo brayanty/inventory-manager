@@ -11,7 +11,7 @@ export async function updateProduct(req, res) {
   // Valida que los fields en existan
   const keys = Object.keys(fields).filter((k) => allowedFields.includes(k));
   // Valida que la keys no este vacia
-  if (keys.length == 0)
+  if (keys.length === 0)
     return handleError(
       req,
       res,
@@ -44,7 +44,7 @@ export async function updateProduct(req, res) {
     return handleSuccess(req, res, rows[0]);
   } catch (err) {
     await client.query("ROLLBACK");
-    handleError(req, res, "Error al actualizar el producto", err);
+    handleError(req, res, "Error al actualizar el producto", 404, err);
   } finally {
     client.release();
   }
