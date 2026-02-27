@@ -1,12 +1,16 @@
-export async function getValidProducts(client, ids) {
+export async function getValidProducts(client, products) {
+  const ids = products.map((p) => p.id);
+  const quantities = products.map((p) => p.stock);
+
   const { rows } = await client.query(
     `
-    SELECT id, name, price
-    FROM product
-    WHERE id = ANY($1)
-    AND stock > 0
+    SELECT p.id, p.name, p.price
+    FROM product p
+    JOIN UNNEST($1::int[], $2::int[]) AS u(id, stock)
+      ON p.id = u.id
+    WHERE p.stock >= u.stock;
     `,
-    [ids],
+    [ids, quantities],
   );
 
   return rows;
