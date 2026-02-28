@@ -3,7 +3,7 @@ interface Models {
   name: string;
 }
 
-const models: Models[] = [
+const BRANDS_DEVICES: Models[] = [
   { id: 1, name: "Apple" },
   { id: 2, name: "Samsung" },
   { id: 3, name: "Microsoft" },
@@ -21,4 +21,4 @@ const models: Models[] = [
   { id: 15, name: "Canon" },
 ];
 
-export default models;
+export default BRANDS_DEVICES;
