@@ -47,7 +47,7 @@ export async function createProduct(req, res) {
       `INSERT INTO product (name, category, price, stock)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [name, category, price, stock ?? 0],
+      [name, category, price, stock],
     );
 
     if (result.rows.length > 0) {

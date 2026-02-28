@@ -1,8 +1,9 @@
+import { Pool } from "pg";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 
 export default async function deleteCategory(req, res) {
   const CategoryID = req.params.id;
-  const client = await pool.connect();
+  const client = await Pool.connect();
   try {
     const { rows } = await client.query(
       "UPDATE category SET deleted_at = NOW() WHERE id = $1 RETURNING *",

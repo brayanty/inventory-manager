@@ -9,7 +9,7 @@ export async function deleteProduct(req, res) {
       return handleError(req, res, "El id esta vacío o inexistente");
 
     const result = await pool.query(
-      "UPDATE products SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING *",
+      "UPDATE product SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING *",
       [productID],
     );
 
@@ -17,7 +17,7 @@ export async function deleteProduct(req, res) {
       return handleError(req, res, "Producto no encontrado o ya borrado", 404);
     }
 
-    handleSuccess(req, res, result.rows[0], "Producto borrado");
+    return handleSuccess(req, res, result.rows[0], "Producto borrado");
   } catch (error) {
     console.error(error);
     return handleError(req, res, "Error al eliminar el producto");

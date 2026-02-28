@@ -6,7 +6,13 @@ export async function createDevice(req, res) {
     const { device, statusPrinter } = await deviceService.createDevice(
       req.body,
     );
-    return handleSuccess(req, res, device, statusPrinter, 201);
+    return handleSuccess(
+      req,
+      res,
+      { device, statusPrinter },
+      "Reparación generada en la base de datos",
+      201,
+    );
   } catch (error) {
     return handleError(
       req,

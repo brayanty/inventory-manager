@@ -14,7 +14,7 @@ export default async function deleteDevice(req, res) {
       "UPDATE device SET deleted_at = NOW() WHERE id = $1 RETURNING*",
       [deviceID],
     );
-    if (rows.length != 1) {
+    if (rows.length !== 1) {
       return handleError(req, res, `El dispositivo ${deviceID} no existe`, 406);
     }
 
