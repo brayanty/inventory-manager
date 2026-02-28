@@ -1,7 +1,8 @@
 import { create } from "zustand";
 
 interface categoryList {
-  category: string;
+  id: number | string;
+  name: string;
 }
 
 interface CategoryListState {
