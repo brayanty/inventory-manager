@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { formatCOP } from "@/components/utils/format";
 import {
-  DEVICE_CATEGORY,
   DEVICES_STATUS,
   DEVICE_LIST_OPTION,
   DEVICE_SERVICE_HEADERS,
@@ -12,7 +11,6 @@ import {
   createDevice,
   updateDevice,
   updateStatusDevice,
-  searchDevices,
 } from "@/components/services/devices.js";
 import useLodingDevice from "@/components/hooks/useLodingDevice";
 import { useCategoryListStore } from "@/components/store/category";
@@ -25,6 +23,7 @@ import ReadQR from "@/components/readQR/readQR";
 import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
 import { TableTitleHead } from "@/components/common/tableComponets";
+import BRANDS_DEVICES from "@/components/constants/models";
 
 const TechnicalService = () => {
   const { devices, setDevices, isLoading, handleGetDevices } =
@@ -43,8 +42,8 @@ const TechnicalService = () => {
   const [isOpenDetail, setOpenDetail] = useState(false);
 
   useEffect(() => {
-    setCategoryList(DEVICE_CATEGORY);
-  }, []);
+    setCategoryList(BRANDS_DEVICES);
+  }, [setCategoryList]);
 
   const clearForm = () => {
     setDeviceFormEdit({
@@ -185,9 +184,7 @@ const TechnicalService = () => {
       );
     } catch (error) {
       console.error("Failed to update device status:", error);
-      toast.warning(
-        error.message || "Fallo a actualizar el estado. Intente de nuevo.",
-      );
+      toast.warning("Fallo a actualizar el estado. Intente de nuevo.");
     }
   };
 
@@ -224,7 +221,7 @@ const TechnicalService = () => {
   const filteredDevices = useMemo(() => {
     return devices.filter((device) => {
       if (categorySelect === "todos") return true;
-      return device.repair_status === categorySelect;
+      return device.model === categorySelect;
     });
   }, [devices, categorySelect]);
 
