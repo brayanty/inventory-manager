@@ -9,7 +9,7 @@ function Header() {
   const { search, setSearch } = useSearchStore();
   const [toggleSidebar] = useOpenSidebar("#navegation");
 
-  const categories = [{ category: "todos" }, ...categoryList];
+  const categories = [{ name: "todos" }, ...categoryList];
 
   return (
     <header
@@ -66,9 +66,9 @@ function Header() {
           value={categorySelect}
           onChange={(e) => setCategorySelect(e.target.value)}
         >
-          {categories.map((item, index) => (
-            <option key={index} value={item.category} className="capitalize">
-              {item.category}
+          {categories.map((category, index) => (
+            <option key={index} value={category.name} className="capitalize">
+              {category.name}
             </option>
           ))}
         </select>
