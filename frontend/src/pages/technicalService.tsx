@@ -100,6 +100,9 @@ const TechnicalService = () => {
       if (!isEditing) {
         result = await createDevice(deviceData);
       }
+      if(!result.success){
+        throw Error("Ooh, no se pudo crear el dispositivo")
+      }
       handleGetDevices();
       toast.success(result.message || "Dispositivo guardado correctamente.");
       clearForm();
@@ -177,6 +180,7 @@ const TechnicalService = () => {
         message,
       } = await updateDevice(id, newStatus);
       if (!success) {
+        toast.warn(`No se pudo cambiar el estado a ${newStatus}`)
         throw Error(message);
       }
       setDevices((prev) =>
