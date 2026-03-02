@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { formatCOP } from "@/components/utils/format";
+import { formatCOP, formatDate } from "@/components/utils/format";
 import {
   DEVICES_STATUS,
   DEVICE_LIST_OPTION,
@@ -294,10 +294,10 @@ const TechnicalService = () => {
                       }
                     />
                   </td>
-                  <td className="p-2">{d.entry_date}</td>
-                  <td className="p-2">{d.warrant_limit || "-"}</td>
+                  <td className="p-2">{formatDate(d.entry_date)}</td>
+                  <td className="p-2">{(d.warrant_limit) ? formatDate(d.warrant_limit) : "-"}</td>
                   <td className="p-2">{d.output_status ? "Si" : "No"}</td>
-                  <td className="p-2">{d.exit_date || "-"}</td>
+                  <td className="p-2">{(d.exit_date) ? formatDate(d.exit_date) : "-"}</td>
                   <td className="p-2">
                     <DropDown
                       items={DEVICE_LIST_OPTION}
