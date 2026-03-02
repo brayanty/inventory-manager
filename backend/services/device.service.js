@@ -116,9 +116,9 @@ async function updateDevice(updateDeviceFields, deviceID) {
 
 async function updateDeliveredDevice(status, deviceID) {
   const client = await pool.connect();
-  const { rows, rowCount } = await deviceRepo.getDeviceByID(client, deviceID);
+  const device = await deviceRepo.getDeviceByID(client, deviceID);
 
-  if (rowCount < 1) {
+  if (!device) {
     const error = new Error("Dispositivo no encontrado");
     error.status = 404;
     throw error;
@@ -128,9 +128,9 @@ async function updateDeliveredDevice(status, deviceID) {
     await client.query("BEGIN");
 
     let result;
-    if (rows.repair_status === "Reparado" && rows.pay) {
+    if (device.repair_status === "Reparado" && device.pay) {
       result = await deviceRepo.updateDeviceStatusPay(client, deviceID, status);
-    } else if (rows.repair_status === "Sin Solución") {
+    } else if (device.repair_status === "Sin Solución") {
       result = await deviceRepo.updateDeviceStatusNoPay(
         client,
         deviceID,
