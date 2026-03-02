@@ -32,10 +32,11 @@ export async function updateDevice(
     },
     body: JSON.stringify(device),
   });
-  const data = await response.json();
-  if (data.success) {
-    return data.data;
+  const { success, status, data, message } = await response.json();
+  if (!success || !status || status !== 201) {
+    return { success: false, message };
   }
+  return { success, data, message };
 }
 
 export async function updateStatusDevice(
