@@ -5,3 +5,12 @@ export const formatCOP = (valor: number | string) => {
     currency: "COP",
   }).format(newValor);
 };
+
+export const formatDate = (date: string) => {
+  const newDate = new Date(date);
+  return new Intl.DateTimeFormat("es-CO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(newDate);
+};
