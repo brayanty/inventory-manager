@@ -3,29 +3,26 @@ import * as deviceRepo from "../repositories/device.repository.js";
 import * as productRepo from "../repositories/product.repository.js";
 import { postTechnicalServicePrinter } from "./printerService.js";
 
-async function createDevice(data) {
+async function createDevice(device) {
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
 
     // Validar productos
-    const faultIds = data.faults.map((f) => f.id);
-
-    const validProducts = await productRepo.getValidProducts(client, faultIds);
-
-    if (validProducts.length !== data.faults.length) {
+    const {rows,rowCount} = await productRepo.getValidProducts(client, device.faults);
+    if (rowCount !== device.faults.length) {
       const error = new Error("Algunas fallas no existen o no tienen stock");
       error.status = 400;
       throw error;
     }
     // Calcular total
-    const totalPrice = validProducts.reduce(
+    const totalPrice = rows.reduce(
       (acc, p) => acc + parseFloat(p.price),
       0,
     );
     // Validar que el pago no sobrepase el total
-    if (data.price_pay > totalPrice) {
+    if (device.price_pay > totalPrice) {
       const error = new Error(
         `El pago sobre pasa el precio. El precio total es ${totalPrice}`,
       );
@@ -34,16 +31,16 @@ async function createDevice(data) {
     }
 
     // Actualizar stock de productos
-    await productRepo.decrementStock(client, faultIds);
+    await productRepo.decrementStock(client, device.faults);
 
     // Insertar device
-    const device = await deviceRepo.insertDevice(client, data);
+    const newDevice = await deviceRepo.insertDevice(client, device);
 
     // Guardar historial
     await deviceRepo.insertHistoryTicket(
       client,
-      device.id,
-      validProducts,
+      newDevice.id,
+      newDevice.faults,
       totalPrice,
     );
 
@@ -52,14 +49,14 @@ async function createDevice(data) {
     // Impresión del ticket
     const statusPrinter = await postTechnicalServicePrinter(
       {
-        name: device.client_name,
-        device: device.device,
-        model: device.model,
-        pay: device.pay,
-        pricePay: device.price_pay,
-        id: device.id,
+        name: newDevice.client_name,
+        device: newDevice.device,
+        model: newDevice.model,
+        pay: newDevice.pay,
+        pricePay: newDevice.price_pay,
+        id: newDevice.id,
       },
-      validProducts,
+      newDevice.faults,
     );
 
     return { device, statusPrinter };
