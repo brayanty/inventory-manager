@@ -1,8 +1,12 @@
 export async function getValidProducts(client, products) {
+  if (!products.length) {
+    return { rows: [], rowCount: 0 };
+  }
+
   const ids = products.map((p) => p.id);
   const quantities = products.map((p) => p.stock);
 
-  const { rows } = await client.query(
+  const { rows, rowCount } = await client.query(
     `
     SELECT p.id, p.name, p.price
     FROM product p
@@ -10,10 +14,10 @@ export async function getValidProducts(client, products) {
       ON p.id = u.id
     WHERE p.stock >= u.stock;
     `,
-    [ids, quantities],
+    [ids, quantities]
   );
 
-  return rows;
+  return { rows, rowCount };
 }
 
 export async function decrementStock(client, products) {
