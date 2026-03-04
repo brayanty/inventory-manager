@@ -14,7 +14,10 @@ async function createDevice(device) {
 
     // Validar productos
     const {rows:fautlsDB ,rowCount} = await productRepo.getValidProducts(client,clientFaults);
-    if (rowCount !== device.faults.length) {
+    // Actualizar stock de productos
+   const faultsDecrement = await productRepo.decrementStock(client,clientFaults);
+
+    if (rowCount !== device.faults.length || faultsDecrement.length !== device.faults.length) {
       const error = new Error("Algunas fallas no existen o no tienen stock");
       error.status = 400;
       throw error;
@@ -32,9 +35,6 @@ async function createDevice(device) {
       error.status = 400;
       throw error;
     }
-
-    // Actualizar stock de productos
-    await productRepo.decrementStock(client,clientFaults);
 
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
@@ -64,7 +64,6 @@ async function createDevice(device) {
 
     return { device, statusPrinter };
   } catch (error) {
-    console.log(error)
     await client.query("ROLLBACK");
     throw error;
   } finally {
