@@ -5,19 +5,22 @@ import { postTechnicalServicePrinter } from "./printerService.js";
 
 async function createDevice(device) {
   const client = await pool.connect();
+  //Insertar quantity 1 a las fallas
+  //QUIZAS SE PUDE HACER DE MEJOR MANERA "No se como"
+  const clientFaults = device.faults.map((f)=>({id: f.id, quantity: 1}))
 
   try {
     await client.query("BEGIN");
 
     // Validar productos
-    const {rows,rowCount} = await productRepo.getValidProducts(client, device.faults);
+    const {rows:fautlsDB ,rowCount} = await productRepo.getValidProducts(client,clientFaults);
     if (rowCount !== device.faults.length) {
       const error = new Error("Algunas fallas no existen o no tienen stock");
       error.status = 400;
       throw error;
     }
     // Calcular total
-    const totalPrice = rows.reduce(
+    const totalPrice = fautlsDB.reduce(
       (acc, p) => acc + parseFloat(p.price),
       0,
     );
@@ -31,7 +34,7 @@ async function createDevice(device) {
     }
 
     // Actualizar stock de productos
-    await productRepo.decrementStock(client, device.faults);
+    await productRepo.decrementStock(client,clientFaults);
 
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
@@ -40,12 +43,12 @@ async function createDevice(device) {
     await deviceRepo.insertHistoryTicket(
       client,
       newDevice.id,
-      newDevice.faults,
+      fautlsDB,
       totalPrice,
     );
 
     await client.query("COMMIT");
-
+    
     // Impresión del ticket
     const statusPrinter = await postTechnicalServicePrinter(
       {
@@ -56,11 +59,12 @@ async function createDevice(device) {
         pricePay: newDevice.price_pay,
         id: newDevice.id,
       },
-      newDevice.faults,
+      fautlsDB,
     );
 
     return { device, statusPrinter };
   } catch (error) {
+    console.log(error)
     await client.query("ROLLBACK");
     throw error;
   } finally {
