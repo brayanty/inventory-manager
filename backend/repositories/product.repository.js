@@ -22,15 +22,15 @@ export async function getValidProducts(client, products) {
 
 export async function decrementStock(client, products) {
   const ids = products.map((p) => p.id);
-  const quantities = products.map((p) => p.stock);
+  const quantities = products.map((p) => p.quantity);
 
   const { rows } = await client.query(
     `
     UPDATE product p
-    SET stock = p.stock - u.stock
-    FROM UNNEST($1::int[], $2::int[]) AS u(id, stock)
+    SET stock = p.stock - u.quantity
+    FROM UNNEST($1::int[], $2::int[]) AS u(id, quantity)
     WHERE p.id = u.id
-      AND p.stock >= u.stock
+      AND p.stock >= u.quantity
     RETURNING p.id, p.stock;
     `,
     [ids, quantities],
