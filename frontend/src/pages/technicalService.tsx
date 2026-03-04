@@ -66,7 +66,7 @@ const TechnicalService = () => {
     const newPrice = Number(deviceForm.price);
     const newPricePay = Number(deviceForm.price_pay);
     const newNumberPhone = deviceForm.number_phone.split("-").join("");
-
+    const newFaults = deviceForm.faults.map((f)=>(f.id))
     e.preventDefault();
     if (
       !deviceForm.client_name.trim() ||
@@ -89,7 +89,7 @@ const TechnicalService = () => {
       price: newPrice,
       price_pay: newPricePay,
       detail: deviceForm.detail,
-      faults: deviceForm.faults,
+      faults: newFaults,
     };
 
     try {
