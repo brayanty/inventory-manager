@@ -2,15 +2,6 @@ import { z } from "zod";
 
 const faultSchema = z.object({
   id: z.number().int().optional(),
-  name: z.string().min(3),
-  category: z.string(),
-  stock: z.number().int().min(0),
-  price: z
-    .string()
-    .regex(
-      /^\d+(\.\d{1,2})?$/,
-      "El precio debe ser un número válido con hasta dos decimales",
-    ),
 });
 
 export const deviceSchema = z.object({
