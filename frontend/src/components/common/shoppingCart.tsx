@@ -14,7 +14,7 @@ const ShoppingCart = () => {
   useEffect(() => {
     if (productsCart && productsCart.length > 0) {
       const total = productsCart.reduce(
-        (acc, product) => acc + parseFloat(product.price) * product.stock,
+        (acc, product) => acc + parseFloat(product.price) * product.quantity,
         0,
       );
       setPriceTotal(total);
@@ -34,7 +34,7 @@ const ShoppingCart = () => {
     if (product) {
       const updatedProduct = {
         ...product,
-        stock: value > product.maxStock ? product.maxStock : value,
+        quantity: value > product.maxStock ? product.maxStock : value,
       };
       addProductShopping(updatedProduct);
     }
@@ -75,11 +75,11 @@ const ShoppingCart = () => {
             onChange={(e) =>
               handleAmount(product.id, Number(e.currentTarget.value))
             }
-            value={product.stock}
+            value={product.quantity}
           />
         </td>
         <td className="px-4 py-2 text-[14px]">
-          {formatCOP(parseFloat(product.price) * product.stock)}
+          {formatCOP(parseFloat(product.price) * product.quantity)}
         </td>
         <td className="px-4 py-2 text-[14px]">
           <Button
@@ -104,8 +104,8 @@ const ShoppingCart = () => {
     }
     try {
       const soldProductId = productsCart.map((item) => {
-        const { id, stock } = item;
-        return { id, stock };
+        const { id, quantity } = item;
+        return { id, quantity };
       });
 
       const updatedProducts = (await soldProducts(
