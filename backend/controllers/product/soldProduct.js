@@ -1,7 +1,7 @@
-import { handleSuccess, handleError } from "../../modules/handleResponse.js";
 import pool from "../../config/db.js";
+import * as productRepo from "../../repositories/product.repository.js";
+import { handleSuccess, handleError } from "../../modules/handleResponse.js";
 import { postProductsPrinter } from "../../services/printerService.js";
-import { registerSale } from "../../repositories/product.repository.js";
 
 export async function soldProduct(req, res) {
   const productSale = req.body;
@@ -14,41 +14,44 @@ export async function soldProduct(req, res) {
   try {
     await client.query("BEGIN");
 
-    // Bloquear filas y obtener datos frescos en un solo paso
-    const soldIds = productSale.map((p) => p.id);
-    const { rows: dbProducts } = await client.query(
-      `SELECT id, name, stock, price, category FROM product 
-       WHERE id = ANY($1::int[]) FOR UPDATE`,
-      [soldIds],
-    );
-
     // Validar los datos recibidos
-    if (dbProducts.length !== soldIds.length) {
+    const { rows: dbProducts } = await productRepo.getValidProducts(client, productSale);
+
+    if (dbProducts.length !== productSale.length) {
       throw new Error("NOT_FOUND");
     }
-
-    for (const item of productSale) {
-      const dbP = dbProducts.find((p) => p.id === item.id);
-      if (dbP.stock < item.stock) throw new Error("INSUFFICIENT_STOCK");
-    }
-
     // Actualizar el stock
-    await client.query(
-      `UPDATE product p
-       SET stock = p.stock - x.stock
-       FROM jsonb_to_recordset($1::jsonb) AS x(id INT, stock INT)
-       WHERE p.id = x.id`,
-      [JSON.stringify(productSale)],
-    );
+    const updatedStock = await productRepo.decrementStock(client, productSale);
+    if (updatedStock.length !== productSale.length) {
+      throw new Error("INSUFFICIENT_STOCK");
+    }
+    // Preparar datos para registro de venta
+    const productsSave = productSale.map((item) => {
+
+      if (item.quantity <= 0) {
+        throw new Error("INVALID_QUANTITY")
+      }
+      const updated = updatedStock.find((p) => p.id === item.id);
+      if (!updated) {
+        return
+      }
+      return {
+        id: updated.id,
+        price: updated.price,
+        category: updated.category,
+        quantity: item.quantity,
+      };
+    });
+    
     // Registrar venta
-    await registerSale(client, productSale);
+    await productRepo.registerSale(client, productsSave);
 
     await client.query("COMMIT");
 
     // Enviar los datos de imprecion
-    const printerData = dbProducts.map((p) => ({
+    const printerData = productsSave.map((p) => ({
       ...p,
-      stock: productSale.find((s) => s.id === p.id).stock,
+      stock: productSale.find((s) => s.id === p.id).quantity,
     }));
 
     const printerSuccess = await postProductsPrinter(printerData);
@@ -61,7 +64,9 @@ export async function soldProduct(req, res) {
     );
   } catch (err) {
     await client.query("ROLLBACK");
-
+    if (err.message === "INVALID_QUANTITY") {
+      return handleError(req, res, "Cantidad inválida", 400);
+    }
     if (err.message === "NOT_FOUND") {
       return handleError(req, res, "Uno o más productos no existen", 404);
     }
