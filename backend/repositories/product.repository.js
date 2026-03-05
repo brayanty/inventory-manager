@@ -31,7 +31,7 @@ export async function decrementStock(client, products) {
     FROM UNNEST($1::int[], $2::int[]) AS u(id, quantity)
     WHERE p.id = u.id
       AND p.stock >= u.quantity
-    RETURNING p.id, p.stock;
+    RETURNING p.id, p.stock, p.price, p.category;
     `,
     [ids, quantities],
   );
