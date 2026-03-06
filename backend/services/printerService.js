@@ -67,13 +67,13 @@ class PrinterService {
 class LineFormatter {
   static formatProductLine(name, price, amount = 1) {
     const left = `${amount} x ${name}`;
-    const right = `$${price.toLocaleString("es-CO")}`;
+    const right = `${formatCOP(price)}`;
     return this.formatLine(left, right);
   }
 
   static formatDeviceLine(name, price) {
     const left = `${name}`;
-    const right = `$${formatCOP(price)}`;
+    const right = `${formatCOP(price)}`;
     return this.formatLine(left, right);
   }
 
@@ -230,10 +230,6 @@ class TechnicalServicePrintService {
     // Alinear al centro
     lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
     // Establece si esta abonado, pagado o no pagado
-    console.log("Device price:", device.price);
-    console.log("Device price_pay:", device.pricePay);
-    console.log("Device pay:", device.pay);
-    console.log("Device price < price_pay:", device.price < device.pricePay);
     lines.push({
       nombre: "EscribirTexto",
       argumentos: [
