@@ -1,3 +1,5 @@
+import { formatCOP } from "../utils/formatMoney.js";
+
 // Constantes y configuración
 const PRINTER_CONFIG = {
   baseUrl: "http://localhost:8000/imprimir",
@@ -71,7 +73,7 @@ class LineFormatter {
 
   static formatDeviceLine(name, price) {
     const left = `${name}`;
-    const right = `$${price.toLocaleString("es-CO")}`;
+    const right = `$${formatCOP(price)}`;
     return this.formatLine(left, right);
   }
 
@@ -131,14 +133,14 @@ class DocumentBuilder {
   addTotal(total, label = "TOTAL") {
     this.operations.push({
       nombre: "EscribirTexto",
-      argumentos: [`${label}: $${total.toLocaleString("es-CO")}\n`],
+      argumentos: [`${label}: $${formatCOP(total)}\n`],
     });
     return this;
   }
   addPricePay(total, label = "ABONADO") {
     this.operations.push({
       nombre: "EscribirTexto",
-      argumentos: [`${label}: $${total.toLocaleString("es-CO")}\n`],
+      argumentos: [`${label}: $${formatCOP(total)}\n`],
     });
     return this;
   }
@@ -212,7 +214,7 @@ class ProductPrintService {
 }
 
 class TechnicalServicePrintService {
-  static async print(device, repairs) {
+  static async print(device) {
     const lines = [];
 
     // Información del cliente
@@ -227,15 +229,15 @@ class TechnicalServicePrintService {
     });
     // Alinear al centro
     lines.push({ nombre: "EstablecerAlineacion", argumentos: [1] });
-    // Establece si esta abonado o pagado
+    // Establece si esta abonado, pagado o no pagado
+    console.log("Device price:", device.price);
+    console.log("Device price_pay:", device.pricePay);
+    console.log("Device pay:", device.pay);
+    console.log("Device price < price_pay:", device.price < device.pricePay);
     lines.push({
       nombre: "EscribirTexto",
       argumentos: [
-        device.pricePay >= 1000
-          ? "ABONADO\n"
-          : device.pay
-            ? "PAGADO\n"
-            : "NO PAGADO\n",
+        device.pay ? 'PAGADO\n' : device.price < device.pricePay ? 'ABONADO\n' : 'NO PAGADO\n',
       ],
     });
     //Establece alineacion a la izquierda
@@ -253,19 +255,13 @@ class TechnicalServicePrintService {
       argumentos: ["Reparaciones:\n"],
     });
 
-    const repairLines = repairs.map((repair) =>
+    const repairLines = device.faults.map((repair) =>
       LineFormatter.formatDeviceLine(
         `${repair.name} ${repair.category}`,
         repair.price,
       ),
     );
     lines.push(...repairLines);
-
-    // Total a pagar
-    const total = repairs.reduce(
-      (sum, repair) => sum + repair.price,
-      device.price || 0,
-    );
 
     const data = new DocumentBuilder()
       .addStartOperations()
@@ -274,21 +270,19 @@ class TechnicalServicePrintService {
       .addLines(lines)
       .addSeparator()
       .addAlignedContent(2)
-      .addTotal(total)
+      .addTotal(device.price)
       .addPricePay(device.pricePay || 0)
-      // PRIMERO el footer (garantía)
       .addAlignedContent(0)
       .addSeparator()
       .addFooter(
         "\nGARANTIA: 30 dias por defectos de mano de obra, No cubre danos por mal uso o problemas no relacionados con la reparacion. Conserva este ticket",
       )
-
       .addAlignedContent(1)
       .addEndOperations()
       .addQR(device.id)
       .addText(`Cliente: ${device.name}`)
       .build();
-
+    console.log("Data to print:", JSON.stringify(data, null, 2));
     return await PrinterService.sendToPrinter(data);
   }
 }
