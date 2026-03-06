@@ -13,7 +13,7 @@ async function createDevice(device) {
     await client.query("BEGIN");
 
     // Validar productos
-    const {rows:fautlsDB ,rowCount} = await productRepo.getValidProducts(client,clientFaults);
+    const {rows: fautlsDB ,rowCount} = await productRepo.getValidProducts(client,clientFaults);
     // Actualizar stock de productos
    const faultsDecrement = await productRepo.decrementStock(client,clientFaults);
 
@@ -35,7 +35,6 @@ async function createDevice(device) {
       error.status = 400;
       throw error;
     }
-
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
 
@@ -46,7 +45,6 @@ async function createDevice(device) {
       fautlsDB,
       totalPrice,
     );
-
     await client.query("COMMIT");
     
     // Impresión del ticket
@@ -55,11 +53,13 @@ async function createDevice(device) {
         name: newDevice.client_name,
         device: newDevice.device,
         model: newDevice.model,
-        pay: newDevice.pay,
+        //Provisionalmente esto se cambiara cuando aprenda mas postgres
+        pay: newDevice.price_pay === newDevice.price ? true : false,
+        price: newDevice.price,
         pricePay: newDevice.price_pay,
         id: newDevice.id,
-      },
-      fautlsDB,
+        faults: fautlsDB
+      }
     );
 
     return { device, statusPrinter };
