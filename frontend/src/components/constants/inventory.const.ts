@@ -6,3 +6,10 @@ export const INVENTORY_TABLE_HEADERS = [
   "Precio",
   "Acciones",
 ];
+
+export const SHOPPINGCART_TABLE_HEADERS = [
+  "Producto",
+  "Cantidad",
+  "Valor",
+  "Opciones",
+];

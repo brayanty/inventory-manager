@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { ProductBase, ProductsCart } from "../types/product";
 import { soldProducts } from "../services/products";
+import { TableTitleHead } from "./tableComponets";
+import { SHOPPINGCART_TABLE_HEADERS } from "../constants/inventory.const";
 
 const ShoppingCart = () => {
   const { productsCart, addProductShopping, clearProductCart } =
@@ -56,14 +58,9 @@ const ShoppingCart = () => {
     return (
       <tr key={product.id} className="even:bg-[rgba(36,40,50,0.03)]">
         <td className="px-4 py-2 text-[14px]">
-          {product.name.length > 20
-            ? product.name.slice(0, 20) + "..."
+          {product.name.length > 12
+            ? product.name.slice(0, 12) + "..."
             : product.name}
-        </td>
-        <td className="px-4 py-2 text-[14px]">
-          {product.category.length > 5
-            ? product.category.slice(0, 5) + "..."
-            : product.category}
         </td>
         <td className="px-4 py-2 text-[14px]">
           <input
@@ -124,23 +121,17 @@ const ShoppingCart = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 relative text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
-      <div className="sticky top-0 row-span-2 p-2 text-xs text-gray-700 bg-gray-400/95 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
+    <div className="h-full grid grid-cols-1 grid-rows-6 gap-4 text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
+      <div className="text-xs text-gray-700 bg-gray-400/95 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
         <header className="p-4">
           <h4 className="text-center text-xl font-bold">Ticket</h4>
         </header>
       </div>
 
-      <main className="row-span-8 row-start-3 min-h-[30vh] no-scrollbar overflow-y-scroll px-2">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-gray-200/90 text-black sticky top-0 z-30">
-            <tr>
-              <th className="px-4 py-2">Producto</th>
-              <th className="px-4 py-2">Categoria</th>
-              <th className="px-4 py-2">Cantidad</th>
-              <th className="px-4 py-2">Valor</th>
-              <th className="px-4 py-2">Opciones</th>
-            </tr>
+      <main className="row-span-6 no-scrollbar overflow-y-scroll px-2">
+        <table className="min-w-full border-collapse text-sm text-left text-gray-700 dark:text-gray-300">
+          <thead className="sticky top-0 z-10 bg-gray-300 dark:bg-[rgb(62,67,80)] text-gray-800 dark:text-gray-200 text-xs uppercase">
+            <TableTitleHead itemsTitle={SHOPPINGCART_TABLE_HEADERS} />
           </thead>
           <tbody>
             {productsCart.length > 0 ? (
@@ -159,7 +150,7 @@ const ShoppingCart = () => {
         </table>
       </main>
 
-      <footer className="col-start-1 row-start-11 row-span-2 text-gray-700 dark:text-gray-300 bg-gray-400 dark:bg-[rgb(62,67,80)] p-2 flex items-center justify-between">
+      <footer className="row-start-8 text-gray-700 dark:text-gray-300 bg-gray-400 dark:bg-[rgb(62,67,80)] p-2 flex items-center justify-between">
         <div>
           <div>Total: {formatCOP(priceTotal)}</div>
         </div>
