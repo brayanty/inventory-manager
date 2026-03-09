@@ -1,5 +1,6 @@
 import pool from "../../config/db.js";
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
+import { validCategories } from "../../repositories/product.repository.js";
 
 export async function createProduct(req, res) {
   const { name, category } = req.body;
@@ -9,14 +10,9 @@ export async function createProduct(req, res) {
   const client = await pool.connect();
 
   try {
-    const { rows: categoriesList } = await client.query(
-      "SELECT * FROM category WHERE deleted_at IS NULL",
-    );
-    const categoryExists = categoriesList.find(
-      (cat) => cat.category === category,
-    );
+    const existCategory = await validCategories(client, category);
 
-    if (!categoryExists) {
+    if (!existCategory) {
       return handleError(req, res, "La categoría proporcionada no existe", 400);
     }
 
