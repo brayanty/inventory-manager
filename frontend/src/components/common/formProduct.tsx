@@ -57,10 +57,13 @@ function FormRender({
     e.preventDefault();
     onSubmit(dataForm);
     setDataForm(
-      fields.reduce((acc, field) => {
-        acc[field.name] = "";
-        return acc;
-      }, {} as Record<string, any>)
+      fields.reduce(
+        (acc, field) => {
+          acc[field.name] = "";
+          return acc;
+        },
+        {} as Record<string, any>,
+      ),
     );
   };
   return (
@@ -92,15 +95,17 @@ function FormRender({
                   onChange={(e) => handleInputChange(e)}
                 >
                   <option value="">Selecciona una categoria...</option>
-                  {field.items?.map((option) => (
-                    <option
-                      className="capitalize"
-                      value={option.category}
-                      key={option.category}
-                    >
-                      {option.category}
-                    </option>
-                  ))}
+                  {field.items?.map((option) => {
+                    return (
+                      <option
+                        className="capitalize"
+                        value={option.name}
+                        key={option.name}
+                      >
+                        {option.name}
+                      </option>
+                    );
+                  })}
                 </select>
               ) : field.type === "price" ? (
                 <NumericFormat
