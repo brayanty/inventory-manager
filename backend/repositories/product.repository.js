@@ -14,10 +14,18 @@ export async function getValidProducts(client, products) {
       ON p.id = u.id
     WHERE p.stock >= u.quantity;
     `,
-    [ids, quantities]
+    [ids, quantities],
   );
 
   return { rows, rowCount };
+}
+
+export async function validCategories(client, nameCategoriy) {
+  const { rowCount } = await client.query(
+    "SELECT * FROM category WHERE name = $1 AND deleted_at IS NULL",
+    [nameCategoriy],
+  );
+  return rowCount > 0 ? true : false;
 }
 
 export async function decrementStock(client, products) {

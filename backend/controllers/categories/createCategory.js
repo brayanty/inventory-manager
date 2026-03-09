@@ -1,39 +1,30 @@
 import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import pool from "../../config/db.js";
+import { validCategories } from "../../repositories/product.repository.js";
 
 export default async function createCategory(req, res) {
-  let { category } = req.body;
-
-  category = category.trim().toLowerCase();
+  let { name } = req.body;
+  if (!name) {
+    return handleError(req, res, "No se recibieron datos validos");
+  }
+  name = name.trim().toLowerCase();
 
   const client = await pool.connect();
 
   try {
-    const existingCategoryCheck = await client.query(
-      "SELECT * FROM category WHERE category = $1",
-      [category],
-    );
+    const existingCategory = await validCategories(client, name);
 
-    if (existingCategoryCheck.rows.length > 0) {
+    if (existingCategory) {
       return handleError(req, res, "La categoría ya existe", 404);
     }
 
     await client.query(
-      "CREATE TABLE IF NOT EXISTS category(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, category VARCHAR(250))",
+      "CREATE TABLE IF NOT EXISTS category(id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, name VARCHAR(250))",
     );
-
-    const existingCategory = await client.query(
-      "SELECT * FROM category WHERE category = $1",
-      [category],
-    );
-
-    if (existingCategory.rows.length > 0) {
-      return handleError(req, res, "La categoría ya existe", 404);
-    }
 
     const newCategory = await client.query(
-      "INSERT INTO category(category) VALUES($1) RETURNING *",
-      [category],
+      "INSERT INTO category(name) VALUES($1) RETURNING *",
+      [name],
     );
 
     handleSuccess(
