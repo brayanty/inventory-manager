@@ -29,11 +29,12 @@ export interface ProductCart extends ProductBase {
 }
 
 /** Mantiene compatibilidad con el nombre anterior */
-export type ProductsCart = ProductCart & { maxStock: number,quantity: number };
+export type ProductsCart = ProductCart & { maxStock: number; quantity: number };
 
 /** Lista simple de categorías */
 export type CategoryList = {
-  category: string;
+  id: string;
+  name: string;
 };
 
 /** Tipo para productos vendidos */
