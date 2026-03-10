@@ -1,7 +1,6 @@
 import { Outlet } from "react-router";
 import Header from "./header";
 import Sidebar from "./Sidebar";
-import ShoppingCart from "../common/shoppingCart";
 import { ShoppingCartIcon } from "lucide-react";
 import { useOpenSidebar } from "../hooks/openSidebar";
 
@@ -23,7 +22,10 @@ export default function Layout() {
         </div>
         {/* Main */}
         <main className="">
-          <Outlet /> {/* Aquí se renderiza la página actual */}
+          {/* Aquí se renderiza la página actual */}
+          <div className="col-span-3 row-span-5">
+            <Outlet />
+          </div>
         </main>
       </div>
 
@@ -34,14 +36,6 @@ export default function Layout() {
       >
         <ShoppingCartIcon className="text-white w-5 h-5" />
       </button>
-      {/* Mobile slide-in cart */}
-      <div
-        id="shopping-cart"
-        className={`absolute right-0 z-50 transition-opacity opacity-0 pointer-events-none duration-600
-      `}
-      >
-        <ShoppingCart />
-      </div>
     </div>
   );
 }
