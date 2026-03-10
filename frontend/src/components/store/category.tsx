@@ -1,14 +1,10 @@
 import { create } from "zustand";
-
-interface categoryList {
-  id: number | string;
-  name: string;
-}
+import { CategoryList } from "../types/product";
 
 interface CategoryListState {
-  categoryList: categoryList[];
+  categoryList: CategoryList[];
   categorySelect: string;
-  setCategoryList: (newCategoryList: categoryList[]) => void;
+  setCategoryList: (newCategoryList: CategoryList[]) => void;
   setCategorySelect: (newCategorySelect: string) => void;
 }
 
