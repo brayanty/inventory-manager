@@ -15,6 +15,7 @@ import { ProductBase, ProductForm } from "@/components/types/product";
 import { TableTitleHead } from "@/components/common/tableComponets";
 import { INVENTORY_TABLE_HEADERS } from "@/components/constants/inventory.const";
 import ShoppingCart from "@/components/common/shoppingCart";
+import { ShoppingCartIcon, X } from "lucide-react";
 
 function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
@@ -24,6 +25,7 @@ function ProductsInventory() {
   const { categoryList, setCategoryList } = useCategoryListStore();
 
   const [isOpenAddCategory, setOpenAddCategory] = useState(false);
+  const [isOpenShoppingCart, setOpenShoppingCart] = useState(false);
 
   const handlerEditableProduct = (product: ProductBase) => {
     setIsFormEdit(true);
@@ -84,7 +86,7 @@ function ProductsInventory() {
   };
 
   return (
-    <div className="grid grid-cols-3 grid-rows-5 gap-4">
+    <div className="md:grid grid-cols-3 grid-rows-5 gap-4">
       <div className="col-span-2 row-span-5">
         <div className="flex justify-between p-3 items-center">
           <h2 className="text-xl max-md:text-[1em] font-bold mb-4">
@@ -181,8 +183,32 @@ function ProductsInventory() {
           ]}
         />
       </div>
-      <div className="row-span-5 col-start-3">
+      <div
+        id="shopping-cart"
+        className={`${isOpenShoppingCart ? "" : "max-md:opacity-0 max-md:pointer-events-none"}  h-full w-full row-span-5 col-start-3`}
+      >
+        <button
+          title="Boton de cerrar"
+          onClick={() => {
+            setOpenShoppingCart((prev) => !prev);
+          }}
+          className="hover:bg-gray-500/20 p-4 z-100 fixed top-3 right-5 rounded-full md:invisible"
+        >
+          <X />
+        </button>
         <ShoppingCart />
+      </div>
+      <div className="relative h-full w-full">
+        {/* Mobile floating button */}
+        <button
+          title="Boton para abrir el carrito de compras"
+          onClick={() => {
+            setOpenShoppingCart((prev) => !prev);
+          }}
+          className="md:invisible visible fixed bottom-4 right-4 z-30 bg-green-600 p-3 rounded-full shadow-lg"
+        >
+          <ShoppingCartIcon className="text-white w-5 h-5" />
+        </button>
       </div>
     </div>
   );
