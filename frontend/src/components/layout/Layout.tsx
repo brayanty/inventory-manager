@@ -2,10 +2,8 @@ import { Outlet } from "react-router";
 import Header from "./header";
 import Sidebar from "./Sidebar";
 import { ShoppingCartIcon } from "lucide-react";
-import { useOpenSidebar } from "../hooks/openSidebar";
 
 export default function Layout() {
-  const [toggleSidebar] = useOpenSidebar("#shopping-cart");
   return (
     <div className="h-screen max-h-screen flex flex-row">
       {/* Navegation */}
@@ -28,14 +26,6 @@ export default function Layout() {
           </div>
         </main>
       </div>
-
-      {/* Mobile floating button */}
-      <button
-        onClick={() => toggleSidebar()}
-        className="fixed bottom-4 right-4 z-50 bg-green-600 p-3 rounded-full shadow-lg"
-      >
-        <ShoppingCartIcon className="text-white w-5 h-5" />
-      </button>
     </div>
   );
 }
