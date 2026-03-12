@@ -121,14 +121,14 @@ const ShoppingCart = () => {
   };
 
   return (
-    <div className="h-full grid grid-cols-1 grid-rows-6 gap-4 text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
+    <div className="z-50 absolute md:relative top-0 h-full w-full grid grid-cols-1 md:grid-rows-6 grid-rows-8  gap-4 text-[#7e8590] bg-[rgba(36,40,50,1)] shadow-[0px_0px_15px_rgba(0,0,0,0.09)]">
       <div className="text-xs text-gray-700 bg-gray-400/95 dark:bg-[rgb(62,67,80)] dark:text-gray-300">
         <header className="p-4">
           <h4 className="text-center text-xl font-bold">Ticket</h4>
         </header>
       </div>
 
-      <main className="row-span-6 no-scrollbar overflow-y-scroll px-2">
+      <main className="row-span-5 no-scrollbar overflow-y-scroll px-2">
         <table className="min-w-full border-collapse text-sm text-left text-gray-700 dark:text-gray-300">
           <thead className="sticky top-0 z-10 bg-gray-300 dark:bg-[rgb(62,67,80)] text-gray-800 dark:text-gray-200 text-xs uppercase">
             <TableTitleHead itemsTitle={SHOPPINGCART_TABLE_HEADERS} />
@@ -150,7 +150,7 @@ const ShoppingCart = () => {
         </table>
       </main>
 
-      <footer className="row-start-8 text-gray-700 dark:text-gray-300 bg-gray-400 dark:bg-[rgb(62,67,80)] p-2 flex items-center justify-between">
+      <footer className="row-start-8 text-gray-700 dark:text-gray-300 bg-gray-400 dark:bg-[rgb(62,67,80)] p-4 flex items-center justify-between">
         <div>
           <div>Total: {formatCOP(priceTotal)}</div>
         </div>
