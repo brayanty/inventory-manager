@@ -5,7 +5,6 @@ export type TechnicalServiceEntry = {
   client_name: string;
   device: string;
   number_phone: string;
-  damage: string;
   model: string;
   imei: string;
   repair_status: "Reparado" | "Sin Solución" | "En Revisión";
@@ -20,21 +19,23 @@ export type TechnicalServiceEntry = {
   price_pay: number;
 };
 
-export type DeviceEntry = Pick<
-  TechnicalServiceEntry,
-  | "client_name"
-  | "device"
-  | "number_phone"
-  | "damage"
-  | "model"
-  | "imei"
-  | "price"
-  | "detail"
-  | "faults"
-  | "pay"
-  | "price_pay"
->;
-
 export type TechnicalServiceEntryNoID = Partial<
   Omit<TechnicalServiceEntry, "id">
 >;
+
+export type newFaults = {
+  id: string | number;
+};
+
+export type DeviceEntry = {
+  client_name: string;
+  device: string;
+  model: string;
+  imei: string;
+  number_phone: string;
+  price: number;
+  price_pay: number;
+  detail: string;
+  faults: newFaults[];
+  pay: boolean;
+};
