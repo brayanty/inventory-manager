@@ -1,5 +1,5 @@
 import { API_ENDPOINT } from "../constants/endpoint.js";
-import { productSold } from "../types/product.js";
+import { ProductForm, productSold } from "../types/product.js";
 
 const PRODUCTS_ENDPOINT = API_ENDPOINT + "products";
 const CATEGORY_ENDPOINT = API_ENDPOINT + "category";
@@ -11,7 +11,7 @@ export async function getProduct(id: string) {
   return data.data;
 }
 
-export async function createProduct(product) {
+export async function createProduct(product: ProductForm) {
   const response = await fetch(PRODUCTS_ENDPOINT, {
     method: "POST",
     headers: {
@@ -23,7 +23,7 @@ export async function createProduct(product) {
   return data.data;
 }
 
-export async function updateProduct(id, product) {
+export async function updateProduct(id: string | number, product: ProductForm) {
   const response = await fetch(PRODUCTS_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
@@ -35,7 +35,7 @@ export async function updateProduct(id, product) {
   return data.data;
 }
 
-export async function deleteProduct(id) {
+export async function deleteProduct(id: string | number) {
   const response = await fetch(PRODUCTS_ENDPOINT + "/" + id, {
     method: "DELETE",
     headers: {
@@ -46,7 +46,7 @@ export async function deleteProduct(id) {
   return data.data;
 }
 
-export async function soldProducts(productSales) {
+export async function soldProducts(productSales: any[]) {
   const response = await fetch(SOLDPRODUCTS_ENDPOINT, {
     method: "POST",
     headers: {
@@ -73,7 +73,7 @@ export async function getCategories() {
   return data.data;
 }
 
-export async function createCategory(category) {
+export async function createCategory(category: { name: string }) {
   const response = await fetch(CATEGORY_ENDPOINT, {
     method: "POST",
     headers: {
@@ -85,7 +85,7 @@ export async function createCategory(category) {
   return { success: data.success, data: data.data, message: data.message };
 }
 
-export async function deleteCategory(id) {
+export async function deleteCategory(id: string | number) {
   const response = await fetch(CATEGORY_ENDPOINT + "/" + id, {
     method: "DELETE",
     headers: {
@@ -96,7 +96,7 @@ export async function deleteCategory(id) {
   return data.data;
 }
 
-export async function updateCategory(id, category) {
+export async function updateCategory(id: string | number, category: { name: string }) {
   const response = await fetch(CATEGORY_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
