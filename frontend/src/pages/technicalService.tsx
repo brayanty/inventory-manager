@@ -32,7 +32,7 @@ const TechnicalService = () => {
 
   const [isFormTechnical, setisFormTechnical] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [editingDeviceId, setEditingDeviceId] = useState<string | null>(null);
+  const [editingDeviceId, setEditingDeviceId] = useState<string>("");
 
   const { deviceForm, setDeviceFormEdit } = useDeviceFormStore();
 
@@ -50,7 +50,6 @@ const TechnicalService = () => {
       client_name: "",
       device: "",
       number_phone: "",
-      damage: "",
       detail: "",
       model: "",
       imei: "",
@@ -66,7 +65,7 @@ const TechnicalService = () => {
     const newPrice = Number(deviceForm.price);
     const newPricePay = Number(deviceForm.price_pay);
     const newNumberPhone = deviceForm.number_phone.split("-").join("");
-    const newFaults = deviceForm.faults.map((f)=>({id:f.id}))
+    const newFaults = deviceForm.faults.map((f) => ({ id: f.id }));
     e.preventDefault();
     if (
       !deviceForm.client_name.trim() ||
