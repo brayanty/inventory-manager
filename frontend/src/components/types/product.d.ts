@@ -33,7 +33,7 @@ export type ProductsCart = ProductCart & { maxStock: number; quantity: number };
 
 /** Lista simple de categorías */
 export type CategoryList = {
-  id: string;
+  id: string | number;
   name: string;
 };
 
