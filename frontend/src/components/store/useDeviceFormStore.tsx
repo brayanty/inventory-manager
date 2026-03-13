@@ -20,7 +20,6 @@ const initialState: DeviceEntry = {
   client_name: "",
   device: "",
   number_phone: "",
-  damage: "",
   model: "",
   imei: "",
   price: 0,
