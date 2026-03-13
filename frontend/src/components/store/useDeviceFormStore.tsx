@@ -29,7 +29,7 @@ const initialState: DeviceEntry = {
   price_pay: 0,
 };
 
-export const useDeviceFormStore = create<DeviceFormState>((set, get) => ({
+export const useDeviceFormStore = create<DeviceFormState>((set) => ({
   deviceForm: initialState,
 
   updateField: (field, value) => {
