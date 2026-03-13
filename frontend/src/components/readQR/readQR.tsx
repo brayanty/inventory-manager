@@ -142,17 +142,21 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
         console.error("Camera initialization error:", err);
         let errorMessage = "No se pudo acceder a la cámara: ";
 
-        if (err.name === "NotAllowedError") {
-          errorMessage +=
-            "Permisos denegados. Por favor permite el acceso a la cámara.";
-        } else if (err.name === "NotFoundError") {
-          errorMessage += "No se encontró cámara en el dispositivo.";
-        } else if (err.name === "NotSupportedError") {
-          errorMessage += "Navegador no compatible con cámara.";
-        } else if (err.name === "NotReadableError") {
-          errorMessage += "La cámara está siendo usada por otra aplicación.";
+        if (err instanceof Error) {
+          if (err.name === "NotAllowedError") {
+            errorMessage +=
+              "Permisos denegados. Por favor permite el acceso a la cámara.";
+          } else if (err.name === "NotFoundError") {
+            errorMessage += "No se encontró cámara en el dispositivo.";
+          } else if (err.name === "NotSupportedError") {
+            errorMessage += "Navegador no compatible con cámara.";
+          } else if (err.name === "NotReadableError") {
+            errorMessage += "La cámara está siendo usada por otra aplicación.";
+          } else {
+            errorMessage += err.message;
+          }
         } else {
-          errorMessage += err.message;
+          errorMessage += "Error desconocido.";
         }
 
         setError(errorMessage);
