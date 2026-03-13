@@ -1,7 +1,6 @@
 import { Outlet } from "react-router";
 import Header from "./header";
 import Sidebar from "./Sidebar";
-import { ShoppingCartIcon } from "lucide-react";
 
 export default function Layout() {
   return (
