@@ -33,8 +33,8 @@ function ProductsInventory() {
     setOpenAddProduct(true);
   };
 
-  const handleSubmitCategory = async (data: Record<string, []>) => {
-    const newCategory = await createCategory(data);
+  const handleSubmitCategory = async (name: string) => {
+    const newCategory = await createCategory({ name });
 
     if (!newCategory.success) {
       toast.error(newCategory.message || "No se pudo agregar la categoría.");
@@ -129,7 +129,7 @@ function ProductsInventory() {
           title="Agregar Categoría"
           isForm={isOpenAddCategory}
           closeForm={() => setOpenAddCategory(false)}
-          onSubmit={(data) => handleSubmitCategory(data)}
+          onSubmit={(data) => handleSubmitCategory(data.value)}
           fields={[
             {
               label: "Categoría",
@@ -159,7 +159,7 @@ function ProductsInventory() {
             });
           }}
           dataEdit={editFormProduct}
-          onSubmit={(data) => handleSubmit(data)}
+          onSubmit={(data) => handleSubmit(data.value)}
           fields={[
             {
               label: "Producto",
