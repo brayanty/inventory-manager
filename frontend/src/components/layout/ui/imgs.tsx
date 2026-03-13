@@ -102,8 +102,6 @@ export function IconVoid({ className }: { className: string }) {
       height="100%"
       viewBox="0 0 655.23041 504.54282"
       role="img"
-      artist="Katerina Limpitsouni"
-      source="https://undraw.co/"
     >
       <g>
         <polygon
