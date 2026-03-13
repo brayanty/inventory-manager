@@ -1,4 +1,8 @@
-import { TechnicalServiceEntryNoID } from "../types/technicalService";
+import {
+  DeviceEntry,
+  TechnicalServiceEntry,
+  TechnicalServiceEntryNoID,
+} from "../types/technicalService";
 import { API_ENDPOINT } from "../constants/endpoint.tsx";
 
 const DEVICE_ENDPOINT = `${API_ENDPOINT}devices`;
@@ -10,27 +14,53 @@ export async function getDevice(id: string) {
     return data.data;
   }
 }
-export async function createDevice(device: TechnicalServiceEntryNoID) {
+export async function createDevice(device: DeviceEntry) {
+  const deviceToSend = {
+    ...device,
+    faults: device.faults.map(f => ({ id: parseInt(f.id) })),
+  };
   const response = await fetch(DEVICE_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(device),
+    body: JSON.stringify(deviceToSend),
   });
   const data = await response.json();
   return data;
 }
 export async function updateDevice(
-  id: string,
-  device: TechnicalServiceEntryNoID,
+  id: string | number,
+  deviceStatus: DeviceEntry,
+) {
+  const deviceToSend = {
+    ...deviceStatus,
+    faults: deviceStatus.faults.map(f => ({ id: parseInt(f.id) })),
+  };
+  const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(deviceToSend),
+  });
+  const { success, status, data, message } = await response.json();
+  if (!success || !status || status !== 201) {
+    return { success: false, message };
+  }
+  return { success, data, message };
+}
+
+export async function updateDeviceStatus(
+  id: string | number,
+  deviceStatus: TechnicalServiceEntry["repair_status"],
 ) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(device),
+    body: JSON.stringify(deviceStatus),
   });
   const { success, status, data, message } = await response.json();
   if (!success || !status || status !== 201) {

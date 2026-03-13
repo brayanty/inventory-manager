@@ -11,6 +11,7 @@ import {
   createDevice,
   updateDevice,
   updateStatusDevice,
+  updateDeviceStatus,
 } from "@/components/services/devices.js";
 import useLodingDevice from "@/components/hooks/useLodingDevice";
 import { useCategoryListStore } from "@/components/store/category";
@@ -65,7 +66,6 @@ const TechnicalService = () => {
     const newPrice = Number(deviceForm.price);
     const newPricePay = Number(deviceForm.price_pay);
     const newNumberPhone = deviceForm.number_phone.split("-").join("");
-    const newFaults = deviceForm.faults.map((f) => ({ id: f.id }));
     e.preventDefault();
     if (
       !deviceForm.client_name.trim() ||
@@ -88,7 +88,8 @@ const TechnicalService = () => {
       price: newPrice,
       price_pay: newPricePay,
       detail: deviceForm.detail,
-      faults: newFaults,
+      faults: deviceForm.faults,
+      pay: deviceForm.pay,
     };
 
     try {
@@ -168,18 +169,14 @@ const TechnicalService = () => {
     const updatedDevice = devices.find((dev) => dev.id === id);
     if (!updatedDevice) return;
 
-    const newStatus = {
-      repair_status,
-    };
-
     try {
       const {
         data: newDevice,
         success,
         message,
-      } = await updateDevice(id, newStatus);
+      } = await updateDeviceStatus(id, repair_status);
       if (!success) {
-        toast.warn(`No se pudo cambiar el estado a ${newStatus.repair_status}`);
+        toast.warn(`No se pudo cambiar el estado a ${repair_status}`);
         throw Error(message);
       }
       setDevices((prev) =>
@@ -204,7 +201,6 @@ const TechnicalService = () => {
       client_name: d.client_name,
       device: d.device,
       number_phone: d.number_phone,
-      damage: d.damage,
       model: d.model,
       imei: d.imei,
       price: d.price,
@@ -364,11 +360,11 @@ const TechnicalService = () => {
               title="Opciones"
               onSelect={(newStatus) =>
                 newStatus === "Editar"
-                  ? handlerEditDevice(deviceDetail)
+                  ? handlerEditDevice(deviceDetail!)
                   : newStatus === "Entregado"
-                    ? handleOutput(deviceDetail.id, true)
+                    ? handleOutput(deviceDetail!.id, true)
                     : newStatus === "Eliminar"
-                      ? handleDeleteDevice(deviceDetail.id)
+                      ? handleDeleteDevice(deviceDetail!.id)
                       : null
               }
             />
@@ -382,7 +378,7 @@ const TechnicalService = () => {
         onClose={() => {
           setisFormTechnical(false);
           setIsEditing(false);
-          setEditingDeviceId(null);
+          setEditingDeviceId("");
         }}
       >
         <DeviceForm onSubmit={handleFormSubmit} isEditing={isEditing} />
