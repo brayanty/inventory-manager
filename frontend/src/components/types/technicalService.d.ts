@@ -36,6 +36,6 @@ export type DeviceEntry = {
   price: number;
   price_pay: number;
   detail: string;
-  faults: newFaults[];
+  faults: Product[];
   pay: boolean;
 };
