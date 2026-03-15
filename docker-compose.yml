@@ -6,15 +6,16 @@ services:
       args:
         VITE_API_URL: https://localhost:3000/api/
     ports:
-      - "5173:80"  
+      - "5173:80"     
+      - "443:443"     
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /etc/localtime:/etc/localtime:ro
-      - ./certs/nginx.crt:/etc/nginx/certs/nginx.crt:ro
-      - ./certs/nginx.key:/etc/nginx/certs/nginx.key:ro
+      - ./frontend/certs/nginx.crt:/etc/nginx/certs/nginx.crt:ro
+      - ./frontend/certs/nginx.key:/etc/nginx/certs/nginx.key:ro
     environment:
-    - NODE_ENV=development
+      - NODE_ENV=development
     depends_on:
       - backend
 
@@ -28,7 +29,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000           
-      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/mydb 
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/mydb
+      - FRONTEND_URL=https://frontend
     command: npm run dev    
     depends_on:
       - postgres
