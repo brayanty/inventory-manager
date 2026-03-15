@@ -129,7 +129,7 @@ function ProductsInventory() {
           title="Agregar Categoría"
           isForm={isOpenAddCategory}
           closeForm={() => setOpenAddCategory(false)}
-          onSubmit={(data) => handleSubmitCategory(data.value)}
+          onSubmit={(data) => handleSubmitCategory(data.name)}
           fields={[
             {
               label: "Categoría",
