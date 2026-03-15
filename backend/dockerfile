@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar dependecias para el backend
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Exponer el puerto
+EXPOSE 4000
+
+CMD ["npm", "run", "dev"]
