@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import ProductsInventory from "@/pages/inventory";
 import TechnicalService from "@/pages/technicalService";
 import SalesStatistics from "@/pages/SalesStatistics";
+import NotFound from "@/pages/notFound.tsx"
 import { Route, Routes } from "react-router";
 
 export default function AppRoutes() {
@@ -11,6 +12,7 @@ export default function AppRoutes() {
         <Route path="/product" element={<ProductsInventory />} />
         <Route path="/technicalservice" element={<TechnicalService />} />
         <Route path="/salesstatistics" element={<SalesStatistics />} />
+        <Route path="*" element={<NotFound />}></Route>
       </Route>
     </Routes>
   );
