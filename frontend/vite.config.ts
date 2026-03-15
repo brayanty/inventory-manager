@@ -1,24 +1,43 @@
-import react from "@vitejs/plugin-react-swc";
-import { defineConfig } from "vite";
-import tailwindcss from "@tailwindcss/vite";
-import path from "path";
-import tsconfigPaths from "vite-tsconfig-paths";
-// import { readFileSync } from "fs";
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import tailwindcss from '@tailwindcss/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), tsconfigPaths()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), 'VITE_');
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      tsconfigPaths(),
+    ],
+
+    build: {
+      target: 'esnext',
+      minify: 'esbuild',
+      sourcemap: false,
+      chunkSizeWarningLimit: 1000,
     },
-  },
-  server: {
-    // https: {
-    //   key: readFileSync(path.resolve(__dirname, "ssl/key.pem")),
-    //   cert: readFileSync(path.resolve(__dirname, "ssl/cert.pem")),
-    // },
-    port: 5173,
-    host: "0.0.0.0",
-  },
+
+    resolve: {
+      alias: {
+        '@': '/src', 
+      },
+    },
+
+    server: {
+      host: true,
+      port: 5173,
+
+      proxy: {
+        '/api': {
+          target: env.VITE_API_URL || 'https://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: true,
+        },
+      },
+    },
+  };
 });
