@@ -5,7 +5,7 @@
   "exports": "./index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node --watch app.mjs"
+    "dev": "node app.mjs "
   },
   "keywords": [],
   "author": "",
@@ -17,12 +17,13 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.3.1",
     "fuse.js": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "uuid": "^13.0.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+     "pg": "^8.20.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
