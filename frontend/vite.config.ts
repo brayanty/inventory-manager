@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
+      tsconfigPaths: true,
       alias: {
         '@': '/src', 
       },
