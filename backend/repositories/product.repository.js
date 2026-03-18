@@ -1,3 +1,16 @@
+export async function getProducts(client, productID) {
+  if (!productID.length) {
+    return { rows: [], rowCount: 0 };
+  }
+  const IDs = products.map((p) => p.id);
+
+  const { rows, rowCount } = await client.query(
+    "SELECT * FROM product WHERE id == $1::int[]",
+    IDs,
+  );
+  return { rows, rowCount };
+}
+
 export async function getValidProducts(client, products) {
   if (!products.length) {
     return { rows: [], rowCount: 0 };
