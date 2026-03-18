@@ -53,14 +53,14 @@ export async function updateDevice(
 
 export async function updateDeviceStatus(
   id: string | number,
-  deviceStatus: TechnicalServiceEntry["repair_status"],
+  repair_status: TechnicalServiceEntry["repair_status"],
 ) {
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(deviceStatus),
+    body: JSON.stringify({repair_status}),
   });
   const { success, status, data, message } = await response.json();
   if (!success || !status || status !== 201) {
