@@ -6,7 +6,6 @@ import {
   createProduct,
   updateProduct,
 } from "@/components/services/products";
-import useProductsStore from "@/components/store/products";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useCategoryListStore } from "@/components/store/category";
@@ -21,7 +20,6 @@ function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
   const [editFormProduct, setEditFormProduct] = useState<ProductForm>();
   const [isFormEdit, setIsFormEdit] = useState(false);
-  const { products, addProducts } = useProductsStore();
   const { categoryList, setCategoryList } = useCategoryListStore();
 
   const [isOpenAddCategory, setOpenAddCategory] = useState(false);
@@ -46,43 +44,20 @@ function ProductsInventory() {
     toast.success("Categoría agregada correctamente");
     setOpenAddCategory(false);
   };
-
-  const handleSubmit = async (data: ProductForm & { id?: string }) => {
-    if (!data) return;
-    try {
-      const newProduct = isFormEdit
-        ? await updateProduct(data.id, data)
-        : await createProduct(data);
-
-      if (!newProduct) {
-        toast.error("No se pudo procesar el producto.");
-        return;
-      }
-
-      if (isFormEdit) {
-        toast.success("Producto actualizado correctamente");
-        setIsFormEdit(false);
-        addProducts([
-          ...products.filter((p) => p.id !== newProduct.id),
-          newProduct,
-        ]);
-      } else {
-        addProducts([...products, newProduct]);
-        toast.success("Producto agregado correctamente");
-      }
-
-      setOpenAddProduct(false);
-      setEditFormProduct({
-        id: "",
-        name: "",
-        category: "",
-        price: "0",
-        stock: 0,
-      });
-    } catch (error) {
-      console.error(error);
-      toast.error("Error al procesar el producto.");
+  const handleCreateProduct = async (formProduct: ProductForm) => {
+    const { success, message } = await createProduct(formProduct);
+    if (!success) {
+      Error(message || "No puedo establecer conexión con la base de datos");
     }
+    toast.success(message);
+  };
+
+  const handleUpdateProduct = async (formProduct: ProductForm) => {
+    const { success, message } = await updateProduct(formProduct);
+    if (!success) {
+      Error(message || "No puedo establecer conexión con la base de datos");
+    }
+    toast.success(message);
   };
 
   return (
@@ -159,7 +134,9 @@ function ProductsInventory() {
             });
           }}
           dataEdit={editFormProduct}
-          onSubmit={(data) => handleSubmit(data.value)}
+          onSubmit={(data) =>
+            isFormEdit ? handleUpdateProduct(data) : handleCreateProduct(data)
+          }
           fields={[
             {
               label: "Producto",
@@ -173,7 +150,7 @@ function ProductsInventory() {
               type: "select",
               items: categoryList,
             },
-            { label: "Stock", name: "stock", type: "number" },
+            { label: "Stock", name: "stock", type: "numeric" },
             {
               label: "Precio",
               name: "price",
