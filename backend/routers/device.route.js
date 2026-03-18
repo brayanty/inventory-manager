@@ -10,6 +10,7 @@ import {
 } from "../middleware/device.middleware.js";
 import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
 import { updateStatusDevice } from "../controllers/deviceRepair/updateStatusDevice.controller.js";
+import { reprintTicketDevice } from "../controllers/deviceRepair/reprintTicket.controller.js";
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.delete("/devices/:id", deleteDevice);
 router.get("/repairs", getRepairs);
 //Update status output
 router.put("/devices/status/:id", updateStatusDevice);
+// Reprint Ticket
+router.post("/devices/reprint/:id", reprintTicketDevice);
 
 export default router;
