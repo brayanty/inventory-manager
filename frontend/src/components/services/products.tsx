@@ -20,11 +20,11 @@ export async function createProduct(product: ProductForm) {
     body: JSON.stringify(product),
   });
   const data = await response.json();
-  return data.data;
+  return { success: data.success, product: data.data, message: data.message };
 }
 
-export async function updateProduct(id: string | number, product: ProductForm) {
-  const response = await fetch(PRODUCTS_ENDPOINT + "/" + id, {
+export async function updateProduct(product: ProductForm) {
+  const response = await fetch(PRODUCTS_ENDPOINT + "/" + product.id, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -96,7 +96,10 @@ export async function deleteCategory(id: string | number) {
   return data.data;
 }
 
-export async function updateCategory(id: string | number, category: { name: string }) {
+export async function updateCategory(
+  id: string | number,
+  category: { name: string },
+) {
   const response = await fetch(CATEGORY_ENDPOINT + "/" + id, {
     method: "PUT",
     headers: {
