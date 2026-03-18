@@ -1,70 +1,66 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { useEffect, useState } from "react";
-import { CategoryList } from "../types/product";
-import { toast } from "react-toastify";
+import { useState } from "react";
+import { CategoryList, ProductForm } from "../types/product";
 
-type FieldType = "text" | "number" | "price" | "select";
+type FieldType = "text" | "number" | "price" | "select" | "numeric";
+
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+
 interface FormFieldProps {
   items?: CategoryList[];
   label: string;
-  name: string;
+  name: keyof ProductForm;
   placeholder?: string;
   type: FieldType;
 }
 
 interface FormRenderProps {
-  dataEdit?: Record<string, any> | null;
+  dataEdit?: ProductForm;
   title: string;
   isForm: boolean;
   closeForm: () => void;
   fields: FormFieldProps[];
-  onSubmit: (formData: Record<string, any>) => void;
+  onSubmit: (formData: ProductForm) => void;
 }
 
+const getEmptyForm = (): ProductForm => ({
+  id: "",
+  name: "",
+  category: "",
+  price: "",
+  stock: 0,
+});
+
 function FormRender({
-  dataEdit = null,
+  dataEdit = getEmptyForm(),
   title,
   isForm,
   closeForm,
   fields,
   onSubmit,
 }: FormRenderProps) {
-  const [dataForm, setDataForm] = useState<Record<string, any>>(dataEdit || {});
-
-  useEffect(() => {
-    if (dataEdit) {
-      setDataForm(dataEdit);
-    }
-  }, [dataEdit]);
+  const [dataForm, setDataForm] = useState<ProductForm>(dataEdit);
 
   const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
-    const { name, value } = e.target;
-    if (name === undefined || value === undefined) {
-      toast.error("Error al capturar los datos del formulario.");
-      return;
-    }
-
-    setDataForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setDataForm((prev: ProductForm) => ({
+      ...prev,
+      [name]: type === "number" ? parseInt(value) : value,
+    }));
   };
 
-  const handlePriceChange = (name: string, value: string) => {
-    setDataForm((prev) => ({ ...prev, [name]: parseFloat(value) }));
+  const handleNumericChange = (name: string, value: string) => {
+    setDataForm((prev: ProductForm) => ({
+      ...prev,
+      [name]: name === "price" ? Number(value) : parseInt(value),
+    }));
   };
 
   const handlerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(dataForm);
-    setDataForm(
-      fields.reduce(
-        (acc, field) => {
-          acc[field.name] = "";
-          return acc;
-        },
-        {} as Record<string, any>,
-      ),
-    );
+    setDataForm(getEmptyForm);
   };
   return (
     <Modal
@@ -91,7 +87,7 @@ function FormRender({
                   id={field.name}
                   className="w-full p-2 rounded border capitalize"
                   required
-                  value={dataForm[field.name] || ""}
+                  value={dataForm[field.name]}
                   onChange={(e) => handleInputChange(e)}
                 >
                   <option value="">Selecciona una categoria...</option>
@@ -107,11 +103,21 @@ function FormRender({
                     );
                   })}
                 </select>
+              ) : field.type === "numeric" ? (
+                <NumericFormat
+                  id={field.name}
+                  className="p-2 rounded border"
+                  min={1}
+                  onChange={(e) =>
+                    handleNumericChange(field.name, e.target.value)
+                  }
+                  value={dataForm[field.name]}
+                />
               ) : field.type === "price" ? (
                 <NumericFormat
                   id={field.name}
                   name={field.name}
-                  value={dataForm[field.name] || ""}
+                  value={dataForm[field.name]}
                   thousandSeparator="."
                   decimalSeparator=","
                   decimalScale={2}
@@ -119,7 +125,7 @@ function FormRender({
                   allowNegative={false}
                   prefix="$ "
                   onValueChange={(values) =>
-                    handlePriceChange(field.name, values.value)
+                    handleNumericChange(field.name, values.value)
                   }
                   className="p-2 rounded border"
                   placeholder={field.placeholder}
@@ -130,7 +136,7 @@ function FormRender({
                   id={field.name}
                   name={field.name}
                   inputMode={field.type === "number" ? "numeric" : "text"}
-                  value={dataForm[field.name] || ""}
+                  value={dataForm[field.name]}
                   onChange={handleInputChange}
                   placeholder={field.placeholder}
                   className="p-2 rounded border"
