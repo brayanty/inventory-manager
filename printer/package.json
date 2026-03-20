@@ -1,0 +1,21 @@
+{
+  "name": "printer",
+  "version": "1.0.0",
+  "description": "printer thermical",
+  "main": "app.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node app.js"
+  },
+  "keywords": [
+    "node",
+    "impresora",
+    "termica"
+  ],
+  "author": "brayanty",
+  "license": "ISC",
+  "dependencies": {
+    "express": "5.2.1",
+    "dotenv": "^17.2.4"
+  }
+}
