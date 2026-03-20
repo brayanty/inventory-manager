@@ -20,21 +20,38 @@ services:
       - backend
     restart: unless-stopped
 
+  printer:
+    build: ./printer
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVICE_PRINTER=/dev/usb/lp0
+    restart: unless-stopped
+    volumes:
+      - ./printer:/app
+      - /app/node_modules
+    privileged: true
+    devices:
+      - "/dev/usb/lp0:/dev/usb/lp0"
+    
   backend:
     build: ./backend
     ports:
-      - "3000:3000"     
+      - "4000:4000"     
     volumes:
       - ./backend:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3000           
+      - PORT=4000           
       - DATABASE_URL=postgresql://postgres:1234@postgres:5432/mydb
-      - FRONTEND_URL=https://frontend
+      - FRONTEND_URL=http://frontend
+      - PRINTER_URL=http://printer:8000/imprimir
+      - DEVICE_PRINTER=lp0
     command: npm run dev    
     depends_on:
       - postgres
+      - printer
     restart: unless-stopped
 
   postgres:
