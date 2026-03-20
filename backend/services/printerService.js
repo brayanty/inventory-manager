@@ -1,8 +1,9 @@
+import "dotenv/config";
 import { formatCOP } from "../utils/formatMoney.js";
 
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: "http://localhost:8000/imprimir",
+  baseUrl: process.env.PRINTER_URL || "http://localhost:8000/imprimir",
   headers: { "Content-Type": "application/json" },
   lineWidth: 32,
 };
@@ -39,7 +40,7 @@ class PrinterService {
   static async sendToPrinter(data) {
     const newData = {
       serial: "",
-      nombreImpresora: "lp0",
+      nombreImpresora: process.env.DEVICE_PRINTER,
       operaciones: data.operaciones,
     };
 
@@ -133,14 +134,14 @@ class DocumentBuilder {
   addTotal(total, label = "TOTAL") {
     this.operations.push({
       nombre: "EscribirTexto",
-      argumentos: [`${label}: $${formatCOP(total)}\n`],
+      argumentos: [`${label}: ${formatCOP(total)}\n`],
     });
     return this;
   }
   addPricePay(total, label = "ABONADO") {
     this.operations.push({
       nombre: "EscribirTexto",
-      argumentos: [`${label}: $${formatCOP(total)}\n`],
+      argumentos: [`${label}: ${formatCOP(total)}\n`],
     });
     return this;
   }
@@ -233,7 +234,11 @@ class TechnicalServicePrintService {
     lines.push({
       nombre: "EscribirTexto",
       argumentos: [
-        device.pay ? 'PAGADO\n' : device.price < device.pricePay ? 'ABONADO\n' : 'NO PAGADO\n',
+        device.pay
+          ? "PAGADO\n"
+          : device.price < device.pricePay
+            ? "ABONADO\n"
+            : "NO PAGADO\n",
       ],
     });
     //Establece alineacion a la izquierda
