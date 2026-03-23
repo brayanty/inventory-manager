@@ -52,11 +52,12 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
   // Effect para buscar dispositivo cuando se escanea un QR
   useEffect(() => {
     if (!scannedData) return;
-
+    const { id } = JSON.parse(scannedData);
     const fetchDevice = async () => {
       try {
         setIsLoading(true);
-        const device = await getDeviceById(scannedData);
+        const device = await getDeviceById(id);
+
         if (device) {
           // DETENER EL ESCANEO ANTES de llamar a la función
           setIsScanning(false);
@@ -113,7 +114,7 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
           stream = await navigator.mediaDevices.getUserMedia(constraints);
         } catch (facingError) {
           console.log(
-            "Intentando cámara trasera falló, probando cámara por defecto"
+            "Intentando cámara trasera falló, probando cámara por defecto",
           );
           stream = await navigator.mediaDevices.getUserMedia({ video: true });
         }
@@ -183,14 +184,14 @@ function ReadQR({ deviceSearchQR }: ReadQRProps) {
             0,
             0,
             canvasElement.width,
-            canvasElement.height
+            canvasElement.height,
           );
 
           const imageData = canvas.getImageData(
             0,
             0,
             canvasElement.width,
-            canvasElement.height
+            canvasElement.height,
           );
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "attemptBoth",
