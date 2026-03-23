@@ -280,7 +280,7 @@ class TechnicalServicePrintService {
       )
       .addAlignedContent(1)
       .addEndOperations()
-      .addQR(device.id)
+      .addQR(device.qr)
       .addText(`Cliente: ${device.name}`)
       .build();
     console.log("Data to print:", JSON.stringify(data, null, 2));
