@@ -7,17 +7,26 @@ async function createDevice(device) {
   const client = await pool.connect();
   //Insertar quantity 1 a las fallas
   //QUIZAS SE PUDE HACER DE MEJOR MANERA "No se como"
-  const clientFaults = device.faults.map((f)=>({id: f.id, quantity: 1}))
+  const clientFaults = device.faults.map((f) => ({ id: f.id, quantity: 1 }));
 
   try {
     await client.query("BEGIN");
 
     // Validar productos
-    const {rows: fautlsDB ,rowCount} = await productRepo.getValidProducts(client,clientFaults);
+    const { rows: fautlsDB, rowCount } = await productRepo.getValidProducts(
+      client,
+      clientFaults,
+    );
     // Actualizar stock de productos
-   const faultsDecrement = await productRepo.decrementStock(client,clientFaults);
+    const faultsDecrement = await productRepo.decrementStock(
+      client,
+      clientFaults,
+    );
 
-    if (rowCount !== device.faults.length || faultsDecrement.length !== device.faults.length) {
+    if (
+      rowCount !== device.faults.length ||
+      faultsDecrement.length !== device.faults.length
+    ) {
       const error = new Error("Algunas fallas no existen o no tienen stock");
       error.status = 400;
       throw error;
@@ -46,21 +55,19 @@ async function createDevice(device) {
       totalPrice,
     );
     await client.query("COMMIT");
-    
+
     // Impresión del ticket
-    const statusPrinter = await postTechnicalServicePrinter(
-      {
-        name: newDevice.client_name,
-        device: newDevice.device,
-        model: newDevice.model,
-        //Provisionalmente esto se cambiara cuando aprenda mas postgres
-        pay: newDevice.price_pay === newDevice.price ? true : false,
-        price: newDevice.price,
-        pricePay: newDevice.price_pay,
-        id: newDevice.id,
-        faults: fautlsDB
-      }
-    );
+    const statusPrinter = await postTechnicalServicePrinter({
+      name: newDevice.client_name,
+      device: newDevice.device,
+      model: newDevice.model,
+      //Provisionalmente esto se cambiara cuando aprenda mas postgres
+      pay: newDevice.price_pay === newDevice.price ? true : false,
+      price: newDevice.price,
+      pricePay: newDevice.price_pay,
+      qr: `{id: ${newDevice.id}, name: "${newDevice.client_name}", device: "${newDevice.device}"}`,
+      faults: fautlsDB,
+    });
 
     return { device, statusPrinter };
   } catch (error) {
