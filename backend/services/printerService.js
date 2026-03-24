@@ -51,11 +51,12 @@ class PrinterService {
         body: JSON.stringify(newData),
       });
 
-      await response.json();
+      const { ok } = await response.json();
+      if (!ok) throw Error("Fallo al imprimir");
 
       return { success: true, message: "Impresión enviada con éxito" };
     } catch (error) {
-      console.error("Error al conectar con el server de impresión:");
+      console.error("Error al conectar con el server de impresión:", error);
       return {
         success: false,
         message: "No se pudo conectar con el server de impresión",
@@ -283,7 +284,6 @@ class TechnicalServicePrintService {
       .addQR(device.qr)
       .addText(`Cliente: ${device.name}`)
       .build();
-    console.log("Data to print:", JSON.stringify(data, null, 2));
     return await PrinterService.sendToPrinter(data);
   }
 }
