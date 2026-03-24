@@ -1,12 +1,12 @@
 import pool from "../../config/db.js";
-import { handleError } from "../../modules/handleResponse.js";
+import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import { getDeviceByID } from "../../repositories/device.repository.js";
 import { postTechnicalServicePrinter } from "../../services/printerService.js";
 import * as productRepo from "../../repositories/product.repository.js";
 
 export async function reprintTicketDevice(req, res) {
   const deviceID = req.params.id;
-  if (isNaN(deviceID)) {
+  if (!deviceID) {
     return handleError(req, res, "El dispositivo es invalido");
   }
 
@@ -44,7 +44,7 @@ export async function reprintTicketDevice(req, res) {
     }
   } catch (err) {
     await client.query("ROLLBACK");
-    return handleError(req, res, "Error al eliminar el dispositivo", 500);
+    return handleError(req, res, "Error al re-imprimir el dispositivo", 500);
   } finally {
     client.release();
   }
