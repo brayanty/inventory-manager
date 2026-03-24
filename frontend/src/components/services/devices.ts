@@ -4,6 +4,7 @@ import {
   TechnicalServiceEntryNoID,
 } from "../types/technicalService";
 import { API_ENDPOINT } from "../constants/endpoint.tsx";
+import { ID } from "../types/product";
 
 const DEVICE_ENDPOINT = `${API_ENDPOINT}devices`;
 
@@ -125,4 +126,12 @@ export async function getDeviceByStatus(status: string) {
   if (data.success) {
     return data.data;
   }
+}
+
+export async function reprintDevice(id: ID) {
+    const response = await fetch(`${DEVICE_ENDPOINT}/reprint/${id}`, {
+    method: "POST"
+  });
+  const { data, success, message } = await response.json();
+  return { data, success, message };
 }

@@ -12,6 +12,7 @@ import {
   updateDevice,
   updateStatusDevice,
   updateDeviceStatus,
+  reprintDevice,
 } from "@/components/services/devices.js";
 import useLodingDevice from "@/components/hooks/useLodingDevice";
 import { useCategoryListStore } from "@/components/store/category";
@@ -25,6 +26,7 @@ import Button from "@/components/common/button";
 import Paginator from "@/components/common/paginator";
 import { TableTitleHead } from "@/components/common/tableComponets";
 import BRANDS_DEVICES from "@/components/constants/models";
+import { ID } from "@/components/types/product";
 
 const TechnicalService = () => {
   const { devices, setDevices, isLoading, handleGetDevices } =
@@ -119,6 +121,17 @@ const TechnicalService = () => {
     } catch (error) {
       console.error("Failed to delete device:", error);
       toast("Fallo a eliminar el dispositivo. Intente de nuevo.");
+    }
+  };
+
+  const handleReprintDevice = async (id: ID) => {
+    try {
+      const { success, message } = await reprintDevice(id);
+      if (!success) throw new Error("No se pudo imprimir");
+      if (success) return toast.success(message);
+    } catch (error) {
+      console.error("Failed to print device:", error);
+      toast.warning("Fallo al reimprimir el dispositivo. Intente de nuevo.");
     }
   };
 
@@ -315,7 +328,9 @@ const TechnicalService = () => {
                             ? handleOutput(d.id, true)
                             : newStatus === "Eliminar"
                               ? handleDeleteDevice(d.id)
-                              : null
+                              : newStatus === "Reimprimir"
+                                ? handleReprintDevice(d.id)
+                                : null
                       }
                     />
                   </td>
