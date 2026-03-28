@@ -536,7 +536,7 @@ async def update_stock_start(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     
     context.user_data['action'] = 'update_stock'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_productos")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -599,7 +599,7 @@ async def view_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     context.user_data['action'] = 'view_spare_parts'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -768,7 +768,7 @@ async def update_repair_status_start(update: Update, context: ContextTypes.DEFAU
     await query.answer()
     
     context.user_data['action'] = 'update_repair_status'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -830,7 +830,7 @@ async def handle_update_repair_status(update: Update, context: ContextTypes.DEFA
                     callback_data=f"set_status_{repair_id}_{status_for_callback}"
                 )])
         
-        keyboard.append([InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")])
+        keyboard.append([InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")])
         
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -902,7 +902,7 @@ async def print_repair_ticket_start(update: Update, context: ContextTypes.DEFAUL
     await query.answer()
     
     context.user_data['action'] = 'print_repair_ticket'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -973,7 +973,7 @@ async def register_payment_start(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
     
     context.user_data['action'] = 'register_payment'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -1165,8 +1165,8 @@ async def add_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el precio y guarda el producto"""
     try:
         price = float(update.message.text)
-        if price < 0:
-            await update.message.reply_text("❌ El precio no puede ser negativo. Intenta de nuevo:")
+        if price <= 0:
+            await update.message.reply_text("❌ El precio debe ser mayor a cero. Intenta de nuevo:")
             return ADD_PRODUCT_PRICE
         
         # Crear producto a través del API
@@ -1395,51 +1395,39 @@ async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_PRICE
 
 async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe el precio y guarda la reparación"""
+    """Recibe el precio y muestra resumen para confirmar"""
     try:
         price = float(update.message.text)
-        if price < 0:
-            await update.message.reply_text("❌ El precio no puede ser negativo. Intenta de nuevo:")
+        if price <= 0:
+            await update.message.reply_text("❌ El precio debe ser mayor a cero. Intenta de nuevo:")
             return ADD_REPAIR_PRICE
         
-        # Crear reparación a través del API
-        device = api_client.create_device(
-            client_name=context.user_data['repair_client'],
-            number_phone=context.user_data.get('repair_phone', ''),
-            device=context.user_data['repair_device'],
-            model=context.user_data.get('repair_model', ''),
-            faults=context.user_data.get('repair_faults', []),
-            detail=context.user_data.get('repair_detail', ''),
-            price=price,
-            price_pay=0,  # Inicialmente sin pago
-            imei=context.user_data.get('repair_imei', '')
+        # Guardar precio
+        context.user_data['repair_price'] = price
+        
+        # Mostrar resumen
+        faults_text = ", ".join([f.get('name', 'N/A') for f in context.user_data.get('repair_faults', [])]) or "Ninguna"
+        
+        keyboard = [
+            [InlineKeyboardButton("✅ Crear reparación", callback_data="create_repair")],
+            [InlineKeyboardButton("❌ Cancelar", callback_data="cancel")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            f"📋 *Resumen de la reparación*\n\n"
+            f"👤 *Cliente:* {context.user_data['repair_client']}\n"
+            f"📞 *Teléfono:* {context.user_data.get('repair_phone', 'No especificado')}\n"
+            f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
+            f"🏷️ *Modelo:* {context.user_data.get('repair_model', 'No especificado')}\n"
+            f"📱 *IMEI:* {context.user_data.get('repair_imei', 'No especificado')}\n"
+            f"🔧 *Fallas:* {faults_text}\n"
+            f"📝 *Detalle:* {context.user_data.get('repair_detail', 'No especificado')}\n"
+            f"💰 *Precio:* {format_currency(price)}\n\n"
+            "¿Confirmas la creación de esta reparación?",
+            parse_mode='Markdown',
+            reply_markup=reply_markup
         )
-        
-        if device:
-            device_id = device.get('id', 'N/A')
-            context.user_data['current_repair_id'] = device_id
-            
-            # Preguntar si quiere agregar repuestos
-            keyboard = [
-                [InlineKeyboardButton("✅ Sí, agregar repuestos", callback_data="add_spare_parts")],
-                [InlineKeyboardButton("❌ No, continuar sin repuestos", callback_data="skip_spare_parts")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            await update.message.reply_text(
-                f"✅ *Reparación registrada parcialmente!*\n\n"
-                f"🆔 *ID:* {device_id}\n"
-                f"👤 *Cliente:* {context.user_data['repair_client']}\n"
-                f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
-                f"💰 *Precio:* {format_currency(price)}\n\n"
-                "¿Deseas agregar repuestos usados en esta reparación?\n"
-                "Los repuestos se descontarán automáticamente del inventario.",
-                parse_mode='Markdown',
-                reply_markup=reply_markup
-            )
-        else:
-            await update.message.reply_text("❌ Error al guardar la reparación. Intenta de nuevo.")
-            return ADD_REPAIR_PRICE
         
         return ConversationHandler.END
         
@@ -1448,6 +1436,8 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ADD_REPAIR_PRICE
     except Exception as e:
         logger.error(f"Error en add_repair_price: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
+        return ConversationHandler.END
         await update.message.reply_text(f"❌ Error al guardar: {e}")
         return ConversationHandler.END
 # add repair 
@@ -1617,9 +1607,9 @@ async def finish_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         
         # Limpiar datos temporales
-        context.user_data.pop('adding_spare_parts', None)
-        context.user_data.pop('spare_parts_list', None)
-        context.user_data.pop('adding_spare_part', None)
+        keys_to_remove = ['adding_spare_parts', 'spare_parts_list', 'adding_spare_part', 'current_repair_id', 'repair_client', 'repair_phone', 'repair_device', 'repair_model', 'repair_imei', 'repair_faults', 'repair_detail', 'repair_price']
+        for key in keys_to_remove:
+            context.user_data.pop(key, None)
         
         # Volver al menú de reparaciones
         keyboard = [[InlineKeyboardButton("◀️ Volver al menú", callback_data="menu_reparaciones")]]
@@ -1638,8 +1628,10 @@ async def skip_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    context.user_data.pop('adding_spare_parts', None)
-    context.user_data.pop('spare_parts_list', None)
+    # Limpiar datos temporales
+    keys_to_remove = ['adding_spare_parts', 'spare_parts_list', 'current_repair_id', 'repair_client', 'repair_phone', 'repair_device', 'repair_model', 'repair_imei', 'repair_faults', 'repair_detail', 'repair_price']
+    for key in keys_to_remove:
+        context.user_data.pop(key, None)
     
     await query.edit_message_text(
         "✅ *Repuestos omitidos*\n\n"
@@ -2155,7 +2147,7 @@ async def register_delivery_start(update: Update, context: ContextTypes.DEFAULT_
     await query.answer()
     
     context.user_data['action'] = 'register_delivery'
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_reparaciones")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -2188,7 +2180,10 @@ async def handle_register_delivery(update: Update, context: ContextTypes.DEFAULT
             return
         
         # Verificar condiciones para entrega
-        if not repair.get('pay', False):
+        repair_status = repair.get('repair_status')
+        pay = repair.get('pay', False)
+        
+        if repair_status == 'Reparado' and not pay:
             await update.message.reply_text(
                 f"⚠️ *No se puede entregar el dispositivo*\n\n"
                 f"El pago aún no ha sido registrado.\n"
@@ -2198,11 +2193,11 @@ async def handle_register_delivery(update: Update, context: ContextTypes.DEFAULT
             )
             return
         
-        if repair.get('repair_status') != 'Reparado':
+        if repair_status not in ['Reparado', 'Sin Solución']:
             await update.message.reply_text(
                 f"⚠️ *No se puede entregar el dispositivo*\n\n"
-                f"El equipo está en estado: {repair.get('repair_status', 'N/A')}\n"
-                f"Para poder entregar, el estado debe ser 'Reparado'",
+                f"El equipo está en estado: {repair_status}\n"
+                f"Para poder entregar, el estado debe ser 'Reparado' o 'Sin Solución'",
                 parse_mode='Markdown'
             )
             return
@@ -2222,7 +2217,7 @@ async def handle_register_delivery(update: Update, context: ContextTypes.DEFAULT
         
         keyboard = [
             [InlineKeyboardButton("✅ Sí, entregar", callback_data="confirm_delivery")],
-            [InlineKeyboardButton("❌ Cancelar", callback_data="menu_reparaciones")]
+            [InlineKeyboardButton("❌ Cancelar", callback_data="cancel")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -2370,6 +2365,54 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
     return ConversationHandler.END
+
+async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Crea la reparación después de confirmar"""
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        # Crear reparación a través del API
+        device = api_client.create_device(
+            client_name=context.user_data['repair_client'],
+            number_phone=context.user_data.get('repair_phone', ''),
+            device=context.user_data['repair_device'],
+            model=context.user_data.get('repair_model', ''),
+            faults=context.user_data.get('repair_faults', []),
+            detail=context.user_data.get('repair_detail', ''),
+            price=context.user_data['repair_price'],
+            price_pay=0,  # Inicialmente sin pago
+            imei=context.user_data.get('repair_imei', '')
+        )
+        
+        if device:
+            device_id = device.get('id', 'N/A')
+            context.user_data['current_repair_id'] = device_id
+            
+            # Preguntar si quiere agregar repuestos
+            keyboard = [
+                [InlineKeyboardButton("✅ Sí, agregar repuestos", callback_data="add_spare_parts")],
+                [InlineKeyboardButton("❌ No, continuar sin repuestos", callback_data="skip_spare_parts")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await query.edit_message_text(
+                f"✅ *Reparación creada exitosamente!*\n\n"
+                f"🆔 *ID:* {device_id}\n"
+                f"👤 *Cliente:* {context.user_data['repair_client']}\n"
+                f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
+                f"💰 *Precio:* {format_currency(context.user_data['repair_price'])}\n\n"
+                "¿Deseas agregar repuestos usados en esta reparación?\n"
+                "Los repuestos se descontarán automáticamente del inventario.",
+                parse_mode='Markdown',
+                reply_markup=reply_markup
+            )
+        else:
+            await query.edit_message_text("❌ Error al guardar la reparación. Intenta de nuevo.")
+            
+    except Exception as e:
+        logger.error(f"Error en create_repair_callback: {e}")
+        await query.edit_message_text(f"❌ Error: {e}")
 
 # ============ AGREGAR CATEGORÍAS ============
 async def add_category_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2538,7 +2581,7 @@ def main():
                 ADD_PRODUCT_STOCK: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_stock)],
                 ADD_PRODUCT_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_price)],
             },
-            fallbacks=[CommandHandler("cancelar", cancel)],
+            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
         )
@@ -2556,7 +2599,7 @@ def main():
                 ADD_REPAIR_DETAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_detail)],
                 ADD_REPAIR_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_price)],
             },
-            fallbacks=[CommandHandler("cancelar", cancel)],
+            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
         )
@@ -2567,7 +2610,7 @@ def main():
             states={
                 ADD_CATEGORY_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_category_name)],
             },
-            fallbacks=[CommandHandler("cancelar", cancel)],
+            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
         )
@@ -2580,6 +2623,7 @@ def main():
         # Menús principales
         application.add_handler(CallbackQueryHandler(register_delivery_start, pattern="^register_delivery$"))
         application.add_handler(CallbackQueryHandler(confirm_delivery, pattern="^confirm_delivery$"))
+        application.add_handler(CallbackQueryHandler(create_repair_callback, pattern="^create_repair$"))
         application.add_handler(CallbackQueryHandler(view_spare_parts, pattern="^view_spare_parts$"))
         application.add_handler(CallbackQueryHandler(add_spare_parts_to_repair, pattern="^add_spare_parts$"))
         application.add_handler(CallbackQueryHandler(add_spare_part_start, pattern="^add_spare_part$"))
