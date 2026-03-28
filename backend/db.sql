@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS device (
 -- FUNCIÓN TRIGGER
 -- =========================================
 CREATE
-OR REPLACE FUNCTION set_pay_status() RETURNS TRIGGER AS $ $ BEGIN IF NEW.repair_status = 'Reparado'
+OR REPLACE FUNCTION set_pay_status() RETURNS TRIGGER AS $$ BEGIN IF NEW.repair_status = 'Reparado'
 AND NEW.price_pay IS NOT NULL
 AND NEW.price_pay >= NEW.price THEN NEW.pay := true;
 
@@ -94,7 +94,7 @@ RETURN NEW;
 
 END;
 
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- =========================================
 -- TRIGGER
@@ -119,3 +119,24 @@ CREATE TABLE IF NOT EXISTS historyTicket (
 );
 
 CREATE INDEX IF NOT EXISTS idx_history_spare_parts ON historyTicket USING GIN (spare_parts);
+
+-- =========================================
+-- CATEGORÍAS POR DEFECTO
+-- =========================================
+DELETE FROM category
+WHERE
+    name IN (
+        'electrónica',
+        'repuestos',
+        'accesorios',
+        'software',
+        'servicios'
+    );
+
+INSERT INTO
+    category (name)
+VALUES ('electrónica'),
+    ('repuestos'),
+    ('accesorios'),
+    ('software'),
+    ('servicios');
