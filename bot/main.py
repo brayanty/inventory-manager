@@ -2366,6 +2366,21 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ConversationHandler.END
 
+async def cancel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Cancela desde callback query"""
+    query = update.callback_query
+    await query.answer()
+    context.user_data.clear()
+    
+    keyboard = [[InlineKeyboardButton("🏠 Menú Principal", callback_data="back_to_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        "🚫 Operación cancelada. Puedes volver al menú principal:",
+        reply_markup=reply_markup
+    )
+    return ConversationHandler.END
+
 async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Crea la reparación después de confirmar"""
     query = update.callback_query
