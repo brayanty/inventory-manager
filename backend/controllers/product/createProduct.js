@@ -44,14 +44,6 @@ export async function createProduct(req, res) {
         400,
       );
 
-    if (category.length > 100)
-      return handleError(
-        req,
-        res,
-        "El nombre de la categoría no puede exceder 100 caracteres",
-        400,
-      );
-
     if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
       return handleError(
         req,
