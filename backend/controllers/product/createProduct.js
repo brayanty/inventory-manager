@@ -20,11 +20,11 @@ export async function createProduct(req, res) {
       return handleError(req, res, "La categoría proporcionada no existe", 400);
     }
 
-    if (isNaN(price) || price < 0) {
+    if (isNaN(price) || price <= 0) {
       return handleError(
         req,
         res,
-        "El precio debe ser un número válido y no negativo",
+        "El precio debe ser un número válido y mayor a cero",
       );
     }
 

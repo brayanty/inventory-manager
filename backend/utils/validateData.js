@@ -19,7 +19,7 @@ export const validateEntryData = ({
     return "El campo 'status' debe ser una cadena no vacía";
   if (!entryDate || isNaN(Date.parse(entryDate)))
     return "El campo 'entryDate' debe ser una fecha válida";
-  if (price == null || typeof price !== "number" || isNaN(price) || price < 0)
-    return "El campo 'price' debe ser un número válido y no negativo";
+  if (price == null || typeof price !== "number" || isNaN(price) || price <= 0)
+    return "El campo 'price' debe ser un número válido y mayor a cero";
   return null;
 };

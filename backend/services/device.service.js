@@ -140,7 +140,10 @@ async function updateDeliveredDevice(status, deviceID) {
     let result;
     if (device.repair_status === "Reparado" && device.pay) {
       result = await deviceRepo.updateDeviceStatusPay(client, deviceID, status);
-    } else if (device.repair_status === "Sin Solución") {
+    } else if (
+      device.repair_status === "Sin Solución" ||
+      device.repair_status === "Reparado"
+    ) {
       result = await deviceRepo.updateDeviceStatusNoPay(
         client,
         deviceID,
@@ -148,7 +151,7 @@ async function updateDeliveredDevice(status, deviceID) {
       );
     } else {
       const error = new Error(
-        "No se puede entregar un dispositivo en revisión, entregado o no pagado",
+        "No se puede entregar un dispositivo en revisión o ya entregado",
       );
       error.status = 400;
       throw error;
