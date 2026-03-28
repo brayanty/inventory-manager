@@ -4,7 +4,9 @@
 CREATE TABLE IF NOT EXISTS category (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(250),
-    deleted_at TIMESTAMP WITH TIME ZONE
+    deleted_at TIMESTAMP
+    WITH
+        TIME ZONE
 );
 
 -- =========================================
@@ -16,7 +18,9 @@ CREATE TABLE IF NOT EXISTS product (
     category VARCHAR(100),
     stock INT NOT NULL CHECK (stock >= 0),
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
-    deleted_at TIMESTAMP WITH TIME ZONE
+    deleted_at TIMESTAMP
+    WITH
+        TIME ZONE
 );
 
 CREATE INDEX IF NOT EXISTS idx_product_deleted_at ON product (deleted_at);
@@ -29,10 +33,12 @@ CREATE TABLE IF NOT EXISTS soldProduct (
     client_name VARCHAR(250),
     sales INT NOT NULL CHECK (sales > 0),
     category VARCHAR(250) NOT NULL,
-    sold_at TIMESTAMP WITH TIME ZONE,
-    price NUMERIC(10, 2) NOT NULL,
-    product_id INT NOT NULL,
-    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES product (id)
+    sold_at TIMESTAMP
+    WITH
+        TIME ZONE,
+        price NUMERIC(10, 2) NOT NULL,
+        product_id INT NOT NULL,
+        CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES product (id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_soldproduct_sold_at ON soldProduct (sold_at);
@@ -64,18 +70,26 @@ CREATE TABLE IF NOT EXISTS device (
     pay BOOLEAN NOT NULL DEFAULT false,
     output_status BOOLEAN NOT NULL DEFAULT false,
     imei VARCHAR(15) CHECK (length(imei) = 15),
-    entry_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    exit_date TIMESTAMP WITH TIME ZONE,
-    warrant_limit TIMESTAMP WITH TIME ZONE,
-    deleted_at TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT pay_consistency_check CHECK (
-        (
-            (pay = true)
-            AND (price_pay IS NOT NULL)
-            AND (price_pay >= price)
+    entry_date TIMESTAMP
+    WITH
+        TIME ZONE DEFAULT NOW(),
+        exit_date TIMESTAMP
+    WITH
+        TIME ZONE,
+        warrant_limit TIMESTAMP
+    WITH
+        TIME ZONE,
+        deleted_at TIMESTAMP
+    WITH
+        TIME ZONE,
+        CONSTRAINT pay_consistency_check CHECK (
+            (
+                (pay = true)
+                AND (price_pay IS NOT NULL)
+                AND (price_pay >= price)
+            )
+            OR (pay = false)
         )
-        OR (pay = false)
-    )
 );
 
 -- =========================================
@@ -114,8 +128,10 @@ CREATE TABLE IF NOT EXISTS historyTicket (
     device_id INT NOT NULL,
     total_price NUMERIC(10, 2) NOT NULL,
     spare_parts JSONB NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    CONSTRAINT fk_device FOREIGN KEY (device_id) REFERENCES device (id)
+    timestamp TIMESTAMP
+    WITH
+        TIME ZONE DEFAULT NOW(),
+        CONSTRAINT fk_device FOREIGN KEY (device_id) REFERENCES device (id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_history_spare_parts ON historyTicket USING GIN (spare_parts);
@@ -128,15 +144,15 @@ WHERE
     name IN (
         'electrónica',
         'repuestos',
-        'accesorios',
+        'accesorio',
         'software',
-        'servicios'
+        'servicio'
     );
 
 INSERT INTO
     category (name)
 VALUES ('electrónica'),
-    ('repuestos'),
-    ('accesorios'),
+    ('repuesto'),
+    ('accesorio'),
     ('software'),
-    ('servicios');
+    ('servicio');
