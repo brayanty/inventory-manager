@@ -3,13 +3,17 @@ import { handleError, handleSuccess } from "../../modules/handleResponse.js";
 import { validCategories } from "../../repositories/product.repository.js";
 
 export async function createProduct(req, res) {
-  const { name, category } = req.body;
+  const { name } = req.body;
+  let { category } = req.body;
 
   const price = parseFloat(req.body.price);
   const stock = parseInt(req.body.stock);
   const client = await pool.connect();
 
   try {
+    // Normalizar categoría a minúsculas
+    category = category.trim().toLowerCase();
+
     const existCategory = await validCategories(client, category);
 
     if (!existCategory) {
@@ -32,6 +36,22 @@ export async function createProduct(req, res) {
         400,
       );
 
+    if (name.length > 250)
+      return handleError(
+        req,
+        res,
+        "El nombre del producto no puede exceder 250 caracteres",
+        400,
+      );
+
+    if (category.length > 100)
+      return handleError(
+        req,
+        res,
+        "El nombre de la categoría no puede exceder 100 caracteres",
+        400,
+      );
+
     if (stock == null || typeof stock !== "number" || isNaN(stock) || stock < 0)
       return handleError(
         req,
@@ -47,7 +67,13 @@ export async function createProduct(req, res) {
     );
 
     if (result.rows.length > 0) {
-      return handleSuccess(req, res, result.rows[0], 201);
+      return handleSuccess(
+        req,
+        res,
+        result.rows[0],
+        "Producto creado exitosamente",
+        201,
+      );
     }
   } catch (err) {
     console.error(err);
