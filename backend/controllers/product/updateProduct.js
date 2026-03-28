@@ -4,6 +4,7 @@ import { allowedFields } from "../../constants/product.const.js";
 
 // Función para editar un producto
 // Falta agregar la función para validar las categorias
+// HAY QUE USAR ZOD PARA VALIDAR LOS DATOS DE ENTRADA, PERO POR AHORA SE HACE MANUALMENTE
 export async function updateProduct(req, res) {
   const fields = req.body;
   const { id } = req.params;
@@ -16,6 +17,15 @@ export async function updateProduct(req, res) {
       req,
       res,
       "No se encuentran datos validos para actulizar",
+    );
+
+  // Validar longitud de campos
+  if (fields.name && fields.name.length > 250)
+    return handleError(
+      req,
+      res,
+      "El nombre del producto no puede exceder 250 caracteres",
+      400,
     );
 
   const setQuery = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
