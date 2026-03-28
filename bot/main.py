@@ -30,13 +30,8 @@ ZONA_HORARIA = pytz.timezone(ZONA_HORARIA_STR)
 # Estados para conversación de reparaciones
 (ADD_REPAIR_CLIENT, ADD_REPAIR_PHONE, ADD_REPAIR_DEVICE, ADD_REPAIR_MODEL, 
  ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE) = range(8)
- 
- # Agregar nuevos estados para repuestos
-(ADD_REPAIR_CLIENT, ADD_REPAIR_PHONE, ADD_REPAIR_DEVICE, ADD_REPAIR_MODEL, 
- ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE,
- ADD_REPAIR_SPARE_PARTS) = range(9)
 
-# Estado para entrega
+# Estados para entrega
 (ADD_DELIVERY_REPAIR_ID, ADD_DELIVERY_CONFIRM) = range(2)
 
 # Configurar logging
@@ -57,6 +52,15 @@ def safe_int_convert(text):
     if text.isdigit():
         return int(text)
     return None
+
+def format_currency(amount):
+    """Formatea un número como moneda"""
+    try:
+        if isinstance(amount, str):
+            amount = float(amount)
+        return f"${amount:,.2f}"
+    except (ValueError, TypeError):
+        return "$0.00"
 
 # Validar usuario
 def require_auth(func):
@@ -380,16 +384,45 @@ def generar_ticket_pago(repair_data):
     
     return operaciones
 
-# ============ FUNCIONES AUXILIARES ============
-def format_currency(amount):
-    """Formatea un número como moneda"""
-    try:
-        # Convertir a float si viene como string
-        if isinstance(amount, str):
-            amount = float(amount)
-        return f"${amount:,.2f}"
-    except (ValueError, TypeError):
-        return "$0.00"
+def generar_ticket_entrega(entrega_data):
+    """Genera las operaciones para un ticket de entrega"""
+    operaciones = []
+    
+    # Encabezado
+    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [1]})
+    operaciones.append({"nombre": "TextoGrande", "argumentos": []})
+    operaciones.append({"nombre": "Negrita", "argumentos": [True]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["COMPROBANTE DE ENTREGA"]})
+    operaciones.append({"nombre": "Negrita", "argumentos": [False]})
+    operaciones.append({"nombre": "TextoNormal", "argumentos": []})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    
+    # Fecha y orden
+    ahora = datetime.now(ZONA_HORARIA)
+    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [0]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Orden N°: {entrega_data['id']}"]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Fecha: {ahora.strftime('%d/%m/%Y %H:%M')}"]})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["-" * 32]})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    
+    # Datos
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Cliente: {entrega_data['client_name']}"]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Equipo: {entrega_data['device']} {entrega_data.get('model', '')}"]})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["-" * 32]})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    
+    # Mensaje
+    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [1]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["¡Equipo entregado!"]})
+    operaciones.append({"nombre": "Feed", "argumentos": [1]})
+    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["Gracias por confiar en nosotros"]})
+    operaciones.append({"nombre": "Feed", "argumentos": [2]})
+    
+    return operaciones
 
 # ============ MANEJADORES DE COMANDOS ============
 async def agregar_usuario_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -449,7 +482,7 @@ async def eliminar_usuario_admin(update: Update, context: ContextTypes.DEFAULT_T
     # Nota: La gestión de usuarios se realiza solo a través del backend
     await update.message.reply_text("ℹ️ Los usuarios autorizados se gestionan a través del sistema principal. Esto será implementado en futuras versiones.")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Comando /start - Menú principal"""
     keyboard = [
         [InlineKeyboardButton("📦 Productos", callback_data="menu_productos")],
@@ -713,6 +746,7 @@ async def menu_reparaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='Markdown',
         reply_markup=reply_markup
     )
+
 @require_auth_callback
 async def list_repairs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Lista todas las reparaciones activas"""
@@ -762,6 +796,7 @@ async def list_repairs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='Markdown',
         reply_markup=reply_markup
     )
+
 async def update_repair_status_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Inicia la actualización de estado de reparación"""
     query = update.callback_query
@@ -807,6 +842,8 @@ async def handle_update_repair_status(update: Update, context: ContextTypes.DEFA
             await update.message.reply_text(f"❌ Reparación con ID {repair_id} no encontrada")
             return
         
+        current_status = repair.get('repair_status', '')
+        
         # Definir opciones de estado con emojis
         status_options = {
             "Reparado": "✅",
@@ -817,7 +854,6 @@ async def handle_update_repair_status(update: Update, context: ContextTypes.DEFA
         # Crear teclado dinámico
         keyboard = []
         for status, emoji in status_options.items():
-            current_status = repair.get('repair_status', '')
             if status == current_status:
                 keyboard.append([InlineKeyboardButton(
                     f"{emoji} ✓ {status} (Actual)", 
@@ -849,6 +885,7 @@ async def handle_update_repair_status(update: Update, context: ContextTypes.DEFA
         await update.message.reply_text(f"❌ Error: {e}")
     finally:
         context.user_data.pop('action', None)
+
 async def handle_set_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Maneja la selección de estado de reparación"""
     query = update.callback_query
@@ -896,6 +933,7 @@ async def handle_set_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error en handle_set_status: {e}", exc_info=True)
         await query.edit_message_text(f"❌ Error al actualizar estado: {str(e)}")
+
 async def print_repair_ticket_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Inicia la impresión de ticket de reparación"""
     query = update.callback_query
@@ -1068,24 +1106,30 @@ async def add_product_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
+    logger.info("add_product_start called")
+    
     await query.edit_message_text(
         "➕ *Registrar nuevo producto*\n\n"
-        "Por favor, responde las siguientes preguntas.\n\n"
+        "Por favor, **responde a este mensaje** con el nombre del producto.\n\n"
         "📝 *¿Cuál es el nombre del producto?*\n\n"
         "Ejemplo: *Smartphone Samsung Galaxy A52*\n\n"
+        "💡 **Importante:** Envía un mensaje de texto con el nombre, no presiones botones.\n\n"
         "Para cancelar, usa /cancelar",
         parse_mode='Markdown'
     )
     return ADD_PRODUCT_NAME
 
+@require_auth_callback
 async def add_product_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el nombre del producto y muestra opciones de categorías"""
+    logger.info(f"add_product_name llamado con: {update.message.text}")
     context.user_data['product_name'] = update.message.text
-    
+    logger.info("Obteniendo categorías...")
     # Obtener categorías de la base de datos
     categories = api_client.get_categories()
-    
+    logger.info(f"Categorías obtenidas: {categories}")
     if not categories:
+        logger.warning("No hay categorías disponibles") 
         await update.message.reply_text(
             "❌ No hay categorías disponibles en la base de datos.\n"
             "Por favor, ingresa la categoría manualmente:\n\n"
@@ -1102,6 +1146,9 @@ async def add_product_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton(category_name, callback_data=f"category_{category_name.lower()}")
         ])
     
+    # Agregar botón para nueva categoría
+    keyboard.append([InlineKeyboardButton("➕ Agregar nueva categoría", callback_data="add_new_category")])
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
@@ -1112,37 +1159,84 @@ async def add_product_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return ADD_PRODUCT_SELECT_CATEGORY
 
+@require_auth_callback
+async def add_new_category_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Inicia la adición de una nueva categoría para el producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    logger.info("add_new_category_start called")
+    
+    try:
+        await query.edit_message_text(
+            "➕ *Agregar nueva categoría para el producto*\n\n"
+            "Ingresa el nombre de la nueva categoría:\n\n"
+            "Ejemplo: *Accesorios de Telefonía*, *Repuestos*\n\n"
+            "Para cancelar, usa /cancelar",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error en add_new_category_start: {e}")
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text="➕ *Agregar nueva categoría*\n\nIngresa el nombre de la nueva categoría:\n\nEjemplo: *Accesorios de Telefonía*, *Repuestos*\n\nPara cancelar, usa /cancelar",
+            parse_mode='Markdown'
+        )
+    return ADD_PRODUCT_CATEGORY
+
+@require_auth_callback
 async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Maneja la selección de categoría desde los botones"""
     query = update.callback_query
     await query.answer()
     
-    # Extraer la categoría del callback_data
-    # El callback_data tiene formato: category_nombredelacategoria
-    category_name = query.data.replace("category_", "")
-    context.user_data['product_category'] = category_name
+    logger.info(f"category_selected called with data: {query.data}")
     
-    await query.edit_message_text(
-        f"✅ Categoría seleccionada: *{category_name.title()}*\n\n"
-        "📊 *¿Cuál es el stock inicial?*\n\n"
-        "Ingresa solo el número (ejemplo: *10*)",
-        parse_mode='Markdown'
-    )
+    try:
+        # Extraer la categoría del callback_data
+        # El callback_data tiene formato: category_nombredelacategoria
+        category_name = query.data.replace("category_", "")
+        # Asegurar que no tenga espacios al inicio/final
+        category_name = category_name.strip()
+        context.user_data['product_category'] = category_name
+        
+        await query.edit_message_text(
+            f"✅ Categoría seleccionada: *{category_name.title()}*\n\n"
+            "📊 *¿Cuál es el stock inicial?*\n\n"
+            "Ingresa SOLO números enteros positivos (ejemplo: 10)",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error en category_selected: {e}")
+        await query.edit_message_text(
+            "❌ Error al seleccionar categoría. Intenta de nuevo.\n\n"
+            "Por favor, escribe el nombre de la categoría manualmente:"
+        )
+        return ADD_PRODUCT_CATEGORY
     return ADD_PRODUCT_STOCK
-
+@require_auth_callback
 async def add_product_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe la categoría del producto (fallback si no se selecciona desde botones)"""
-    context.user_data['product_category'] = update.message.text
+    logger.info(f"add_product_category called with: {update.message.text}")
     
-    await update.message.reply_text(
-        "📊 *¿Cuál es el stock inicial?*\n\n"
-        "Ingresa solo el número (ejemplo: *10*)",
-        parse_mode='Markdown'
-    )
+    try:
+        context.user_data['product_category'] = update.message.text
+        
+        await update.message.reply_text(
+            "📊 *¿Cuál es el stock inicial?*\n\n"
+            "Ingresa SOLO números enteros positivos (ejemplo: 10)",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error en add_product_category: {e}")
+        await update.message.reply_text("❌ Error al procesar la categoría.")
+        return ConversationHandler.END
     return ADD_PRODUCT_STOCK
 
 async def add_product_stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el stock del producto"""
+    logger.info(f"add_product_stock called with: {update.message.text}")
+    
     try:
         stock = int(update.message.text)
         if stock < 0:
@@ -1158,11 +1252,13 @@ async def add_product_stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ADD_PRODUCT_PRICE
     except ValueError:
-        await update.message.reply_text("❌ Por favor, ingresa un número válido para el stock:")
+        await update.message.reply_text("❌ El stock debe ser un número entero positivo. Ejemplo: 10")
         return ADD_PRODUCT_STOCK
 
 async def add_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el precio y guarda el producto"""
+    logger.info(f"add_product_price called with: {update.message.text}")
+    
     try:
         price = float(update.message.text)
         if price <= 0:
@@ -1302,7 +1398,7 @@ async def add_repair_imei(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not faults:
         text = "⚠️ *No hay fallas/repuestos disponibles en este momento*\n\n"
-        text += "Para continuar, escribe los IDs de las fallas manualmete"
+        text += "Para continuar, escribe los IDs de las fallas manualmente"
     else:
         text = "⚠️ *Selecciona las fallas del dispositivo*\n\n"
         text += "Fallas/Repuestos disponibles:\n\n"
@@ -1370,14 +1466,6 @@ async def add_repair_faults(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error en add_repair_faults: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
         return ADD_REPAIR_FAULTS
-    
-    await update.message.reply_text(
-        "📝 *¿Detalles adicionales?* (opcional)\n\n"
-        "Información extra sobre el equipo o el problema.\n"
-        "Envía 'ninguno' para omitir:",
-        parse_mode='Markdown'
-    )
-    return ADD_REPAIR_DETAIL
 
 async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe detalles adicionales"""
@@ -1438,8 +1526,7 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error en add_repair_price: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
         return ConversationHandler.END
-        await update.message.reply_text(f"❌ Error al guardar: {e}")
-        return ConversationHandler.END
+
 # add repair 
 async def add_spare_parts_to_repair(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Permite agregar repuestos a una reparación"""
@@ -1933,16 +2020,16 @@ async def top_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     # Obtener ventas del mes para mostrar top productos
-    monthly_sales = api_client.get_monthly_sales()
+    monthly_sales_data = api_client.get_monthly_sales()
     
-    if not monthly_sales or not monthly_sales.get('top_products'):
+    if not monthly_sales_data or not monthly_sales_data.get('top_products'):
         text = "📊 <b>Top 10 productos más vendidos (este mes)</b>\n\n"
         text += "📭 No hay datos de ventas disponibles."
     else:
-        top_products = monthly_sales.get('top_products', [])[:10]
+        top_products_list = monthly_sales_data.get('top_products', [])[:10]
         text = "📊 <b>Top 10 productos más vendidos (este mes)</b>\n\n"
         
-        for idx, product in enumerate(top_products, 1):
+        for idx, product in enumerate(top_products_list, 1):
             product_name = product.get('product_name', 'Sin nombre')
             quantity = product.get('total_quantity', 0)
             subtotal = product.get('subtotal', 0)
@@ -1959,7 +2046,7 @@ async def top_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-async def daily_sales(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def daily_sales_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra las ventas del día actual"""
     query = update.callback_query
     await query.answer()
@@ -1999,7 +2086,7 @@ async def daily_sales(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-async def monthly_sales(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def monthly_sales_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra las ventas del mes actual"""
     query = update.callback_query
     await query.answer()
@@ -2290,46 +2377,6 @@ async def confirm_delivery(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error en confirm_delivery: {e}")
         await query.edit_message_text(f"❌ Error al registrar entrega: {e}")
 
-def generar_ticket_entrega(entrega_data):
-    """Genera las operaciones para un ticket de entrega"""
-    operaciones = []
-    
-    # Encabezado
-    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [1]})
-    operaciones.append({"nombre": "TextoGrande", "argumentos": []})
-    operaciones.append({"nombre": "Negrita", "argumentos": [True]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["COMPROBANTE DE ENTREGA"]})
-    operaciones.append({"nombre": "Negrita", "argumentos": [False]})
-    operaciones.append({"nombre": "TextoNormal", "argumentos": []})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    
-    # Fecha y orden
-    ahora = datetime.now(ZONA_HORARIA)
-    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [0]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Orden N°: {entrega_data['id']}"]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Fecha: {ahora.strftime('%d/%m/%Y %H:%M')}"]})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["-" * 32]})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    
-    # Datos
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Cliente: {entrega_data['client_name']}"]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": [f"Equipo: {entrega_data['device']} {entrega_data.get('model', '')}"]})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["-" * 32]})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    
-    # Mensaje
-    operaciones.append({"nombre": "EstablecerAlineacion", "argumentos": [1]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["¡Equipo entregado!"]})
-    operaciones.append({"nombre": "Feed", "argumentos": [1]})
-    operaciones.append({"nombre": "EscribirTexto", "argumentos": ["Gracias por confiar en nosotros"]})
-    operaciones.append({"nombre": "Feed", "argumentos": [2]})
-    
-    return operaciones
-
 # ============ UTILIDADES ============
 async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Vuelve al menú principal"""
@@ -2375,10 +2422,19 @@ async def cancel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("🏠 Menú Principal", callback_data="back_to_main")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await query.edit_message_text(
-        "🚫 Operación cancelada. Puedes volver al menú principal:",
-        reply_markup=reply_markup
-    )
+    try:
+        await query.edit_message_text(
+            "🚫 Operación cancelada. Puedes volver al menú principal:",
+            reply_markup=reply_markup
+        )
+    except Exception as e:
+        logger.error(f"Error al editar mensaje en cancel: {e}")
+        # Si no se puede editar, enviar nuevo mensaje
+        await context.bot.send_message(
+            chat_id=query.message.chat_id,
+            text="🚫 Operación cancelada. Puedes volver al menú principal:",
+            reply_markup=reply_markup
+        )
     return ConversationHandler.END
 
 async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2428,15 +2484,28 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
     except Exception as e:
         logger.error(f"Error en create_repair_callback: {e}")
         await query.edit_message_text(f"❌ Error: {e}")
-
+# ============ AGREGAR Productos ============
+async def add_product_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Inicia el registro de un producto desde comando"""
+    await update.message.reply_text(
+        "➕ *Registrar nuevo producto*\n\n"
+        "Por favor, responde las siguientes preguntas.\n\n"
+        "📝 *¿Cuál es el nombre del producto?*\n\n"
+        "Ejemplo: *Smartphone Samsung Galaxy A52*\n\n"
+        "Para cancelar, usa /cancelar",
+        parse_mode='Markdown'
+    )
+    return ADD_PRODUCT_NAME
 # ============ AGREGAR CATEGORÍAS ============
 async def add_category_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Inicia el registro de una nueva categoría"""
     query = update.callback_query
     await query.answer()
     
+    logger.info("add_category_start called")
+    
     await query.edit_message_text(
-        "➕ *Agregar nueva categoría*\n\n"
+        "➕ *Agregar nueva categoría al sistema*\n\n"
         "Por favor, ingresa el nombre de la categoría.\n\n"
         "Ejemplo: *Accesorios de Telefonía*, *Repuestos*\n\n"
         "Para cancelar, usa /cancelar",
@@ -2465,15 +2534,18 @@ async def add_category_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Intentar crear la categoría
     try:
-        result = api_client.create_category(category_name)
+        # Asegurar que el nombre esté en minúsculas para consistencia
+        result = api_client.create_category(category_name.lower())
         
         if result:
             await update.message.reply_text(
                 f"✅ *Categoría creada exitosamente*\n\n"
-                f"📌 Nombre: *{result.get('name', category_name)}*",
+                f"📌 Nombre: *{category_name}*\n"
+                f"🆔 ID: *{result.get('id', 'N/A')}*",
                 parse_mode='Markdown'
             )
             
+            # Volver al menú de productos
             keyboard = [[InlineKeyboardButton("📦 Volver a productos", callback_data="menu_productos")]]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(
@@ -2482,12 +2554,13 @@ async def add_category_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return ConversationHandler.END
         else:
+            # Verificar si la categoría ya existe
             await update.message.reply_text(
-                f"❌ No se pudo crear la categoría.\n\n"
+                f"❌ No se pudo crear la categoría '{category_name}'.\n\n"
                 f"Posibles razones:\n"
                 f"• La categoría ya existe\n"
                 f"• Error de conexión con el servidor\n\n"
-                f"Por favor, intenta nuevamente:"
+                f"Por favor, intenta con otro nombre:"
             )
             return ADD_CATEGORY_NAME
             
@@ -2495,10 +2568,9 @@ async def add_category_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error al crear categoría: {e}")
         await update.message.reply_text(
             f"❌ Error al crear la categoría: {str(e)}\n\n"
-            f"Por favor, intenta nuevamente:"
+            f"Por favor, intenta nuevamente con otro nombre:"
         )
         return ADD_CATEGORY_NAME
-
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Comando de ayuda"""
     await update.message.reply_text(
@@ -2528,6 +2600,8 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Manejador central de mensajes de texto basado en el estado (action)"""
+    logger.info(f"handle_text called with: {update.message.text}")
+    
     if not update.message or not update.message.text:
         return
     
@@ -2565,6 +2639,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error procesando texto: {e}")
         await update.message.reply_text(f"❌ Error al procesar tu mensaje.")
+
 # ============ MAIN ============
 def main():
     """Función principal con todos los handlers registrados"""
@@ -2575,7 +2650,7 @@ def main():
         application = Application.builder().token(TOKEN).build()
 
         # ============ 1. COMANDOS ============
-        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("start", start_menu))
         application.add_handler(CommandHandler("ayuda", ayuda))
         application.add_handler(CommandHandler("cancelar", cancel))
         application.add_handler(CommandHandler("help", help_command))
@@ -2588,10 +2663,10 @@ def main():
         # ============ 2. CONVERSACIONES ============
         # Conversación para agregar productos
         add_product_conv = ConversationHandler(
-            entry_points=[CallbackQueryHandler(add_product_start, pattern="^add_product$")],
+            entry_points=[CallbackQueryHandler(add_product_start, pattern="^add_product$"), CommandHandler("agregar_producto", add_product_start_command)],
             states={
                 ADD_PRODUCT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_name)],
-                ADD_PRODUCT_SELECT_CATEGORY: [CallbackQueryHandler(category_selected, pattern="^category_")],
+                ADD_PRODUCT_SELECT_CATEGORY: [CallbackQueryHandler(category_selected, pattern="^category_"), CallbackQueryHandler(add_new_category_start, pattern="^add_new_category$")],
                 ADD_PRODUCT_CATEGORY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_category)],
                 ADD_PRODUCT_STOCK: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_stock)],
                 ADD_PRODUCT_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_price)],
@@ -2599,8 +2674,8 @@ def main():
             fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
+            allow_reentry=True,
         )
-        
         # Conversación para agregar reparaciones
         add_repair_conv = ConversationHandler(
             entry_points=[CallbackQueryHandler(add_repair_start, pattern="^add_repair$")],
@@ -2617,6 +2692,7 @@ def main():
             fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
+            allow_reentry=True,
         )
         
         # Conversación para agregar categorías
@@ -2628,6 +2704,7 @@ def main():
             fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
+            allow_reentry=True,
         )
         
         application.add_handler(add_product_conv)
@@ -2666,8 +2743,8 @@ def main():
         application.add_handler(CallbackQueryHandler(register_sale_start, pattern="^register_sale$"))
         application.add_handler(CallbackQueryHandler(add_sale_item_start, pattern="^add_sale_item$"))
         application.add_handler(CallbackQueryHandler(finish_sale_start, pattern="^finish_sale$"))
-        application.add_handler(CallbackQueryHandler(daily_sales, pattern="^daily_sales$"))
-        application.add_handler(CallbackQueryHandler(monthly_sales, pattern="^monthly_sales$"))
+        application.add_handler(CallbackQueryHandler(daily_sales_stats, pattern="^daily_sales$"))
+        application.add_handler(CallbackQueryHandler(monthly_sales_stats, pattern="^monthly_sales$"))
         
         # Estadísticas
         application.add_handler(CallbackQueryHandler(top_products, pattern="^top_products$"))
