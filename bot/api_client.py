@@ -192,16 +192,18 @@ class APIClient:
         response = self._make_request('GET', '/products')
         if response and response.status_code == 200:
             try:
-                response_data = response.json()
-                
-                # Manejar diferentes formatos de respuesta
-                if isinstance(response_data, dict):
-                    products = response_data.get('data', [])
+                response_data = response.json().get('data', {})
+                # El backend retorna {page, limit, totalItems, totalPages, products: [...]}
+                if isinstance(response_data, dict) and 'products' in response_data:
+                    products = response_data.get('products', [])
+                    if not isinstance(products, list):
+                        logger.error(f"get_faults() esperaba lista de productos, recibió {type(products)}")
+                        return []
                 elif isinstance(response_data, list):
-                    # Si la respuesta es directamente una lista
+                    # Si es directamente una lista, usarla
                     products = response_data
                 else:
-                    logger.error(f"Formato de respuesta inesperado: {type(response_data)}")
+                    logger.error(f"get_faults() formato inesperado: {type(response_data)}")
                     return []
                 
                 # Validar que products es una lista
@@ -217,7 +219,6 @@ class APIClient:
                     elif not isinstance(p, dict):
                         logger.warning(f"Item no es diccionario: {type(p)} - {p}")
                 
-                logger.info(f"get_faults() retornando {len(available)} productos disponibles")
                 return available
             except Exception as e:
                 logger.error(f"Error parseando respuesta de productos: {e}")
