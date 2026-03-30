@@ -31,19 +31,33 @@ async function createDevice(device) {
       error.status = 400;
       throw error;
     }
-    // Calcular total
-    const totalPrice = fautlsDB.reduce(
+    // Calcular totales
+    const sparePartsTotal = fautlsDB.reduce(
       (acc, p) => acc + parseFloat(p.price),
       0,
     );
-    // Validar que el pago no sobrepase el total
-    if (device.price_pay > totalPrice) {
+
+    const repairPrice = Number(device.price) || 0;
+    const repairPricePay = Number(device.price_pay) || 0;
+
+    // El precio total debe cubrir al menos el subtotal de repuestos
+    if (repairPrice < sparePartsTotal) {
       const error = new Error(
-        `El pago sobre pasa el precio. El precio total es ${totalPrice}`,
+        `El precio total debe ser al menos el subtotal de repuestos (${sparePartsTotal})`,
       );
       error.status = 400;
       throw error;
     }
+
+    // Validar que el pago no sobrepase el precio total
+    if (repairPricePay > repairPrice) {
+      const error = new Error(
+        `El pago sobre pasa el precio. El precio total es ${repairPrice}`,
+      );
+      error.status = 400;
+      throw error;
+    }
+
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
 
@@ -52,7 +66,7 @@ async function createDevice(device) {
       client,
       newDevice.id,
       fautlsDB,
-      totalPrice,
+      repairPrice,
     );
     await client.query("COMMIT");
 
