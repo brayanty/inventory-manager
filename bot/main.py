@@ -29,7 +29,25 @@ ZONA_HORARIA = pytz.timezone(ZONA_HORARIA_STR)
 
 # Estados para conversación de reparaciones
 (ADD_REPAIR_CLIENT, ADD_REPAIR_PHONE, ADD_REPAIR_DEVICE, ADD_REPAIR_MODEL, 
- ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE) = range(8)
+ ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE, ADD_REPAIR_PAY, ADD_REPAIR_PAY_AMOUNT) = range(10)
+
+BRANDS_DEVICES = [
+    {"id": 1, "name": "Apple"},
+    {"id": 2, "name": "Samsung"},
+    {"id": 3, "name": "Microsoft"},
+    {"id": 4, "name": "Google"},
+    {"id": 5, "name": "Amazon"},
+    {"id": 6, "name": "Sony"},
+    {"id": 7, "name": "Intel"},
+    {"id": 8, "name": "Huawei"},
+    {"id": 9, "name": "Dell"},
+    {"id": 10, "name": "Lenovo"},
+    {"id": 11, "name": "LG Electronics"},
+    {"id": 12, "name": "Xiaomi"},
+    {"id": 13, "name": "HP (Hewlett-Packard)"},
+    {"id": 14, "name": "NVIDIA"},
+    {"id": 15, "name": "Canon"},
+]
 
 # Estados para entrega
 (ADD_DELIVERY_REPAIR_ID, ADD_DELIVERY_CONFIRM) = range(2)
@@ -1327,8 +1345,24 @@ async def add_repair_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_repair_client(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el nombre del cliente"""
-    context.user_data['repair_client'] = update.message.text
-    
+    client_name = update.message.text.strip()
+
+    if not client_name:
+        await update.message.reply_text(
+            "❌ El nombre del cliente no puede quedar vacío.\n\n"
+            "Por favor, ingresa el nombre completo del cliente:"
+        )
+        return ADD_REPAIR_CLIENT
+
+    if len(client_name) < 3:
+        await update.message.reply_text(
+            "❌ El nombre del cliente debe tener al menos 3 caracteres.\n\n"
+            "Por favor, ingresa un nombre más completo:"
+        )
+        return ADD_REPAIR_CLIENT
+
+    context.user_data['repair_client'] = client_name
+
     await update.message.reply_text(
         "📞 *¿Teléfono del cliente?* (opcional)\n\n"
         "Puedes enviar 'ninguno' para omitir:",
@@ -1338,39 +1372,78 @@ async def add_repair_client(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_repair_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el teléfono del cliente"""
-    phone = update.message.text
+    phone = update.message.text.strip()
+    
     if phone.lower() == 'ninguno':
-        context.user_data['repair_phone'] = None
+        context.user_data['repair_phone'] = ""
     else:
-        context.user_data['repair_phone'] = phone
+        # Validar teléfono: debe tener al menos 7 dígitos y máximo 15
+        phone_digits = ''.join(c for c in phone if c.isdigit())
+        
+        if len(phone_digits) < 7:
+            await update.message.reply_text(
+                "❌ El número de teléfono debe tener al menos 7 dígitos.\n\n"
+                "Ejemplos válidos:\n"
+                "• 3001234567 (10 dígitos)\n"
+                "• +573001234567 (13 dígitos con +57)\n\n"
+                "Intenta de nuevo o envía 'ninguno' para omitir:"
+            )
+            return ADD_REPAIR_PHONE
+        
+        if len(phone_digits) > 15:
+            await update.message.reply_text(
+                "❌ El número de teléfono es muy largo (máximo 15 dígitos).\n\n"
+                "Ejemplos válidos:\n"
+                "• 3001234567 (10 dígitos)\n"
+                "• +573001234567 (13 dígitos con +57)\n\n"
+                "Intenta de nuevo o envía 'ninguno' para omitir:"
+            )
+            return ADD_REPAIR_PHONE
+        
+        # Si tiene exactamente 10 dígitos, guardarlo tal cual
+        if len(phone_digits) == 10:
+            context.user_data['repair_phone'] = phone_digits
+        else:
+            # Para números con más/menos dígitos, guardar los dígitos limpios
+            context.user_data['repair_phone'] = phone_digits
     
     await update.message.reply_text(
         "📱 *¿Qué dispositivo trae a reparar?*\n\n"
-        "Ejemplo: *Smartphone*, *Tablet*, *Laptop*",
+        "Ejemplo: *Redmi Note 11*, *iPhone 12*, *Galaxy S23*",
         parse_mode='Markdown'
     )
     return ADD_REPAIR_DEVICE
 
 async def add_repair_device(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe el tipo de dispositivo"""
+    """Recibe el modelo del dispositivo"""
     context.user_data['repair_device'] = update.message.text
     
+    buttons = []
+    for brand in BRANDS_DEVICES:
+        buttons.append([InlineKeyboardButton(brand['name'], callback_data=f"brand_{brand['id']}")])
+
+    buttons.append([InlineKeyboardButton("📝 Ingresar marca manualmente", callback_data="brand_manual")])
+
     await update.message.reply_text(
-        "🏷️ *¿Modelo del dispositivo?* (opcional)\n\n"
-        "Ejemplo: *Samsung A52*, *iPhone 12*\n"
-        "Envía 'ninguno' para omitir:",
-        parse_mode='Markdown'
+        "🏷️ *¿Marca del dispositivo?*\n\n"
+        "Selecciona una opción de la lista o ingresa el nombre manualmente",
+        parse_mode='Markdown',
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
     return ADD_REPAIR_MODEL
 
 async def add_repair_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe el modelo del dispositivo"""
-    model = update.message.text
+    """Recibe el nombre de marca/manual si el usuario escribe texto"""
+    model = update.message.text.strip()
+
     if model.lower() == 'ninguno':
         context.user_data['repair_model'] = None
-    else:
+    elif model:
         context.user_data['repair_model'] = model
-    
+    else:
+        # Si el usuario no escribe texto (por algún motivo), se mantiene el valor previo y sigue
+        context.user_data['repair_model'] = context.user_data.get('repair_model')
+
     await update.message.reply_text(
         "🔢 *¿IMEI del dispositivo?* (opcional, 15 dígitos)\n\n"
         "Ejemplo: *123456789012345*\n"
@@ -1380,7 +1453,7 @@ async def add_repair_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_IMEI
 
 async def add_repair_imei(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe el IMEI del dispositivo y muestra las fallas disponibles"""
+    """Recibe el IMEI del dispositivo y pide buscar fallas/repuestos."""
     imei = update.message.text
     if imei.lower() == 'ninguno':
         context.user_data['repair_imei'] = None
@@ -1392,80 +1465,269 @@ async def add_repair_imei(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return ADD_REPAIR_IMEI
         context.user_data['repair_imei'] = imei
-    
-    # Obtener fallas disponibles del backend
-    faults = api_client.get_faults()
-    
-    if not faults:
-        text = "⚠️ *No hay fallas/repuestos disponibles en este momento*\n\n"
-        text += "Para continuar, escribe los IDs de las fallas manualmente"
-    else:
-        text = "⚠️ *Selecciona las fallas del dispositivo*\n\n"
-        text += "Fallas/Repuestos disponibles:\n\n"
-        for fault in faults[:15]:  # Mostrar máximo 15 opciones
-            # Validar que fault es diccionario
-            if not isinstance(fault, dict):
-                logger.warning(f"Fault no es diccionario: {type(fault)} - {fault}")
-                continue
-                
-            fault_id = fault.get('id', 'N/A')
-            name = fault.get('name', 'Sin nombre')
-            stock = fault.get('stock', 0)
-            price = fault.get('price', 0)
-            text += f"🔧 *ID {fault_id}*: {name} (Stock: {stock}, Precio: {format_currency(price)})\n"
-    
-    text += "\n📝 *¿Qué fallas aplican?*\n"
-    text += "Ingresa los IDs separados por comas (ejemplo: *1,3,5*)"
-    
-    await update.message.reply_text(text, parse_mode='Markdown')
+
+    context.user_data['repair_faults'] = []
+
+    await update.message.reply_text(
+        "🔧 *Buscar fallas o repuestos*\n\n"
+        "Escribe un término para buscar (ejemplo: display, botón, cámara).\n"
+        "También puedes escribir 'ninguno' para continuar sin fallas/repuestos.",
+        parse_mode='Markdown'
+    )
     return ADD_REPAIR_FAULTS
 
+
 async def add_repair_faults(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe las fallas del dispositivo como IDs de productos"""
+    """Recibe las fallas/repuestos y permite selección interactiva con búsqueda."""
     try:
         faults_text = update.message.text.strip()
-        
-        # Validar que no esté vacío
+
         if not faults_text:
-            await update.message.reply_text("❌ Por favor, ingresa al menos una falla (ID de producto).")
+            await update.message.reply_text("❌ Por favor, ingresa un término de búsqueda o escribe 'ninguno'.")
             return ADD_REPAIR_FAULTS
-        
-        # Parsear IDs: pueden ser "1" o "1,2,3"
-        fault_ids = []
-        if ',' in faults_text:
-            parts = [p.strip() for p in faults_text.split(',')]
-            fault_ids = []
-            for part in parts:
-                try:
-                    fault_ids.append(int(part))
-                except ValueError:
-                    await update.message.reply_text(f"❌ '{part}' no es un ID válido. Debe ser un número.")
-                    return ADD_REPAIR_FAULTS
-        else:
-            try:
-                fault_ids = [int(faults_text)]
-            except ValueError:
-                await update.message.reply_text(f"❌ '{faults_text}' no es un ID válido. Debe ser un número.")
+
+        # Omitir fallas/repuestos y continuar
+        if faults_text.lower() in ['ninguno', 'sin', 'none', 'no']:
+            context.user_data['repair_faults'] = context.user_data.get('repair_faults', [])
+            await update.message.reply_text(
+                "📝 Se omiten fallas/repuestos.\n\n"
+                "💬 *¿Detalles adicionales?* (opcional)\n"
+                "Envía 'ninguno' para omitir.",
+                parse_mode='Markdown'
+            )
+            return ADD_REPAIR_DETAIL
+
+        # Terminar selección de fallas si ya hay algunas añadidas
+        if faults_text.lower() in ['finalizar', 'terminar', 'listo']:
+            if not context.user_data.get('repair_faults'):
+                await update.message.reply_text("❌ No has seleccionado ninguna falla/repuesto aún.")
                 return ADD_REPAIR_FAULTS
-        
-        # Convertir a objetos con id (formato que espera el backend)
-        faults = [{'id': fault_id} for fault_id in fault_ids]
-        context.user_data['repair_faults'] = faults
-        
-        # Confirmar las fallas seleccionadas
-        faults_str = ', '.join([f"ID {f['id']}" for f in faults])
+            return await finish_faults_handler(update, context)
+
+        # Búsqueda por texto
+        results = api_client.get_faults(faults_text)
+        if not results:
+            await update.message.reply_text(
+                f"❌ No se encontraron repuestos para '{faults_text}'. Prueba con otra palabra clave o ingresa IDs separados por coma." )
+            return ADD_REPAIR_FAULTS
+
+        buttons = []
+        for fault in results[:8]:
+            fault_id = fault.get('id')
+            fault_name = fault.get('name', 'Sin nombre')
+            fault_price = fault.get('price', 0)
+            buttons.append([
+                InlineKeyboardButton(
+                    f"{fault_name} ({format_currency(fault_price)})",
+                    callback_data=f"select_fault_{fault_id}"
+                )
+            ])
+
+        buttons.append([InlineKeyboardButton("🔎 Buscar otra vez", callback_data="search_faults")])
+        buttons.append([InlineKeyboardButton("✅ Terminar selección", callback_data="finish_faults")])
+
         await update.message.reply_text(
-            f"✅ Fallas seleccionadas: {faults_str}\n\n"
-            "📝 *¿Detalles adicionales?* (opcional)\n\n"
-            "Información extra sobre el equipo o el problema.\n"
-            "Envía 'ninguno' para omitir:",
-            parse_mode='Markdown'
+            f"🔎 Se encontraron {len(results)} repuestos.",
+            parse_mode='Markdown',
+            reply_markup=InlineKeyboardMarkup(buttons)
         )
-        return ADD_REPAIR_DETAIL
+        return ADD_REPAIR_FAULTS
+
     except Exception as e:
         logger.error(f"Error en add_repair_faults: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
         return ADD_REPAIR_FAULTS
+
+
+async def select_repair_fault(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback para seleccionar una falla/repuesto del botón."""
+    query = update.callback_query
+    
+    try:
+        await query.answer()
+        
+        # Extraer ID de callback_data: "select_fault_123"
+        callback_data = query.data
+        fault_id = int(callback_data.split('_')[-1])
+        
+        # Obtener producto completo
+        item = api_client.get_product_by_id(fault_id)
+        if not item:
+            await query.answer("❌ No se encontró el repuesto.", show_alert=True)
+            return ADD_REPAIR_FAULTS
+        
+        # Agregar a la lista si no existe
+        selected = context.user_data.get('repair_faults', [])
+        existing = next((f for f in selected if f.get('id') == fault_id), None)
+        
+        if existing:
+            await query.answer("⚠️ Este repuesto ya está seleccionado.", show_alert=True)
+            return ADD_REPAIR_FAULTS
+        
+        # Convertir precio a float para evitar issues con sumas
+        price = item.get('price', 0)
+        if isinstance(price, str):
+            try:
+                price = float(price)
+            except (ValueError, TypeError):
+                price = 0
+        
+        selected.append({
+            'id': fault_id,
+            'name': item.get('name', 'Sin nombre'),
+            'price': price
+        })
+        context.user_data['repair_faults'] = selected
+        
+        # Mostrar lista actualizada
+        selected_names = '\n'.join([f"✅ {f.get('name', 'N/A')} ({format_currency(f.get('price', 0))}) - ID {f.get('id')}" for f in selected]) or 'Ninguno'
+        
+        buttons = [
+            [InlineKeyboardButton("🔎 Buscar más", callback_data="search_faults")],
+            [InlineKeyboardButton("✅ Finalizar", callback_data="finish_faults")],
+            [InlineKeyboardButton("📝 Ingresar IDs manualmente", callback_data="manual_faults")]
+        ]
+        
+        message_text = (
+            f"✅ *Repuesto agregado.*\n\n"
+            f"📋 *Seleccionados ({len(selected)}):*\n"
+            f"{selected_names}\n\n"
+            "_¿Qué deseas hacer?_"
+        )
+        
+        await query.edit_message_text(message_text, parse_mode='Markdown', reply_markup=InlineKeyboardMarkup(buttons))
+        
+    except Exception as e:
+        logger.error(f"Error en select_repair_fault: {e}")
+        try:
+            await query.answer(f"❌ Error: {str(e)[:50]}", show_alert=True)
+        except:
+            pass
+    
+    return ADD_REPAIR_FAULTS
+
+
+async def search_repair_fault(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Solicita un término de búsqueda para fallas/repuestos."""
+    query = update.callback_query
+    
+    try:
+        await query.answer()
+        await query.edit_message_text(
+            "🔎 *Ingrese término de búsqueda para repuestos:*\nEjemplo: 'display', 'botón', 'cámara'\n\n"
+            "Puedes escribir cuando estés listo para ver resultados:",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error en search_repair_fault: {e}")
+        try:
+            await query.edit_message_text(f"❌ Error: {str(e)[:100]}")
+        except:
+            pass
+    return ADD_REPAIR_FAULTS
+
+
+async def select_brand_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback que selecciona la marca en el paso de modelo."""
+    query = update.callback_query
+    
+    try:
+        await query.answer()
+
+        callback_data = query.data
+        if callback_data == 'brand_manual':
+            await query.edit_message_text(
+                "📝 Ingresa el nombre de la marca/modelo manualmente (ejemplo: Xiaomi):"
+            )
+            return ADD_REPAIR_MODEL
+
+        try:
+            brand_id = int(callback_data.replace('brand_', ''))
+        except ValueError:
+            await query.edit_message_text('❌ Marca inválida, intenta de nuevo.')
+            return ADD_REPAIR_MODEL
+
+        brand = next((b for b in BRANDS_DEVICES if b['id'] == brand_id), None)
+        if not brand:
+            await query.edit_message_text('❌ Marca no encontrada, intenta de nuevo.')
+            return ADD_REPAIR_MODEL
+
+        context.user_data['repair_model'] = brand['name']
+
+        await query.edit_message_text(
+            f"✅ Marca seleccionada: *{brand['name']}*\n\n"
+            "🔢 *¿IMEI del dispositivo?* (opcional, 15 dígitos)\n\n"
+            "Ejemplo: 123456789012345\n"
+            "Envía 'ninguno' para omitir:",
+            parse_mode='Markdown'
+        )
+
+        return ADD_REPAIR_IMEI
+
+    except Exception as e:
+        logger.error(f"Error en select_brand_model: {e}")
+        try:
+            await query.edit_message_text(f"❌ Error: {str(e)[:100]}")
+        except:
+            pass
+
+        return ADD_REPAIR_MODEL
+
+
+async def manual_repair_faults(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Solicita ingreso manual de IDs."""
+    query = update.callback_query
+    
+    try:
+        await query.answer()
+        await query.edit_message_text(
+            "✍️ *Modo manual:* Ingresa los IDs de los repuestos separados por coma (ejemplo: 1,2,3).",
+            parse_mode='Markdown'
+        )
+    except Exception as e:
+        logger.error(f"Error en manual_repair_faults: {e}")
+        try:
+            await query.edit_message_text(f"❌ Error: {str(e)[:100]}")
+        except:
+            pass
+    
+    return ADD_REPAIR_FAULTS
+
+
+async def finish_faults_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Finaliza selección de fallas y pasa a detalle."""
+    try:
+        if hasattr(update, 'callback_query') and update.callback_query:
+            query = update.callback_query
+            await query.answer()
+            is_callback = True
+        else:
+            is_callback = False
+
+        selected = context.user_data.get('repair_faults', [])
+        selected_names = ', '.join([f"{f.get('name', 'N/A')} (ID {f.get('id')})" for f in selected]) or 'Ninguno'
+
+        message_text = (
+            f"✅ Selección finalizada.\n\n"
+            f"🔧 Fallas/Repuestos seleccionados: {selected_names or 'Ninguno'}\n\n"
+            "📝 *¿Detalles adicionales?* (opcional)\n"
+            "Envía 'ninguno' para omitir."
+        )
+
+        if is_callback:
+            await update.callback_query.edit_message_text(message_text, parse_mode='Markdown')
+        else:
+            await update.message.reply_text(message_text, parse_mode='Markdown')
+            
+    except Exception as e:
+        logger.error(f"Error en finish_faults_handler: {e}")
+        try:
+            if hasattr(update, 'callback_query') and update.callback_query:
+                await update.callback_query.edit_message_text(f"❌ Error: {str(e)[:100]}")
+        except:
+            pass
+
+    return ADD_REPAIR_DETAIL
 
 async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe detalles adicionales"""
@@ -1475,50 +1737,63 @@ async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         context.user_data['repair_detail'] = detail
     
-    await update.message.reply_text(
-        "💰 *¿Precio de la reparación?*\n\n"
-        "Ingresa solo el número (ejemplo: *50000* para $50,000)",
-        parse_mode='Markdown'
-    )
+    # Calcular monto de repuestos seleccionados
+    faults = context.user_data.get('repair_faults', [])
+    faults_total = sum(float(f.get('price', 0)) if isinstance(f.get('price', 0), (int, float, str)) else 0 for f in faults)
+    
+    message = "💰 *¿Precio de la mano de obra?*\n\n"
+    
+    if faults_total > 0:
+        message += f"🔧 *Repuestos seleccionados:*\n"
+        for fault in faults:
+            message += f"• {fault.get('name', 'N/A')}: {format_currency(fault.get('price', 0))}\n"
+        message += f"\n*Subtotal repuestos:* {format_currency(faults_total)}\n\n"
+    
+    message += "Ingresa solo el número (ejemplo: *50000* para $50,000)"
+    
+    context.user_data['repair_faults_total'] = faults_total
+    
+    await update.message.reply_text(message, parse_mode='Markdown')
     return ADD_REPAIR_PRICE
 
+
 async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Recibe el precio y muestra resumen para confirmar"""
+    """Recibe el precio de mano de obra y calcula el total con repuestos"""
     try:
-        price = float(update.message.text)
-        if price <= 0:
-            await update.message.reply_text("❌ El precio debe ser mayor a cero. Intenta de nuevo:")
+        labor_price = float(update.message.text)
+        if labor_price < 0:
+            await update.message.reply_text("❌ El precio no puede ser negativo. Intenta de nuevo:")
             return ADD_REPAIR_PRICE
         
-        # Guardar precio
-        context.user_data['repair_price'] = price
+        # Obtener el total de repuestos y calcular el total
+        faults_total = context.user_data.get('repair_faults_total', 0)
+        total_price = labor_price + faults_total
         
-        # Mostrar resumen
-        faults_text = ", ".join([f.get('name', 'N/A') for f in context.user_data.get('repair_faults', [])]) or "Ninguna"
+        context.user_data['repair_labor_price'] = labor_price
+        context.user_data['repair_price'] = total_price
         
-        keyboard = [
-            [InlineKeyboardButton("✅ Crear reparación", callback_data="create_repair")],
-            [InlineKeyboardButton("❌ Cancelar", callback_data="cancel")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        # Mostrar desglose
+        message = "📊 *Desglose del precio:*\n\n"
+        message += f"🔧 *Mano de obra:* {format_currency(labor_price)}\n"
         
-        await update.message.reply_text(
-            f"📋 *Resumen de la reparación*\n\n"
-            f"👤 *Cliente:* {context.user_data['repair_client']}\n"
-            f"📞 *Teléfono:* {context.user_data.get('repair_phone', 'No especificado')}\n"
-            f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
-            f"🏷️ *Modelo:* {context.user_data.get('repair_model', 'No especificado')}\n"
-            f"📱 *IMEI:* {context.user_data.get('repair_imei', 'No especificado')}\n"
-            f"🔧 *Fallas:* {faults_text}\n"
-            f"📝 *Detalle:* {context.user_data.get('repair_detail', 'No especificado')}\n"
-            f"💰 *Precio:* {format_currency(price)}\n\n"
-            "¿Confirmas la creación de esta reparación?",
-            parse_mode='Markdown',
-            reply_markup=reply_markup
-        )
+        if faults_total > 0:
+            faults = context.user_data.get('repair_faults', [])
+            message += f"📦 *Repuestos:* {format_currency(faults_total)}\n"
+            for fault in faults:
+                message += f"  • {fault.get('name', 'N/A')}: {format_currency(fault.get('price', 0))}\n"
         
-        return ConversationHandler.END
+        message += f"\n{'='*40}\n"
+        message += f"💰 *TOTAL:* {format_currency(total_price)}\n"
+        message += f"{'='*40}\n\n"
+        message += "💳 *¿El cliente pagó la reparación?*\n\n"
+        message += "Responde con una opción:\n"
+        message += "• *si* - Pagó el monto completo\n"
+        message += "• *parcial* - Pagó solo una parte\n"
+        message += "• *no* - No pagó nada"
         
+        await update.message.reply_text(message, parse_mode='Markdown')
+        return ADD_REPAIR_PAY
+
     except ValueError:
         await update.message.reply_text("❌ Por favor, ingresa un número válido para el precio:")
         return ADD_REPAIR_PRICE
@@ -1526,6 +1801,132 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Error en add_repair_price: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
         return ConversationHandler.END
+
+
+async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Pregunta si hay pago (sí, parcial o no)"""
+    response = update.message.text.strip().lower()
+    
+    if response in ['no', 'n']:
+        # Sin pago
+        context.user_data['repair_paid'] = False
+        context.user_data['repair_price_pay'] = 0
+        return await show_repair_summary(update, context)
+    
+    elif response in ['si', 'sí', 's', 'yes']:
+        # Pago completo
+        context.user_data['repair_paid'] = True
+        context.user_data['repair_price_pay'] = context.user_data.get('repair_price', 0)
+        return await show_repair_summary(update, context)
+    
+    elif response in ['parcial', 'partial', 'p']:
+        # Pago parcial - solicitar monto
+        context.user_data['repair_paid'] = False  # Aún no está completamente pagado
+        await update.message.reply_text(
+            f"💰 *¿Monto a abonar?*\n\n"
+            f"Precio total: {format_currency(context.user_data['repair_price'])}\n\n"
+            "Ingresa solo el número (ejemplo: 50000 para $50,000)"
+        )
+        return ADD_REPAIR_PAY_AMOUNT
+    
+    else:
+        await update.message.reply_text(
+            "❌ Ingresa una respuesta válida:\n"
+            "• *si* - Pagó el monto completo\n"
+            "• *parcial* - Pagó solo una parte\n"
+            "• *no* - No pagó nada\n\n"
+            "Responde nuevamente:"
+        )
+        return ADD_REPAIR_PAY
+
+
+async def add_repair_pay_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Recibe el monto del pago parcial"""
+    amount_text = update.message.text.strip()
+    
+    try:
+        amount = float(amount_text)
+        if amount <= 0:
+            await update.message.reply_text(
+                "❌ El monto debe ser mayor a 0.\n"
+                f"Precio total: {format_currency(context.user_data['repair_price'])}\n\n"
+                "Intenta de nuevo:"
+            )
+            return ADD_REPAIR_PAY_AMOUNT
+        
+        max_price = context.user_data.get('repair_price', 0)
+        if amount > max_price:
+            await update.message.reply_text(
+                f"❌ El monto no puede exceder el precio total ({format_currency(max_price)}).\n\n"
+                "Intenta de nuevo:"
+            )
+            return ADD_REPAIR_PAY_AMOUNT
+        
+        context.user_data['repair_price_pay'] = amount
+        return await show_repair_summary(update, context)
+    
+    except ValueError:
+        await update.message.reply_text(
+            "❌ Ingresa un número válido (ejemplo: 50000)."
+        )
+        return ADD_REPAIR_PAY_AMOUNT
+
+
+async def show_repair_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra el resumen final de la reparación"""
+    faults_text = ", ".join([f.get('name', 'N/A') for f in context.user_data.get('repair_faults', [])]) or "Ninguna"
+    price_pay = context.user_data.get('repair_price_pay', 0)
+    total_price = context.user_data.get('repair_price', 0)
+    labor_price = context.user_data.get('repair_labor_price', 0)
+    faults_total = context.user_data.get('repair_faults_total', 0)
+    remaining = total_price - price_pay
+
+    keyboard = [
+        [InlineKeyboardButton("✅ Crear reparación", callback_data="create_repair")],
+        [InlineKeyboardButton("❌ Cancelar", callback_data="cancel")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    summary_text = (
+        f"📋 *Resumen de la reparación*\n\n"
+        f"👤 *Cliente:* {context.user_data['repair_client']}\n"
+        f"📞 *Teléfono:* {context.user_data.get('repair_phone', 'No especificado')}\n"
+        f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
+        f"🏷️ *Modelo:* {context.user_data.get('repair_model', 'No especificado')}\n"
+        f"📱 *IMEI:* {context.user_data.get('repair_imei', 'No especificado')}\n"
+        f"🔧 *Fallas:* {faults_text}\n"
+        f"📝 *Detalle:* {context.user_data.get('repair_detail', 'No especificado')}\n\n"
+    )
+    
+    # Desglose de precios
+    summary_text += f"📊 *Desglose del precio:*\n"
+    summary_text += f"🔧 Mano de obra: {format_currency(labor_price)}\n"
+    if faults_total > 0:
+        summary_text += f"📦 Repuestos: {format_currency(faults_total)}\n"
+    summary_text += f"{'='*40}\n"
+    summary_text += f"💰 *TOTAL:* {format_currency(total_price)}\n"
+    summary_text += f"{'='*40}\n\n"
+    
+    if price_pay > 0:
+        summary_text += f"💵 *Monto abonado:* {format_currency(price_pay)}\n"
+        if remaining > 0:
+            summary_text += f"⏳ *Saldo pendiente:* {format_currency(remaining)}\n"
+        else:
+            summary_text += f"✅ *Pago completo*\n"
+    else:
+        summary_text += f"⏳ *Sin abono - Saldo total:* {format_currency(total_price)}\n"
+    
+    
+    summary_text += "\n¿Confirmas la creación de esta reparación?"
+
+    await update.message.reply_text(
+        summary_text,
+        parse_mode='Markdown',
+        reply_markup=reply_markup
+    )
+
+    return ConversationHandler.END
+
 
 # add repair 
 async def add_spare_parts_to_repair(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2444,6 +2845,7 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
     
     try:
         # Crear reparación a través del API
+        price_pay = context.user_data.get('repair_price_pay', 0) or 0
         device = api_client.create_device(
             client_name=context.user_data['repair_client'],
             number_phone=context.user_data.get('repair_phone', ''),
@@ -2452,7 +2854,7 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
             faults=context.user_data.get('repair_faults', []),
             detail=context.user_data.get('repair_detail', ''),
             price=context.user_data['repair_price'],
-            price_pay=0,  # Inicialmente sin pago
+            price_pay=price_pay,
             imei=context.user_data.get('repair_imei', '')
         )
         
@@ -2479,8 +2881,10 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
                 reply_markup=reply_markup
             )
         else:
-            await query.edit_message_text("❌ Error al guardar la reparación. Intenta de nuevo.")
-            
+            await query.edit_message_text(
+                "❌ Error al guardar la reparación. Verifica que el nombre de cliente tenga 3 o más caracteres, el teléfono sea válido y completa los datos pedidos."
+            )
+    
     except Exception as e:
         logger.error(f"Error en create_repair_callback: {e}")
         await query.edit_message_text(f"❌ Error: {e}")
@@ -2683,11 +3087,22 @@ def main():
                 ADD_REPAIR_CLIENT: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_client)],
                 ADD_REPAIR_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_phone)],
                 ADD_REPAIR_DEVICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_device)],
-                ADD_REPAIR_MODEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_model)],
+                ADD_REPAIR_MODEL: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_model),
+                    CallbackQueryHandler(select_brand_model, pattern="^brand_")
+                ],
                 ADD_REPAIR_IMEI: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_imei)],
-                ADD_REPAIR_FAULTS: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_faults)],
+                ADD_REPAIR_FAULTS: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_faults),
+                    CallbackQueryHandler(select_repair_fault, pattern="^select_fault_"),
+                    CallbackQueryHandler(search_repair_fault, pattern="^search_faults$"),
+                    CallbackQueryHandler(manual_repair_faults, pattern="^manual_faults$"),
+                    CallbackQueryHandler(finish_faults_handler, pattern="^finish_faults$"),
+                ],
                 ADD_REPAIR_DETAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_detail)],
                 ADD_REPAIR_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_price)],
+                ADD_REPAIR_PAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay)],
+                ADD_REPAIR_PAY_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay_amount)],
             },
             fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,

@@ -186,24 +186,22 @@ class APIClient:
         return None
     
     # ============ REPARACIONES / DISPOSITIVOS ============
-    def get_faults(self) -> List[Dict[str, Any]]:
-        """Obtiene todas las fallas/repuestos disponibles"""
-        # Obtener productos disponibles que pueden ser fallas
-        response = self._make_request('GET', '/products')
+    def get_faults(self, search: str = "") -> List[Dict[str, Any]]:
+        """Obtiene todas las fallas/repuestos disponibles con búsqueda opcional"""
+        # Buscar en el endpoint de reparaciones que filtra por categorías específicas
+        response = self._make_request('GET', f'/repairs?search={search}')
         if response and response.status_code == 200:
             try:
-                response_data = response.json().get('data', {})
-                # El backend retorna {page, limit, totalItems, totalPages, products: [...]}
-                if isinstance(response_data, dict) and 'products' in response_data:
-                    products = response_data.get('products', [])
-                    if not isinstance(products, list):
-                        logger.error(f"get_faults() esperaba lista de productos, recibió {type(products)}")
-                        return []
+                response_data = response.json()
+                
+                # Manejar diferentes formatos de respuesta
+                if isinstance(response_data, dict):
+                    products = response_data.get('data', [])
                 elif isinstance(response_data, list):
-                    # Si es directamente una lista, usarla
+                    # Si la respuesta es directamente una lista
                     products = response_data
                 else:
-                    logger.error(f"get_faults() formato inesperado: {type(response_data)}")
+                    logger.error(f"Formato de respuesta inesperado: {type(response_data)}")
                     return []
                 
                 # Validar que products es una lista
@@ -219,6 +217,7 @@ class APIClient:
                     elif not isinstance(p, dict):
                         logger.warning(f"Item no es diccionario: {type(p)} - {p}")
                 
+                logger.info(f"get_faults('{search}') retornando {len(available)} productos disponibles")
                 return available
             except Exception as e:
                 logger.error(f"Error parseando respuesta de productos: {e}")
@@ -286,11 +285,14 @@ class APIClient:
             logger.error("model debe tener al menos 2 caracteres")
             return None
         
-        # Validar número de teléfono (debe ser 10 dígitos)
-        phone_digits = ''.join(c for c in number_phone if c.isdigit())
-        if len(phone_digits) != 10:
-            logger.error(f"Número de teléfono inválido: {number_phone}. Debe tener 10 dígitos")
-            return None
+        # Validar número de teléfono (debe ser entre 7 y 15 dígitos, pero es opcional)
+        if number_phone:
+            phone_digits = ''.join(c for c in str(number_phone) if c.isdigit())
+            if phone_digits and (len(phone_digits) < 7 or len(phone_digits) > 15):
+                logger.error(f"Número de teléfono inválido: {number_phone}. Debe tener entre 7 y 15 dígitos")
+                return None
+        else:
+            phone_digits = ""  # Teléfono opcional
         
         # Validar IMEI (debe ser 15 dígitos si se proporciona)
         if imei:
