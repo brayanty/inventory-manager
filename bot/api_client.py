@@ -254,6 +254,7 @@ class APIClient:
         if response and response.status_code == 200:
             try:
                 data = response.json().get('data')
+                logger.info(f"get_device_by_id({device_id}) data obtenida: {data}")
                 if data is None:
                     return None
                 # El backend retorna data como una lista, extraer el primer elemento
@@ -327,11 +328,12 @@ class APIClient:
             'imei': imei or ""  # String vacío si no se proporciona
         }
         
-        logger.info(f"Creando reparación con datos: {data}")
+        
         response = self._make_request('POST', '/devices', data=data)
         if response and response.status_code == 201:
             try:
-                result = response.json().get('data')
+                full_response = response.json()
+                result = full_response.get('data')
                 if result is not None and not isinstance(result, dict):
                     logger.error(f"create_device() esperaba dict, recibió {type(result)}: {result}")
                     return None
@@ -344,7 +346,7 @@ class APIClient:
     def update_device_status(self, device_id: int, status: str) -> Optional[Dict[str, Any]]:
         """Actualiza el estado de una reparación"""
         data = {'repair_status': status}
-        response = self._make_request('PUT', f'/devices/status/{device_id}', data=data)
+        response = self._make_request('PUT', f'/devices/{device_id}', data=data)
         if response and response.status_code == 200:
             try:
                 result = response.json().get('data')
@@ -391,7 +393,7 @@ class APIClient:
     def register_delivery(self, device_id: int) -> Optional[Dict[str, Any]]:
         """Registra la entrega de una reparación"""
         data = {'delivered': True, 'delivery_date': datetime.now().isoformat()}
-        response = self._make_request('PUT', f'/devices/{device_id}', data=data)
+        response = self._make_request('PUT', f'/devices/status/{device_id}', data=data)
         if response and response.status_code == 200:
             try:
                 result = response.json().get('data')
