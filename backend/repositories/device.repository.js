@@ -79,9 +79,9 @@ export async function getDeviceByID(client, deviceID) {
     [deviceID],
   );
   if (rowCount === 0) {
-    return  null ;
+    return { rows: null };
   }
-  return rows[0] ;
+  return rows[0];
 }
 
 export async function updateDeviceStatusPay(client, deviceID, outputStatus) {
