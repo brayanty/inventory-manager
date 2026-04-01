@@ -8,11 +8,7 @@ export default async function getDevice(req, res) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const { rows, rowCount } = await getDeviceByID(client, deviceID);
-
-    if (rowCount < 1) {
-      return handleError(req, res, "No hay datos para este producto", 404);
-    }
+    const rows = await getDeviceByID(client, deviceID);
 
     handleSuccess(req, res, rows);
   } catch (err) {
