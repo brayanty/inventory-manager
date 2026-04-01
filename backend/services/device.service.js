@@ -83,7 +83,7 @@ async function createDevice(device) {
       faults: fautlsDB,
     });
 
-    return { device, statusPrinter };
+    return { device: newDevice, statusPrinter };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
