@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import inspect
 import requests
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -80,6 +81,13 @@ def format_currency(amount):
     except (ValueError, TypeError):
         return "$0.00"
 
+async def fetch_device(device_id: int) -> Optional[Dict[str, Any]]:
+    """Obtiene un dispositivo/reparación y espera solo si es awaitable"""
+    device = api_client.get_device_by_id(device_id)
+    if inspect.isawaitable(device):
+        device = await device
+    return device
+
 # Validar usuario
 def require_auth(func):
     """Decorador para verificar si el usuario está autorizado/registrado"""
@@ -135,30 +143,6 @@ def require_auth_callback(func):
         return await func(update, context)
     
     return wrapper
-
-# ============ COMANDOS DE AUTENTICACIÓN ============
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando de inicio"""
-    user = update.effective_user
-    user_id = user.id
-    
-    # Verificar si está registrado
-    is_registered = api_client.verify_user(user_id)
-    
-    if is_registered:
-        await update.message.reply_text(
-            f"👋 ¡Bienvenido, {user.first_name}!\n\n"
-            "✅ Ya estás autorizado en el sistema.\n\n"
-            "Usa /ayuda para ver los comandos disponibles."
-        )
-    else:
-        await update.message.reply_text(
-            f"👋 ¡Hola, {user.first_name}!\n\n"
-            "❌ No estás registrado en el sistema.\n\n"
-            "Para acceder, solicita al administrador que te agregue al sistema.\n"
-            "El admin puede usar:\n"
-            "`/agregar_usuario " + str(user_id) + "`"
-        )
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra información de ayuda y comandos disponibles"""
@@ -649,6 +633,11 @@ async def view_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
+    # Limpiar acciones previas para evitar conflictos
+    context.user_data.pop('adding_spare_part', None)
+    context.user_data.pop('adding_spare_parts', None)
+    context.user_data.pop('current_repair_id', None)
+    
     context.user_data['action'] = 'view_spare_parts'
     keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -672,7 +661,7 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             return
         
         # Obtener información de la reparación del API
-        repair = api_client.get_device_by_id(repair_id)
+        repair = await fetch_device(repair_id)
         
         if not repair:
             await update.message.reply_text("❌ Reparación no encontrada")
@@ -685,13 +674,14 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             return
         
         # Obtener repuestos (si el backend lo soporta)
-        spare_parts = api_client.get_repair_spare_parts(repair_id)
+        # spare_parts = api_client.get_repair_spare_parts(repair_id)
         
-        if not spare_parts:
-            text = f"🔧 *Reparación #{repair_id}*\n\n"
+        if not repair.get('spare_parts'):
+            text = f"🔧 *Reparación #{repair.get('id', 'N/A')}*\n\n"
             text += f"👤 *Cliente:* {repair.get('client_name', 'N/A')}\n"
             text += f"📱 *Dispositivo:* {repair.get('device', 'N/A')}\n"
             text += f"📊 *Estado:* {repair.get('repair_status', 'N/A')}\n\n"
+            text += f" *Esta entregado:* {'✅ Sí' if repair.get('output_status', False) else '❌ No'}\n\n"
             text += "🔩 *No se han registrado repuestos para esta reparación*"
         else:
             # Validar que spare_parts sea una lista
@@ -709,6 +699,7 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             text += f"👤 *Cliente:* {repair.get('client_name', 'N/A')}\n"
             text += f"📱 *Dispositivo:* {repair.get('device', 'N/A')}\n"
             text += f"📊 *Estado:* {repair.get('repair_status', 'N/A')}\n\n"
+            text += f" *Esta entregado:* {'✅ Sí' if repair.get('output_status', False) else '❌ No'}\n\n"
             text += "🔩 *Repuestos utilizados:*\n"
             
             for part in spare_parts:
@@ -854,7 +845,7 @@ async def handle_update_repair_status(update: Update, context: ContextTypes.DEFA
         repair_id = int(message_text)
         
         # Obtener reparación del API
-        repair = api_client.get_device_by_id(repair_id)
+        repair = await fetch_device(repair_id)
         
         if not repair:
             await update.message.reply_text(f"❌ Reparación con ID {repair_id} no encontrada")
@@ -928,8 +919,6 @@ async def handle_set_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         repair_id = int(parts[2])
         new_status = '_'.join(parts[3:]).replace('_', ' ')  # Convertir back a estado con espacios
         
-        logger.info(f"Actualizando reparación {repair_id} a estado: {new_status}")
-        
         # Actualizar estado a través del API
         result = api_client.update_device_status(repair_id, new_status)
         
@@ -986,8 +975,7 @@ async def handle_print_repair_ticket(update: Update, context: ContextTypes.DEFAU
             return
         
         # Obtener reparación del API
-        repair = api_client.get_device_by_id(repair_id)
-        
+        repair = await fetch_device(repair_id)
         if not repair:
             await update.message.reply_text("❌ Reparación no encontrada")
             return
@@ -995,7 +983,7 @@ async def handle_print_repair_ticket(update: Update, context: ContextTypes.DEFAU
         repair_data = {
             'id': repair['id'],
             'client_name': repair.get('client_name', 'N/A'),
-            'number_phone': repair.get('number_phone', ''),
+            'number_phone': repair.get('number_phone'),
             'device': repair.get('device', 'N/A'),
             'model': repair.get('model', ''),
             'price': repair.get('price', 0),
@@ -1052,7 +1040,7 @@ async def handle_register_payment(update: Update, context: ContextTypes.DEFAULT_
             return
         
         # Obtener reparación del API
-        repair = api_client.get_device_by_id(repair_id)
+        repair = await fetch_device(repair_id)
         
         if not repair:
             await update.message.reply_text("❌ Reparación no encontrada")
@@ -1077,7 +1065,7 @@ async def handle_register_payment(update: Update, context: ContextTypes.DEFAULT_
             )
             return
         
-        if repair.get('price', 0) <= 0:
+        if float(repair.get('price', 0)) <= 0:
             await update.message.reply_text("❌ El precio de la reparación no es válido")
             return
         
@@ -1120,32 +1108,37 @@ async def handle_register_payment(update: Update, context: ContextTypes.DEFAULT_
 # ============ REGISTRO DE PRODUCTOS CON CONVERSACIÓN ============
 @require_auth_callback
 async def add_product_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Inicia el registro de un producto con preguntas"""
-    query = update.callback_query
-    await query.answer()
+    """Inicia el registro de un producto con preguntas (para callback y comando)"""
+    is_callback = hasattr(update, 'callback_query') and update.callback_query is not None
     
-    logger.info("add_product_start called")
+    text = "➕ *Registrar nuevo producto*\n\n"
     
-    await query.edit_message_text(
-        "➕ *Registrar nuevo producto*\n\n"
-        "Por favor, **responde a este mensaje** con el nombre del producto.\n\n"
-        "📝 *¿Cuál es el nombre del producto?*\n\n"
-        "Ejemplo: *Smartphone Samsung Galaxy A52*\n\n"
-        "💡 **Importante:** Envía un mensaje de texto con el nombre, no presiones botones.\n\n"
-        "Para cancelar, usa /cancelar",
-        parse_mode='Markdown'
-    )
+    if is_callback:
+        text += "Por favor, **responde a este mensaje** con el nombre del producto.\n\n"
+    
+    text += "📝 *¿Cuál es el nombre del producto?*\n\n"
+    text += "Ejemplo: *Smartphone Samsung Galaxy A52*\n\n"
+    
+    if is_callback:
+        text += "💡 **Importante:** Envía un mensaje de texto con el nombre, no presiones botones.\n\n"
+    
+    text += "Para cancelar, usa /cancelar"
+    
+    if is_callback:
+        query = update.callback_query
+        await query.answer()
+        await query.edit_message_text(text, parse_mode='Markdown')
+    else:
+        await update.message.reply_text(text, parse_mode='Markdown')
+    
     return ADD_PRODUCT_NAME
 
 @require_auth_callback
 async def add_product_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el nombre del producto y muestra opciones de categorías"""
-    logger.info(f"add_product_name llamado con: {update.message.text}")
     context.user_data['product_name'] = update.message.text
-    logger.info("Obteniendo categorías...")
     # Obtener categorías de la base de datos
     categories = api_client.get_categories()
-    logger.info(f"Categorías obtenidas: {categories}")
     if not categories:
         logger.warning("No hay categorías disponibles") 
         await update.message.reply_text(
@@ -1183,8 +1176,6 @@ async def add_new_category_start(update: Update, context: ContextTypes.DEFAULT_T
     query = update.callback_query
     await query.answer()
     
-    logger.info("add_new_category_start called")
-    
     try:
         await query.edit_message_text(
             "➕ *Agregar nueva categoría para el producto*\n\n"
@@ -1207,8 +1198,6 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Maneja la selección de categoría desde los botones"""
     query = update.callback_query
     await query.answer()
-    
-    logger.info(f"category_selected called with data: {query.data}")
     
     try:
         # Extraer la categoría del callback_data
@@ -1235,8 +1224,7 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @require_auth_callback
 async def add_product_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe la categoría del producto (fallback si no se selecciona desde botones)"""
-    logger.info(f"add_product_category called with: {update.message.text}")
-    
+
     try:
         context.user_data['product_category'] = update.message.text
         
@@ -1253,8 +1241,7 @@ async def add_product_category(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def add_product_stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el stock del producto"""
-    logger.info(f"add_product_stock called with: {update.message.text}")
-    
+  
     try:
         stock = int(update.message.text)
         if stock < 0:
@@ -1275,8 +1262,7 @@ async def add_product_stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el precio y guarda el producto"""
-    logger.info(f"add_product_price called with: {update.message.text}")
-    
+ 
     try:
         price = float(update.message.text)
         if price <= 0:
@@ -1380,31 +1366,28 @@ async def add_repair_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Validar teléfono: debe tener al menos 7 dígitos y máximo 15
         phone_digits = ''.join(c for c in phone if c.isdigit())
         
-        if len(phone_digits) < 7:
+        if len(phone_digits) == 10:
+            context.user_data['repair_phone'] = phone_digits
+        else:
             await update.message.reply_text(
-                "❌ El número de teléfono debe tener al menos 7 dígitos.\n\n"
+                "❌ El número de teléfono debe tener 10 dígitos.\n\n"
                 "Ejemplos válidos:\n"
                 "• 3001234567 (10 dígitos)\n"
-                "• +573001234567 (13 dígitos con +57)\n\n"
                 "Intenta de nuevo o envía 'ninguno' para omitir:"
             )
             return ADD_REPAIR_PHONE
         
-        if len(phone_digits) > 15:
+        if len(phone_digits) > 10:
             await update.message.reply_text(
-                "❌ El número de teléfono es muy largo (máximo 15 dígitos).\n\n"
+                "❌ El número de teléfono es muy largo (máximo 10 dígitos).\n\n"
                 "Ejemplos válidos:\n"
                 "• 3001234567 (10 dígitos)\n"
-                "• +573001234567 (13 dígitos con +57)\n\n"
                 "Intenta de nuevo o envía 'ninguno' para omitir:"
             )
             return ADD_REPAIR_PHONE
         
         # Si tiene exactamente 10 dígitos, guardarlo tal cual
         if len(phone_digits) == 10:
-            context.user_data['repair_phone'] = phone_digits
-        else:
-            # Para números con más/menos dígitos, guardar los dígitos limpios
             context.user_data['repair_phone'] = phone_digits
     
     await update.message.reply_text(
@@ -1925,7 +1908,9 @@ async def show_repair_summary(update: Update, context: ContextTypes.DEFAULT_TYPE
         reply_markup=reply_markup
     )
 
-    return ConversationHandler.END
+    # Mantener la conversación activa esperando la confirmación del usuario
+    # El fallback de cancel_callback y create_repair_callback manejaran la respuesta
+    return ADD_REPAIR_PAY_AMOUNT  # Esperar response del usuario
 
 
 # add repair 
@@ -1934,18 +1919,29 @@ async def add_spare_parts_to_repair(update: Update, context: ContextTypes.DEFAUL
     query = update.callback_query
     await query.answer()
     
-    repair_id = context.user_data.get('current_repair_id')
-    if not repair_id:
-        await query.edit_message_text("❌ Error: No se encontró la reparación")
+    # Extraer el ID de la reparación del callback_data
+    callback_data = query.data
+    try:
+        repair_id = int(callback_data.split('_')[-1])  # Extrae el número al final
+    except (ValueError, IndexError):
+        await query.edit_message_text("❌ Error: ID de reparación inválido")
         return
     
-    context.user_data['adding_spare_parts'] = True
-    context.user_data['spare_parts_list'] = []
+    # Limpiar acciones previas para evitar conflictos
+    context.user_data.pop('action', None)
+    context.user_data.pop('adding_spare_part', None)
+    context.user_data.pop('adding_spare_parts', None)
     
+    # Guardar el ID en el contexto por si se necesita después
+    context.user_data['current_repair_id'] = repair_id
+    context.user_data['adding_spare_part'] = True
+    context.user_data['spare_parts_list'] = []
+
+    # Opciones disponibles para agregar repuestos a la reparación
     keyboard = [
         [InlineKeyboardButton("➕ Agregar repuesto", callback_data="add_spare_part")],
-        [InlineKeyboardButton("✅ Finalizar y continuar", callback_data="finish_spare_parts")],
-        [InlineKeyboardButton("❌ Saltar (sin repuestos)", callback_data="skip_spare_parts")]
+        [InlineKeyboardButton("✅ Finalizar", callback_data="finish_spare_parts")],
+        [InlineKeyboardButton("❌ Cancelar", callback_data="cancel")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -1963,9 +1959,15 @@ async def add_spare_part_start(update: Update, context: ContextTypes.DEFAULT_TYP
     query = update.callback_query
     await query.answer()
     
+    # Obtener el ID de la reparación del contexto
+    repair_id = context.user_data.get('current_repair_id')
+    if not repair_id:
+        await query.edit_message_text("❌ Error: No se encontró la reparación")
+        return
+    
     context.user_data['adding_spare_part'] = True
     
-    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="add_spare_parts")]]
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data=f"add_spare_parts_{repair_id}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await query.edit_message_text(
@@ -2043,10 +2045,13 @@ async def handle_add_spare_part(update: Update, context: ContextTypes.DEFAULT_TY
             resumen += f"• {item['quantity']}x {item['product_name']} - {format_currency(item['total_price'])}\n"
         resumen += f"\n*Total repuestos: {format_currency(total_repuestos)}*"
         
+        # Obtener el ID de la reparación del contexto
+        repair_id = context.user_data.get('current_repair_id')
+        
         keyboard = [
             [InlineKeyboardButton("➕ Agregar otro repuesto", callback_data="add_spare_part")],
             [InlineKeyboardButton("✅ Finalizar", callback_data="finish_spare_parts")],
-            [InlineKeyboardButton("❌ Cancelar", callback_data="add_spare_parts")]
+            [InlineKeyboardButton("❌ Cancelar", callback_data=f"add_spare_parts_{repair_id}" if repair_id else "add_spare_parts")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -2075,7 +2080,7 @@ async def finish_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE)
         
         if not repair_id:
             await query.edit_message_text("❌ Error: No se encontró la reparación")
-            return
+            return ConversationHandler.END
         
         # Enviar repuestos al API (si el endpoint existe)
         if spare_parts:
@@ -2107,9 +2112,12 @@ async def finish_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_markup=reply_markup
         )
         
+        return ConversationHandler.END
+        
     except Exception as e:
         logger.error(f"Error en finish_spare_parts: {e}")
         await query.edit_message_text(f"❌ Error al guardar repuestos: {e}")
+        return ConversationHandler.END
 
 async def skip_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Omite la adición de repuestos"""
@@ -2134,6 +2142,8 @@ async def skip_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "¿Qué deseas hacer ahora?",
         reply_markup=reply_markup
     )
+    
+    return ConversationHandler.END
 
 # ============ VENTAS ============
 async def menu_ventas(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2661,7 +2671,7 @@ async def handle_register_delivery(update: Update, context: ContextTypes.DEFAULT
             return
         
         # Obtener reparación del API
-        repair = api_client.get_device_by_id(repair_id)
+        repair = await fetch_device(repair_id)
         
         if not repair:
             await update.message.reply_text("❌ Reparación no encontrada")
@@ -2859,12 +2869,24 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
         )
         
         if device:
-            device_id = device.get('id', 'N/A')
+            try:
+                device_obj = device['device']
+                device_id = device_obj['id']
+            except (KeyError, TypeError) as e:
+                logger.error(f"Error accediendo al ID del dispositivo: {e}. device={device}")
+                await query.edit_message_text("❌ Error: No se pudo obtener el ID de la reparación creada")
+                return
+            
             context.user_data['current_repair_id'] = device_id
+            
+            # Limpiar acciones previas para evitar conflictos
+            context.user_data.pop('action', None)
+            context.user_data.pop('adding_spare_part', None)
+            context.user_data.pop('adding_spare_parts', None)
             
             # Preguntar si quiere agregar repuestos
             keyboard = [
-                [InlineKeyboardButton("✅ Sí, agregar repuestos", callback_data="add_spare_parts")],
+                [InlineKeyboardButton("✅ Sí, agregar repuestos", callback_data=f"add_spare_parts_{device_id}")],
                 [InlineKeyboardButton("❌ No, continuar sin repuestos", callback_data="skip_spare_parts")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -2888,25 +2910,13 @@ async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_T
     except Exception as e:
         logger.error(f"Error en create_repair_callback: {e}")
         await query.edit_message_text(f"❌ Error: {e}")
-# ============ AGREGAR Productos ============
-async def add_product_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Inicia el registro de un producto desde comando"""
-    await update.message.reply_text(
-        "➕ *Registrar nuevo producto*\n\n"
-        "Por favor, responde las siguientes preguntas.\n\n"
-        "📝 *¿Cuál es el nombre del producto?*\n\n"
-        "Ejemplo: *Smartphone Samsung Galaxy A52*\n\n"
-        "Para cancelar, usa /cancelar",
-        parse_mode='Markdown'
-    )
-    return ADD_PRODUCT_NAME
+    
+    return ConversationHandler.END
 # ============ AGREGAR CATEGORÍAS ============
 async def add_category_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Inicia el registro de una nueva categoría"""
     query = update.callback_query
     await query.answer()
-    
-    logger.info("add_category_start called")
     
     await query.edit_message_text(
         "➕ *Agregar nueva categoría al sistema*\n\n"
@@ -3004,8 +3014,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Manejador central de mensajes de texto basado en el estado (action)"""
-    logger.info(f"handle_text called with: {update.message.text}")
-    
+
     if not update.message or not update.message.text:
         return
     
@@ -3067,7 +3076,7 @@ def main():
         # ============ 2. CONVERSACIONES ============
         # Conversación para agregar productos
         add_product_conv = ConversationHandler(
-            entry_points=[CallbackQueryHandler(add_product_start, pattern="^add_product$"), CommandHandler("agregar_producto", add_product_start_command)],
+            entry_points=[CallbackQueryHandler(add_product_start, pattern="^add_product$"), CommandHandler("agregar_producto", add_product_start)],
             states={
                 ADD_PRODUCT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_name)],
                 ADD_PRODUCT_SELECT_CATEGORY: [CallbackQueryHandler(category_selected, pattern="^category_"), CallbackQueryHandler(add_new_category_start, pattern="^add_new_category$")],
@@ -3102,7 +3111,11 @@ def main():
                 ADD_REPAIR_DETAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_detail)],
                 ADD_REPAIR_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_price)],
                 ADD_REPAIR_PAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay)],
-                ADD_REPAIR_PAY_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay_amount)],
+                ADD_REPAIR_PAY_AMOUNT: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay_amount),
+                    CallbackQueryHandler(create_repair_callback, pattern="^create_repair$"),
+                    CallbackQueryHandler(cancel_callback, pattern="^cancel$"),
+                ],
             },
             fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
@@ -3132,7 +3145,7 @@ def main():
         application.add_handler(CallbackQueryHandler(confirm_delivery, pattern="^confirm_delivery$"))
         application.add_handler(CallbackQueryHandler(create_repair_callback, pattern="^create_repair$"))
         application.add_handler(CallbackQueryHandler(view_spare_parts, pattern="^view_spare_parts$"))
-        application.add_handler(CallbackQueryHandler(add_spare_parts_to_repair, pattern="^add_spare_parts$"))
+        application.add_handler(CallbackQueryHandler(add_spare_parts_to_repair, pattern=r"^add_spare_parts_(\d+)$"))
         application.add_handler(CallbackQueryHandler(add_spare_part_start, pattern="^add_spare_part$"))
         application.add_handler(CallbackQueryHandler(finish_spare_parts, pattern="^finish_spare_parts$"))
         application.add_handler(CallbackQueryHandler(skip_spare_parts, pattern="^skip_spare_parts$"))
@@ -3168,7 +3181,9 @@ def main():
         
         # Utilidades
         application.add_handler(CallbackQueryHandler(test_printer, pattern="^test_printer$"))
-        application.add_handler(CallbackQueryHandler(back_to_main, pattern="^disabled$"))  # Botón deshabilitado
+
+        # Cancelar global - para cuando se cancela fuera del ConversationHandler
+        application.add_handler(CallbackQueryHandler(cancel_callback, pattern="^cancel$"))
 
         # ============ 4. TEXTO GENÉRICO ============
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
