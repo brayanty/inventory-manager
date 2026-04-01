@@ -8,7 +8,7 @@ export const deviceSchema = z.object({
   client_name: z.string().min(3),
   device: z.string().min(2),
   model: z.string().min(2),
-  imei: z.string().regex(/^\d{15}$/, "IMEI debe tener 15 dígitos"),
+  imei: z.string(15).optional(),
   number_phone: z
     .string()
     .regex(/[0-9]{10}$/, "Número de teléfono debe tener 10 dígitos"),
