@@ -8,11 +8,14 @@ export default async function getDevice(req, res) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const rows = await getDeviceByID(client, deviceID);
+    const device = await getDeviceByID(client, deviceID);
 
-    handleSuccess(req, res, rows);
+    await client.query("COMMIT");
+    handleSuccess(req, res, device);
   } catch (err) {
     console.error(err);
     handleError(req, res, "Error al leer la entrada");
+  } finally {
+    client.release();
   }
 }
