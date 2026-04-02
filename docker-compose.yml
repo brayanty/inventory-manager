@@ -1,13 +1,12 @@
 services:
-
   frontend:
     build:
       context: ./frontend
       args:
         VITE_API_URL: ${VITE_API_URL}
     ports:
-      - "5173:80"     
-      - "443:443"     
+      - "5173:80"
+      - "443:443"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -33,37 +32,56 @@ services:
     privileged: true
     devices:
       - "/dev/usb/lp0:/dev/usb/lp0"
-    
+
   backend:
     build: ./backend
     ports:
-      - "4000:4000"     
+      - "4000:4000"
     volumes:
       - ./backend:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=4000           
+      - PORT=4000
       - DATABASE_URL=postgresql://postgres:1234@postgres:5432/mydb
       - FRONTEND_URL=http://frontend
       - PRINTER_URL=http://printer:8000/imprimir
       - DEVICE_PRINTER=lp0
-    command: npm run dev    
+    command: npm run dev
     depends_on:
       - postgres
       - printer
     restart: unless-stopped
 
+  bot:
+    build: ./bot
+    volumes:
+      - ./bot:/app
+      - /app/__pycache__
+    environment:
+      - TOKEN=${TOKEN}
+      - CHANNEL_ID=${CHANNEL_ID}
+      - ADMIN_USER_ID=${ADMIN_USER_ID}
+      - BACKEND_URL=${BACKEND_URL}
+      - VERIFY_SSL=${VERIFY_SSL}
+      - ZONA_HORARIA=${ZONA_HORARIA}
+      - PRINTER_URL=${PRINTER_URL}
+    depends_on:
+      - backend
+      - printer
+    restart: unless-stopped
+
   postgres:
-    image: postgres:18-alpine   
+    image: postgres:18-alpine
     ports:
-      - "5433:5432"            
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: mydb
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/db.sql:/docker-entrypoint-initdb.d/db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -73,7 +91,7 @@ services:
 
 volumes:
   postgres_data:
-  
+
 networks:
   default:
     name: inventory-network

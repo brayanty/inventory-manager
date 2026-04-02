@@ -4,19 +4,17 @@ import pool from "../../config/db.js";
 const repairCategoryAvailable = ["repuesto", "display", "servicio"];
 
 export default async function getRepairs(req, res) {
-  const search = req.query.search;
-  if (!search) {
-    return handleError(req, res, "El parámetro de búsqueda está vacío", 404);
-  }
+  const search = (req.query.search || "").trim();
 
   const client = await pool.connect();
   try {
     const queryRepairs =
       "SELECT * FROM product WHERE (category = $1 OR category = $2 OR category = $3) AND name ILIKE $4 AND deleted_at IS NULL AND stock >= 1 ";
 
+    const searchPattern = `%${search}%`;
     const { rows, rowCount } = await client.query(queryRepairs, [
       ...repairCategoryAvailable,
-      `%${search}%`,
+      searchPattern,
     ]);
     console.log(rows);
     if (rowCount <= 0) {

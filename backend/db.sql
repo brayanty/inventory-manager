@@ -45,9 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_soldproduct_productid ON soldProduct (product_id)
 CREATE TABLE IF NOT EXISTS device (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     client_name VARCHAR(250),
-    number_phone VARCHAR(20) CHECK (
-        number_phone ~ '^\+?[0-9]{7,15}$'
-    ),
+    number_phone VARCHAR(10),
     device VARCHAR(250),
     model VARCHAR(100),
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
@@ -63,7 +61,7 @@ CREATE TABLE IF NOT EXISTS device (
     ),
     pay BOOLEAN NOT NULL DEFAULT false,
     output_status BOOLEAN NOT NULL DEFAULT false,
-    imei VARCHAR(15) CHECK (length(imei) = 15),
+    imei VARCHAR(15),
     entry_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     exit_date TIMESTAMP WITH TIME ZONE,
     warrant_limit TIMESTAMP WITH TIME ZONE,
@@ -82,7 +80,7 @@ CREATE TABLE IF NOT EXISTS device (
 -- FUNCIÓN TRIGGER
 -- =========================================
 CREATE
-OR REPLACE FUNCTION set_pay_status() RETURNS TRIGGER AS $ $ BEGIN IF NEW.repair_status = 'Reparado'
+OR REPLACE FUNCTION set_pay_status() RETURNS TRIGGER AS $$ BEGIN IF NEW.repair_status = 'Reparado'
 AND NEW.price_pay IS NOT NULL
 AND NEW.price_pay >= NEW.price THEN NEW.pay := true;
 
@@ -94,7 +92,7 @@ RETURN NEW;
 
 END;
 
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- =========================================
 -- TRIGGER
@@ -119,3 +117,24 @@ CREATE TABLE IF NOT EXISTS historyTicket (
 );
 
 CREATE INDEX IF NOT EXISTS idx_history_spare_parts ON historyTicket USING GIN (spare_parts);
+
+-- =========================================
+-- CATEGORÍAS POR DEFECTO
+-- =========================================
+DELETE FROM category
+WHERE
+    name IN (
+        'electrónica',
+        'repuestos',
+        'accesorio',
+        'software',
+        'servicio'
+    );
+
+INSERT INTO
+    category (name)
+VALUES ('electrónica'),
+    ('repuesto'),
+    ('accesorio'),
+    ('software'),
+    ('servicio');

@@ -7,6 +7,7 @@ import https from "https";
 import devicesRouters from "./routers/device.route.js";
 import productsRouters from "./routers/product.route.js";
 import categoryRouters from "./routers/category.route.js";
+import userRouters from "./routers/user.route.js";
 import fs from "fs/promises";
 import { handleError } from "./modules/handleResponse.js";
 import SSL_CONFIG from "./config/ssl.js";
@@ -25,17 +26,7 @@ const app = express();
 // Middlewares
 app.use(json());
 app.use(morgan("dev"));
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://localhost:5173",
-      "https://192.168.0.108:5173",
-      "http://192.168.0.108:5173:",
-    ],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -47,6 +38,7 @@ app.use(limiter);
 app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
 app.use("/api", categoryRouters);
+app.use("/api", userRouters);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
@@ -77,7 +69,7 @@ app.listen(PORT, () => {
 // app.listen(PORT, IP_LOCAL, null, () => {
 //   console.log(`API de servicio técnico corriendo en http://localhost:${PORT}`);
 //   console.log(
-//     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`
+//     `API de servicio técnico corriendo en http://${IP_LOCAL}:${PORT}`,
 //   );
 // });
 

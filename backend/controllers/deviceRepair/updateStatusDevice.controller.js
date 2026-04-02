@@ -19,7 +19,7 @@ export async function updateStatusDevice(req, res) {
       res,
       device,
       "Dispositivo actualizado correctamente",
-      201,
+      200,
     );
   } catch (err) {
     return handleError(
