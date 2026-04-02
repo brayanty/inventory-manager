@@ -674,9 +674,9 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             return
         
         # Obtener repuestos (si el backend lo soporta)
-        # spare_parts = api_client.get_repair_spare_parts(repair_id)
+        faults = repair.get("faults")
         
-        if not repair.get('spare_parts'):
+        if not faults:
             text = f"🔧 *Reparación #{repair.get('id', 'N/A')}*\n\n"
             text += f"👤 *Cliente:* {repair.get('client_name', 'N/A')}\n"
             text += f"📱 *Dispositivo:* {repair.get('device', 'N/A')}\n"
@@ -685,15 +685,22 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             text += "🔩 *No se han registrado repuestos para esta reparación*"
         else:
             # Validar que spare_parts sea una lista
-            if not isinstance(spare_parts, list):
-                logger.error(f"spare_parts no es una lista: {type(spare_parts)} - {spare_parts}")
+            if not isinstance(faults, list):
+                logger.error(f"fauls no es una lista: {type(faults)} - {faults}")
                 await update.message.reply_text("❌ Error al obtener repuestos")
                 return
             
             total_repuestos = 0
-            for part in spare_parts:
-                if isinstance(part, dict):
-                    total_repuestos += part.get('total_price', 0)
+            for fault in faults:
+                if isinstance(fault, dict):
+                    price = fault.get('price', 0)
+                    # Convert string price to float
+                    if isinstance(price, str):
+                        try:
+                            price = float(price)
+                        except (ValueError, TypeError):
+                            price = 0
+                    total_repuestos += price
             
             text = f"🔧 *Reparación #{repair_id}*\n\n"
             text += f"👤 *Cliente:* {repair.get('client_name', 'N/A')}\n"
@@ -702,14 +709,14 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
             text += f" *Esta entregado:* {'✅ Sí' if repair.get('output_status', False) else '❌ No'}\n\n"
             text += "🔩 *Repuestos utilizados:*\n"
             
-            for part in spare_parts:
-                if not isinstance(part, dict):
-                    logger.warning(f"Repuesto no es diccionario: {type(part)} - {part}")
+            for fault in faults:
+                if not isinstance(fault, dict):
+                    logger.warning(f"Repuesto no es diccionario: {type(fault)} - {fault}")
                     continue
                     
-                quantity = part.get('quantity', 0)
-                product_name = part.get('product_name', 'Sin nombre')
-                total_price = part.get('total_price', 0)
+                quantity = fault.get('quantity', 1)
+                product_name = fault.get('name', 'Sin nombre')
+                total_price = fault.get('price', 0)
                 text += f"• {quantity}x {product_name}\n"
                 text += f"  💰 {format_currency(total_price)}\n\n"
             
