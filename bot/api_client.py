@@ -392,7 +392,7 @@ class APIClient:
     
     def register_delivery(self, device_id: int) -> Optional[Dict[str, Any]]:
         """Registra la entrega de una reparación"""
-        data = {'delivered': True, 'delivery_date': datetime.now().isoformat()}
+        data = {'output_status': True}
         response = self._make_request('PUT', f'/devices/status/{device_id}', data=data)
         if response and response.status_code == 200:
             try:
