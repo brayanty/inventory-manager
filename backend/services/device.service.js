@@ -3,20 +3,24 @@ import * as deviceRepo from "../repositories/device.repository.js";
 import * as productRepo from "../repositories/product.repository.js";
 import { postTechnicalServicePrinter } from "./printerService.js";
 
-async function createDevice(device) {
+async function createDevice(deviceData) {
   const client = await pool.connect();
   //Insertar quantity 1 a las fallas
   //QUIZAS SE PUDE HACER DE MEJOR MANERA "No se como"
-  const clientFaults = device.faults.map((f) => ({ id: f.id, quantity: 1 }));
+  const clientFaults = deviceData.faults.map((f) => ({
+    id: f.id,
+    quantity: 1,
+  }));
 
   try {
     await client.query("BEGIN");
 
     // Validar productos
-    const { rows: fautlsDB, rowCount } = await productRepo.getValidProducts(
+    const { rows: faultsDB, rowCount } = await productRepo.getValidProducts(
       client,
       clientFaults,
     );
+
     // Actualizar stock de productos
     const faultsDecrement = await productRepo.decrementStock(
       client,
@@ -24,21 +28,21 @@ async function createDevice(device) {
     );
 
     if (
-      rowCount !== device.faults.length ||
-      faultsDecrement.length !== device.faults.length
+      rowCount !== deviceData.faults.length ||
+      faultsDecrement.length !== deviceData.faults.length
     ) {
       const error = new Error("Algunas fallas no existen o no tienen stock");
       error.status = 400;
       throw error;
     }
     // Calcular totales
-    const sparePartsTotal = fautlsDB.reduce(
+    const sparePartsTotal = faultsDB.reduce(
       (acc, p) => acc + parseFloat(p.price),
       0,
     );
 
-    const repairPrice = Number(device.price) || 0;
-    const repairPricePay = Number(device.price_pay) || 0;
+    const repairPrice = Number(deviceData.price) || 0;
+    const repairPricePay = Number(deviceData.price_pay) || 0;
 
     // El precio total debe cubrir al menos el subtotal de repuestos
     if (repairPrice < sparePartsTotal) {
@@ -57,7 +61,15 @@ async function createDevice(device) {
       error.status = 400;
       throw error;
     }
-
+    // Preparar datos para generar reparación
+    const device = {
+      ...deviceData,
+      faults: faultsDB.map((f) => ({
+        id: f.id,
+        price: f.price,
+        quantity: 1,
+      })),
+    };
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
 
@@ -65,7 +77,7 @@ async function createDevice(device) {
     await deviceRepo.insertHistoryTicket(
       client,
       newDevice.id,
-      fautlsDB,
+      faultsDB,
       repairPrice,
     );
     await client.query("COMMIT");
@@ -80,7 +92,7 @@ async function createDevice(device) {
       price: newDevice.price,
       pricePay: newDevice.price_pay,
       qr: `{id: ${newDevice.id}, name: "${newDevice.client_name}", device: "${newDevice.device}"}`,
-      faults: fautlsDB,
+      faults: faultsDB,
     });
 
     return { device: newDevice, statusPrinter };
