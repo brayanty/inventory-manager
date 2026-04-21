@@ -10,8 +10,8 @@ export const deviceSchema = z.object({
   model: z.string().min(2),
   imei: z.string(15).optional(),
   number_phone: z
-    .string()
-    .regex(/[0-9]{10}$/, "Número de teléfono debe tener 10 dígitos"),
+    .string().min(10).max(15)
+    .optional(),
   price: z.float64().min(0),
   price_pay: z.float64().min(0),
   detail: z.string().optional(),
