@@ -60,9 +60,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ============ BASE DE DATOS ============
-DB_PATH = os.getenv('DB_PATH', '/app/data/inventory.db')
-
 def safe_int_convert(text):
     """Convierte texto a entero de forma segura"""
     if not text:
@@ -505,6 +502,7 @@ async def start_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ============ PRODUCTOS ============
 @require_auth_callback
 async def menu_productos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop('action', None)
     """Menú de gestión de productos"""
     query = update.callback_query
     await query.answer()
@@ -740,6 +738,7 @@ async def handle_view_spare_parts(update: Update, context: ContextTypes.DEFAULT_
 # ============ REPARACIONES ============
 @require_auth_callback
 async def menu_reparaciones(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop('action', None)
     """Menú de gestión de reparaciones"""
     query = update.callback_query
     await query.answer()
@@ -1338,6 +1337,7 @@ async def add_repair_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_repair_client(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el nombre del cliente"""
+    
     client_name = update.message.text.strip()
 
     if not client_name:
@@ -1364,6 +1364,7 @@ async def add_repair_client(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_PHONE
 
 async def add_repair_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe el teléfono del cliente"""
     phone = update.message.text.strip()
     
@@ -1405,6 +1406,7 @@ async def add_repair_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_DEVICE
 
 async def add_repair_device(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe el modelo del dispositivo"""
     context.user_data['repair_device'] = update.message.text
     
@@ -1423,6 +1425,7 @@ async def add_repair_device(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_MODEL
 
 async def add_repair_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe el nombre de marca/manual si el usuario escribe texto"""
     model = update.message.text.strip()
 
@@ -1443,6 +1446,7 @@ async def add_repair_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ADD_REPAIR_IMEI
 
 async def add_repair_imei(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe el IMEI del dispositivo y pide buscar fallas/repuestos."""
     imei = update.message.text
     if imei.lower() == 'ninguno':
@@ -1468,6 +1472,7 @@ async def add_repair_imei(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def add_repair_faults(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe las fallas/repuestos y permite selección interactiva con búsqueda."""
     try:
         faults_text = update.message.text.strip()
@@ -1720,6 +1725,7 @@ async def finish_faults_handler(update: Update, context: ContextTypes.DEFAULT_TY
     return ADD_REPAIR_DETAIL
 
 async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe detalles adicionales"""
     detail = update.message.text
     if detail.lower() == 'ninguno':
@@ -1748,6 +1754,7 @@ async def add_repair_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Recibe el precio de mano de obra y calcula el total con repuestos"""
     try:
         labor_price = float(update.message.text)
@@ -1794,6 +1801,7 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
     """Pregunta si hay pago (sí, parcial o no)"""
     response = update.message.text.strip().lower()
     
@@ -1833,6 +1841,7 @@ async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def add_repair_pay_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el monto del pago parcial"""
     amount_text = update.message.text.strip()
+        
     
     try:
         amount = float(amount_text)
@@ -2817,44 +2826,68 @@ async def back_to_main(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Cancela cualquier operación o conversación activa"""
-    # Limpiar todas las acciones y datos temporales
-    context.user_data.clear()
-    
-    keyboard = [[InlineKeyboardButton("🏠 Menú Principal", callback_data="back_to_main")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.message.reply_text(
-        "🚫 Operación cancelada. Puedes volver al menú principal:",
-        reply_markup=reply_markup
-    )
-    return ConversationHandler.END
 
 async def cancel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Cancela desde callback query"""
-    query = update.callback_query
-    await query.answer()
-    context.user_data.clear()
+    """Cancela desde callback query o comando, limpiando completamente el estado"""
+    # Limpiar TODOS los datos de usuario - esto es crucial
+    keys_to_clear = [
+        'product_name', 'product_category', 'product_stock', 'product_price',
+        'repair_client', 'repair_phone', 'repair_device', 'repair_model',
+        'repair_imei', 'repair_faults', 'repair_detail', 'repair_price',
+        'repair_labor_price', 'repair_price_pay', 'repair_faults_total',
+        'repair_paid', 'sale_items', 'sale_action', 'action',
+        'delivery_repair_id', 'delivery_repair_data', 'adding_spare_part',
+        'adding_spare_parts', 'spare_parts_list', 'current_repair_id'
+    ]
+    
+    for key in keys_to_clear:
+        context.user_data.pop(key, None)
+    
+    query = getattr(update, "callback_query", None)
     
     keyboard = [[InlineKeyboardButton("🏠 Menú Principal", callback_data="back_to_main")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    try:
-        await query.edit_message_text(
-            "🚫 Operación cancelada. Puedes volver al menú principal:",
-            reply_markup=reply_markup
-        )
-    except Exception as e:
-        logger.error(f"Error al editar mensaje en cancel: {e}")
-        # Si no se puede editar, enviar nuevo mensaje
+    cancel_message = "🚫 *Operación cancelada exitosamente*\n\nTodos los datos ingresados han sido descartados.\nPuedes volver al menú principal:"
+    
+    if query:
+        try:
+            await query.answer()
+            if hasattr(query, "message") and query.message:
+                await query.edit_message_text(
+                    cancel_message,
+                    parse_mode='Markdown',
+                    reply_markup=reply_markup
+                )
+            else:
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
+                    text=cancel_message,
+                    parse_mode='Markdown',
+                    reply_markup=reply_markup
+                )
+        except Exception as e:
+            logger.error(f"Error al editar mensaje en cancel: {e}")
+            try:
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
+                    text=cancel_message,
+                    parse_mode='Markdown',
+                    reply_markup=reply_markup
+                )
+            except Exception as e2:
+                logger.error(f"Error al enviar mensaje de cancelación: {e2}")
+    else:
+        # Si es un comando /cancelar
+        chat_id = update.effective_chat.id if update.effective_chat else update.message.chat_id
         await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text="🚫 Operación cancelada. Puedes volver al menú principal:",
+            chat_id=chat_id,
+            text=cancel_message,
+            parse_mode='Markdown',
             reply_markup=reply_markup
         )
+    
     return ConversationHandler.END
-
 async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Crea la reparación después de confirmar"""
     query = update.callback_query
@@ -3072,7 +3105,7 @@ def main():
         # ============ 1. COMANDOS ============
         application.add_handler(CommandHandler("start", start_menu))
         application.add_handler(CommandHandler("ayuda", ayuda))
-        application.add_handler(CommandHandler("cancelar", cancel))
+        application.add_handler(CommandHandler("cancelar", cancel_callback))
         application.add_handler(CommandHandler("help", help_command))
         
         # Admin commands
@@ -3091,7 +3124,7 @@ def main():
                 ADD_PRODUCT_STOCK: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_stock)],
                 ADD_PRODUCT_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_product_price)],
             },
-            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
+            fallbacks=[CommandHandler("cancelar", cancel_callback), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
             allow_reentry=True,
@@ -3124,7 +3157,7 @@ def main():
                     CallbackQueryHandler(cancel_callback, pattern="^cancel$"),
                 ],
             },
-            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
+            fallbacks=[CommandHandler("cancelar", cancel_callback), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
             allow_reentry=True,
@@ -3136,7 +3169,7 @@ def main():
             states={
                 ADD_CATEGORY_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_category_name)],
             },
-            fallbacks=[CommandHandler("cancelar", cancel), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
+            fallbacks=[CommandHandler("cancelar", cancel_callback), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
             allow_reentry=True,
