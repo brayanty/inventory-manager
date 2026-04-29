@@ -11,9 +11,11 @@ import userRouters from "./routers/user.route.js";
 import fs from "fs/promises";
 import { handleError } from "./modules/handleResponse.js";
 import SSL_CONFIG from "./config/ssl.js";
+import path from "path";
+import logger from "./config/logger.js";
 
 // Variables de entorno
-const PORT = process.env.PORT || process.env.production || 3000;
+const PORT = process.env.PORT || 3000;
 const IP_LOCAL = process.env.IP_LOCALHOST || "192.168.0.108:300";
 
 const options = {
@@ -27,13 +29,13 @@ const app = express();
 app.use(json());
 app.use(morgan("dev"));
 app.use(cors());
-
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   message: { error: "Demasiadas solicitudes, intenta de nuevo más tarde" },
 });
 app.use(limiter);
+app.use(express.static(path.join(process.cwd(), "public")));
 
 app.use("/api", devicesRouters);
 app.use("/api", productsRouters);
@@ -47,19 +49,13 @@ app.use((req, res) => {
 
 // Manejo de errores global
 app.use((error, req, res, next) => {
-  console.error("Error global:", error);
+  logger.error("Error global:", error);
   handleError(req, res, "Error interno del servidor", 500);
 });
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
   handleError(req, res, `Ruta no encontrada: ${req.method} ${req.url}`, 404);
-});
-
-// Manejo de errores global
-app.use((error, req, res, next) => {
-  console.error("Error global:", error);
-  handleError(req, res, "Error interno del servidor", 500);
 });
 
 app.listen(PORT, () => {
