@@ -4,11 +4,11 @@ WORKDIR /app
 
 # Instalar dependecias para el backend
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 
 # Exponer el puerto
 EXPOSE 4000
 
-CMD ["npm", "run", "dev"]
+CMD ["node", "app.mjs"]

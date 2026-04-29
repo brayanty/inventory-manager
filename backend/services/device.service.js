@@ -1,9 +1,11 @@
 import pool from "../config/db.js";
+import logger from "../config/logger.js";
 import * as deviceRepo from "../repositories/device.repository.js";
 import * as productRepo from "../repositories/product.repository.js";
 import { postTechnicalServicePrinter } from "./printerService.js";
 
-async function createDevice(deviceData) {
+async function createDevice(deviceData, files) {
+  const imageNames = files ? files.map((f) => f.filename) : [];
   const client = await pool.connect();
   //Insertar quantity 1 a las fallas
   //QUIZAS SE PUDE HACER DE MEJOR MANERA "No se como"
@@ -64,6 +66,7 @@ async function createDevice(deviceData) {
     // Preparar datos para generar reparación
     const device = {
       ...deviceData,
+      images: imageNames.map((name) => `/img/devices/${name}`),
       faults: faultsDB.map((f) => ({
         id: f.id,
         price: f.price,
@@ -72,7 +75,6 @@ async function createDevice(deviceData) {
     };
     // Insertar device
     const newDevice = await deviceRepo.insertDevice(client, device);
-
     // Guardar historial
     await deviceRepo.insertHistoryTicket(
       client,
@@ -195,7 +197,7 @@ async function updateDeliveredDevice(status, deviceID) {
     return { ...result.rows[0] };
   } catch (err) {
     await client.query("ROLLBACK");
-    console.log(err);
+    logger.error("Error en updateDeliveredDevice:", err);
     throw err;
   } finally {
     client.release();

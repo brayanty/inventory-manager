@@ -45,7 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_soldproduct_productid ON soldProduct (product_id)
 CREATE TABLE IF NOT EXISTS device (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     client_name VARCHAR(250),
-    number_phone VARCHAR(10),
+    number_phone VARCHAR(15),
     device VARCHAR(250),
     model VARCHAR(100),
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS device (
             'En Revisión'
         )
     ),
+    images JSONB,
     pay BOOLEAN NOT NULL DEFAULT false,
     output_status BOOLEAN NOT NULL DEFAULT false,
     imei VARCHAR(15),

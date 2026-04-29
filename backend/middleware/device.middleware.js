@@ -1,27 +1,25 @@
-import {
-  deviceSchema,
-  deviceUpdateSchema,
-} from "../validators/createDevice.schema.js";
+import { deviceSchema, deviceUpdateSchema } from "../validators/createDevice.schema.js";
 import { handleError } from "../modules/handleResponse.js";
+import logger from "../config/logger.js";
 
-export function validateDevice(req, res, next) {
-  const result = deviceSchema.safeParse(req.body);
+const validate = (schema) => (req, res, next) => {
+  try {
+    let data = { ...req.body };
 
-  if (!result.success) {
-    handleError(req, res, result.error.message, 400);
-    return;
+    const result = schema.safeParse(data);
+
+    if (!result.success) {
+      logger.error("Validation failed:", result.error.format());
+      return handleError(req, res, result.error.message, 400);
+    }
+
+    req.body = result.data;
+    next();
+  } catch (error) {
+    logger.error("Error validating date:", error.message);
+    handleError(req, res, "Error validating date:", 400);
   }
+};
 
-  req.body = result.data;
-  next();
-}
-
-export function validateUpdateDevice(req, res, next) {
-  const result = deviceUpdateSchema.safeParse(req.body);
-  if (!result.success) {
-    handleError(req, res, result.data, 400);
-    return;
-  }
-  req.body = result.data;
-  next();
-}
+export const validateDevice = validate(deviceSchema);
+export const validateUpdateDevice = validate(deviceUpdateSchema);

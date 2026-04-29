@@ -6,7 +6,7 @@ services:
         VITE_API_URL: ${VITE_API_URL}
     ports:
       - "5173:80"
-      - "443:443"
+      - "4444:4444"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -30,16 +30,14 @@ services:
       - ./printer:/app
       - /app/node_modules
     privileged: true
-    devices:
-      - "/dev/usb/lp0:/dev/usb/lp0"
 
   backend:
     build: ./backend
     ports:
       - "4000:4000"
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - ./backend:/app:Z
+      - public:/app/public:Z
     environment:
       - NODE_ENV=development
       - PORT=4000
@@ -47,7 +45,6 @@ services:
       - FRONTEND_URL=http://frontend
       - PRINTER_URL=http://printer:8000/imprimir
       - DEVICE_PRINTER=lp0
-    command: npm run dev
     depends_on:
       - postgres
       - printer
@@ -91,6 +88,12 @@ services:
 
 volumes:
   postgres_data:
+  public:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/backend/public
+      o: bind
 
 networks:
   default:

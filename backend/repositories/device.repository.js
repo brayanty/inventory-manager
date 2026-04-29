@@ -9,12 +9,13 @@ export async function insertDevice(client, data) {
     price_pay,
     detail,
     faults,
+    images,
   } = data;
   const { rows } = await client.query(
     `
     INSERT INTO device
-    (client_name, device, model, imei, number_phone, price, detail, faults, price_pay)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    (client_name, device, model, imei, number_phone, price, detail, faults, price_pay,images)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
     RETURNING *
     `,
     [
@@ -27,6 +28,7 @@ export async function insertDevice(client, data) {
       detail,
       JSON.stringify(faults),
       price_pay,
+      JSON.stringify(images),
     ],
   );
 

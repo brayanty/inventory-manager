@@ -9,13 +9,12 @@ export const deviceSchema = z.object({
   device: z.string().min(2),
   model: z.string().min(2),
   imei: z.string(15).optional(),
-  number_phone: z
-    .string().min(10).max(15)
-    .optional(),
+  number_phone: z.string().optional(),
   price: z.float64().min(0),
   price_pay: z.float64().min(0),
   detail: z.string().optional(),
   faults: z.array(faultSchema).optional(),
+  images: z.json().optional(),
 });
 
 export const deviceUpdateSchema = deviceSchema

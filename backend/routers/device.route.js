@@ -11,11 +11,12 @@ import {
 import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
 import { updateStatusDevice } from "../controllers/deviceRepair/updateStatusDevice.controller.js";
 import { reprintTicketDevice } from "../controllers/deviceRepair/reprintTicket.controller.js";
+import { upload } from "../config/uploadImage.js";
 
 const router = Router();
 
 //Create new device
-router.post("/devices", validateDevice, createDevice);
+router.post("/devices", upload.array("images"), validateDevice, createDevice);
 //Get all device
 router.get("/devices", getAllDevice);
 //Get one device
