@@ -1,5 +1,6 @@
+from PIL import Image,ImageFile
+import io
 import logging
-import json
 import os
 import inspect
 import requests
@@ -30,7 +31,7 @@ ZONA_HORARIA = pytz.timezone(ZONA_HORARIA_STR)
 
 # Estados para conversación de reparaciones
 (ADD_REPAIR_CLIENT, ADD_REPAIR_PHONE, ADD_REPAIR_DEVICE, ADD_REPAIR_MODEL, 
- ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE, ADD_REPAIR_PAY, ADD_REPAIR_PAY_AMOUNT) = range(10)
+ ADD_REPAIR_IMEI, ADD_REPAIR_FAULTS, ADD_REPAIR_DETAIL, ADD_REPAIR_PRICE, ADD_REPAIR_PAY, ADD_REPAIR_PAY_AMOUNT,ADD_REPAIR_IMAGE) = range(11)
 
 BRANDS_DEVICES = [
     {"id": 1, "name": "Apple"},
@@ -1110,7 +1111,6 @@ async def handle_register_payment(update: Update, context: ContextTypes.DEFAULT_
         await update.message.reply_text(f"❌ Error: {e}")
     finally:
         context.user_data.pop('action', None)
-
 # ============ REGISTRO DE PRODUCTOS CON CONVERSACIÓN ============
 @require_auth_callback
 async def add_product_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1316,7 +1316,7 @@ async def add_product_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ADD_PRODUCT_PRICE
     except Exception as e:
         logger.error(f"Error en add_product_price: {e}")
-        await update.message.reply_text(f"❌ Error al guardar: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
         return ConversationHandler.END
 
 # ============ REGISTRO DE REPARACIONES CON CONVERSACIÓN ============
@@ -1771,11 +1771,11 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Mostrar desglose
         message = "📊 *Desglose del precio:*\n\n"
-        message += f"🔧 *Mano de obra:* {format_currency(labor_price)}\n"
+        message += f"🔧 Mano de obra: {format_currency(labor_price)}\n"
         
         if faults_total > 0:
             faults = context.user_data.get('repair_faults', [])
-            message += f"📦 *Repuestos:* {format_currency(faults_total)}\n"
+            message += f"📦 Repuestos: {format_currency(faults_total)}\n"
             for fault in faults:
                 message += f"  • {fault.get('name', 'N/A')}: {format_currency(fault.get('price', 0))}\n"
         
@@ -1799,9 +1799,28 @@ async def add_repair_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"❌ Error: {e}")
         return ConversationHandler.END
 
+async def ask_for_images(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Pregunta si quiere agregar imágenes"""
+    # Inicializar lista de imágenes si no existe
+    if 'repair_images' not in context.user_data:
+        context.user_data['repair_images'] = []
+    
+    keyboard = [
+        [InlineKeyboardButton("📸 Agregar imagen", callback_data="add_image")],
+        [InlineKeyboardButton("⏭️ Saltar", callback_data="skip_images")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        "📸 *¿Deseas agregar imágenes del dispositivo?*\n\n"
+        "Puedes agregar fotos del equipo dañado, la reparación, etc.\n\n"
+        f"📷 *Imágenes agregadas:* {len(context.user_data['repair_images'])}",
+        parse_mode='Markdown',
+        reply_markup=reply_markup
+    )
+    return ADD_REPAIR_IMAGE
 
 async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    
     """Pregunta si hay pago (sí, parcial o no)"""
     response = update.message.text.strip().lower()
     
@@ -1809,21 +1828,24 @@ async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Sin pago
         context.user_data['repair_paid'] = False
         context.user_data['repair_price_pay'] = 0
-        return await show_repair_summary(update, context)
+        # IR A IMÁGENES
+        return await ask_for_images(update, context)
     
     elif response in ['si', 'sí', 's', 'yes']:
         # Pago completo
         context.user_data['repair_paid'] = True
         context.user_data['repair_price_pay'] = context.user_data.get('repair_price', 0)
-        return await show_repair_summary(update, context)
+        # IR A IMÁGENES
+        return await ask_for_images(update, context)
     
     elif response in ['parcial', 'partial', 'p']:
         # Pago parcial - solicitar monto
-        context.user_data['repair_paid'] = False  # Aún no está completamente pagado
+        context.user_data['repair_paid'] = False
         await update.message.reply_text(
             f"💰 *¿Monto a abonar?*\n\n"
             f"Precio total: {format_currency(context.user_data['repair_price'])}\n\n"
-            "Ingresa solo el número (ejemplo: 50000 para $50,000)"
+            "Ingresa solo el número (ejemplo: 50000 para $50,000)",
+            parse_mode='Markdown',
         )
         return ADD_REPAIR_PAY_AMOUNT
     
@@ -1833,15 +1855,14 @@ async def add_repair_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "• *si* - Pagó el monto completo\n"
             "• *parcial* - Pagó solo una parte\n"
             "• *no* - No pagó nada\n\n"
-            "Responde nuevamente:"
+            "Responde nuevamente:",
+            parse_mode='Markdown',
         )
         return ADD_REPAIR_PAY
-
 
 async def add_repair_pay_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Recibe el monto del pago parcial"""
     amount_text = update.message.text.strip()
-        
     
     try:
         amount = float(amount_text)
@@ -1849,7 +1870,7 @@ async def add_repair_pay_amount(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text(
                 "❌ El monto debe ser mayor a 0.\n"
                 f"Precio total: {format_currency(context.user_data['repair_price'])}\n\n"
-                "Intenta de nuevo:"
+                "Intenta de nuevo:",
             )
             return ADD_REPAIR_PAY_AMOUNT
         
@@ -1857,28 +1878,96 @@ async def add_repair_pay_amount(update: Update, context: ContextTypes.DEFAULT_TY
         if amount > max_price:
             await update.message.reply_text(
                 f"❌ El monto no puede exceder el precio total ({format_currency(max_price)}).\n\n"
-                "Intenta de nuevo:"
+                "Intenta de nuevo:",
             )
             return ADD_REPAIR_PAY_AMOUNT
         
         context.user_data['repair_price_pay'] = amount
-        return await show_repair_summary(update, context)
-    
+        # IR A IMÁGENES
+        return await ask_for_images(update, context)
+        
     except ValueError:
         await update.message.reply_text(
             "❌ Ingresa un número válido (ejemplo: 50000)."
         )
         return ADD_REPAIR_PAY_AMOUNT
-
-
+async def add_repair_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja la adición de imágenes al dispositivo"""
+    
+    # Si es un callback de los botones
+    if hasattr(update, 'callback_query') and update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        
+        if query.data == "add_image":
+            await query.edit_message_text(
+                "📸 *Envíame la imagen del dispositivo*\n\n"
+                "Puedes enviar varias imágenes una por una.\n"
+                "Cuando termines, presiona el botón 'Finalizar'.",
+                parse_mode='Markdown'
+            )
+            return ADD_REPAIR_IMAGE
+        
+        elif query.data == "skip_images":
+            # Saltar imágenes y mostrar resumen
+            return await show_repair_summary(update, context)
+        
+        elif query.data == "finish_images":
+            # Terminar de agregar imágenes
+            return await show_repair_summary(update, context)
+    
+    # Si es una foto
+    elif update.message and update.message.photo:
+        photo = update.message.photo[-1]  # Mejor calidad
+        file_id = photo.file_id
+        
+        if 'repair_images' not in context.user_data:
+            context.user_data['repair_images'] = []
+        context.user_data['repair_images'].append(file_id)
+        
+        # Mostrar botones para continuar
+        keyboard = [
+            [InlineKeyboardButton("📸 Agregar otra imagen", callback_data="add_image")],
+            [InlineKeyboardButton("✅ Finalizar", callback_data="finish_images")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            f"✅ *Imagen {len(context.user_data['repair_images'])} agregada*\n\n"
+            f"📷 *Total imágenes:* {len(context.user_data['repair_images'])}\n\n"
+            "¿Qué deseas hacer?",
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )
+        return ADD_REPAIR_IMAGE
+    
+    else:
+        # Texto no válido
+        await update.message.reply_text(
+            "❌ Por favor, envía una imagen o usa los botones.\n\n"
+            "Envía /cancelar para salir."
+        )
+        return ADD_REPAIR_IMAGE
 async def show_repair_summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra el resumen final de la reparación"""
-    faults_text = ", ".join([f.get('name', 'N/A') for f in context.user_data.get('repair_faults', [])]) or "Ninguna"
+    # Obtener faults ANTES de usarlo
+    faults = context.user_data.get('repair_faults', [])
+    
+    faults_text = ", ".join([f.get('name', 'N/A') for f in faults]) or "Ninguna"
     price_pay = context.user_data.get('repair_price_pay', 0)
     total_price = context.user_data.get('repair_price', 0)
     labor_price = context.user_data.get('repair_labor_price', 0)
     faults_total = context.user_data.get('repair_faults_total', 0)
     remaining = total_price - price_pay
+    images_count = len(context.user_data.get('repair_images', []))
+
+    # Determinar el chat_id y mensaje base
+    if hasattr(update, 'callback_query') and update.callback_query:
+        message = update.callback_query.message
+        chat_id = message.chat_id
+    else:
+        message = update.message
+        chat_id = message.chat_id
 
     keyboard = [
         [InlineKeyboardButton("✅ Crear reparación", callback_data="create_repair")],
@@ -1894,14 +1983,25 @@ async def show_repair_summary(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"🏷️ *Modelo:* {context.user_data.get('repair_model', 'No especificado')}\n"
         f"📱 *IMEI:* {context.user_data.get('repair_imei', 'No especificado')}\n"
         f"🔧 *Fallas:* {faults_text}\n"
-        f"📝 *Detalle:* {context.user_data.get('repair_detail', 'No especificado')}\n\n"
+        f"📝 *Detalle:* {context.user_data.get('repair_detail', 'No especificado')}\n"
+        f"📷 *Imágenes:* {images_count}\n\n"
     )
     
     # Desglose de precios
     summary_text += f"📊 *Desglose del precio:*\n"
     summary_text += f"🔧 Mano de obra: {format_currency(labor_price)}\n"
+    
     if faults_total > 0:
         summary_text += f"📦 Repuestos: {format_currency(faults_total)}\n"
+        for fault in faults:
+            price = fault.get('price', 0)
+            if isinstance(price, str):
+                try:
+                    price = float(price)
+                except (ValueError, TypeError):
+                    price = 0
+            summary_text += f"  • {fault.get('name', 'N/A')}: {format_currency(price)}\n"
+    
     summary_text += f"{'='*40}\n"
     summary_text += f"💰 *TOTAL:* {format_currency(total_price)}\n"
     summary_text += f"{'='*40}\n\n"
@@ -1915,20 +2015,16 @@ async def show_repair_summary(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         summary_text += f"⏳ *Sin abono - Saldo total:* {format_currency(total_price)}\n"
     
-    
     summary_text += "\n¿Confirmas la creación de esta reparación?"
 
-    await update.message.reply_text(
-        summary_text,
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=summary_text,
         parse_mode='Markdown',
         reply_markup=reply_markup
     )
-
-    # Mantener la conversación activa esperando la confirmación del usuario
-    # El fallback de cancel_callback y create_repair_callback manejaran la respuesta
-    return ADD_REPAIR_PAY_AMOUNT  # Esperar response del usuario
-
-
+    
+    return ADD_REPAIR_PAY_AMOUNT  # Mantener conversación viva para el callback
 # add repair 
 async def add_spare_parts_to_repair(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Permite agregar repuestos a una reparación"""
@@ -2084,6 +2180,7 @@ async def handle_add_spare_part(update: Update, context: ContextTypes.DEFAULT_TY
     except Exception as e:
         logger.error(f"Error en handle_add_spare_part: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
+
 
 async def finish_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Finaliza la adición de repuestos y los guarda en la BD"""
@@ -2472,6 +2569,45 @@ async def top_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='HTML',
         reply_markup=reply_markup
     )
+async def prepare_images_webp(context: ContextTypes.DEFAULT_TYPE) -> list:
+    """Prepara imágenes en memoria como binarios WebP para envío multipart"""
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
+    images_data = context.user_data.get('repair_images', [])
+    
+    if not images_data:
+        return []
+    
+    prepared_files = []
+    bot = context.bot
+    
+    for order, file_id in enumerate(images_data):
+        try:
+            file = await bot.get_file(file_id)
+            image_bytes = await file.download_as_bytearray()
+            buffer_img = io.BytesIO(bytes(image_bytes))
+
+            with Image.open(buffer_img) as im:
+                # Convertir a RGB (manejo de transparencia)
+                if im.mode in ("RGBA", "LA"):
+                    background = Image.new("RGB", im.size, (255, 255, 255))
+                    background.paste(im, mask=im.split()[-1])
+                    im = background
+                else:
+                    im = im.convert("RGB")
+
+                # Guardar en un buffer como WebP
+                webp_buffer = io.BytesIO()
+                im.save(webp_buffer, format="WEBP", quality=80, method=6)
+                webp_buffer.seek(0) # IMPORTANTE: Volver al inicio del buffer
+
+                # Guardamos el buffer y el nombre del archivo
+                prepared_files.append(('images',(f"imagen_{order}.webp",webp_buffer.getvalue(),'image/webp')))
+
+        except Exception as e:
+            logger.error(f"Error preparando imagen {order}: {e}")
+            continue
+    
+    return prepared_files
 
 async def daily_sales_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra las ventas del día actual"""
@@ -2888,70 +3024,59 @@ async def cancel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     
     return ConversationHandler.END
+
 async def create_repair_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Crea la reparación después de confirmar"""
+    """Crea la reparación enviando imágenes como archivos binarios (Multipart)"""
     query = update.callback_query
     await query.answer()
     
     try:
-        # Crear reparación a través del API
-        price_pay = context.user_data.get('repair_price_pay', 0) or 0
-        device = api_client.create_device(
-            client_name=context.user_data['repair_client'],
-            number_phone=context.user_data.get('repair_phone', ''),
-            device=context.user_data['repair_device'],
-            model=context.user_data.get('repair_model', ''),
-            faults=context.user_data.get('repair_faults', []),
-            detail=context.user_data.get('repair_detail', ''),
-            price=context.user_data['repair_price'],
-            price_pay=price_pay,
-            imei=context.user_data.get('repair_imei', '')
-        )
+        # 1. Preparamos las imágenes como una lista de tuplas binarias (WebP)
+        # Esta es la función que modificamos antes para que devuelva [('images', (...)), ...]
+        images_files = await prepare_images_webp(context)
         
-        if device:
-            try:
-                device_obj = device['device']
-                device_id = device_obj['id']
-            except (KeyError, TypeError) as e:
-                logger.error(f"Error accediendo al ID del dispositivo: {e}. device={device}")
-                await query.edit_message_text("❌ Error: No se pudo obtener el ID de la reparación creada")
-                return
-            
-            context.user_data['current_repair_id'] = device_id
-            
-            # Limpiar acciones previas para evitar conflictos
-            context.user_data.pop('action', None)
-            context.user_data.pop('adding_spare_part', None)
-            context.user_data.pop('adding_spare_parts', None)
-            
-            # Preguntar si quiere agregar repuestos
-            keyboard = [
-                [InlineKeyboardButton("✅ Sí, agregar repuestos", callback_data=f"add_spare_parts_{device_id}")],
-                [InlineKeyboardButton("❌ No, continuar sin repuestos", callback_data="skip_spare_parts")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+        # 2. Preparamos los datos de texto
+        device_data = {
+            "client_name": context.user_data['repair_client'],
+            "number_phone": context.user_data.get('repair_phone', ''),
+            "device": context.user_data['repair_device'],
+            "model": context.user_data.get('repair_model', ''),
+            "faults": context.user_data.get('repair_faults', []),
+            "detail": context.user_data.get('repair_detail', ''),
+            "price": context.user_data['repair_price'],
+            "price_pay": context.user_data.get('repair_price_pay', 0) or 0,
+            "imei": context.user_data.get('repair_imei', ''),
+        }
+        
+        # 3. Enviar al backend usando Multipart
+        # api_client.create_device ahora recibe (data, files)
+        result = api_client.create_device(device_data, images_files)
+        
+        if result:
+            device_id = result.get('id')
+            # Contamos cuántos archivos logramos procesar
+            images_count = len(images_files)
             
             await query.edit_message_text(
                 f"✅ *Reparación creada exitosamente!*\n\n"
-                f"🆔 *ID:* {device_id}\n"
-                f"👤 *Cliente:* {context.user_data['repair_client']}\n"
-                f"📱 *Dispositivo:* {context.user_data['repair_device']}\n"
-                f"💰 *Precio:* {format_currency(context.user_data['repair_price'])}\n\n"
-                "¿Deseas agregar repuestos usados en esta reparación?\n"
-                "Los repuestos se descontarán automáticamente del inventario.",
-                parse_mode='Markdown',
-                reply_markup=reply_markup
+                f"🆔 ID: `{device_id}`\n"
+                f"📷 Imágenes guardadas: {images_count}\n"
+                f"👤 Cliente: {device_data['client_name']}\n"
+                f"📱 Dispositivo: {device_data['device']} {device_data['model']}\n"
+                f"💰 Precio: {format_currency(device_data['price'])}",
+                parse_mode='Markdown'
             )
+            
+            # Limpiamos los datos del usuario después del éxito
+            context.user_data.pop('repair_images', None)
+            # Podrías limpiar más campos aquí...
+            
         else:
-            await query.edit_message_text(
-                "❌ Error al guardar la reparación. Verifica que el nombre de cliente tenga 3 o más caracteres, el teléfono sea válido y completa los datos pedidos."
-            )
-    
+            await query.edit_message_text("❌ El servidor rechazó la solicitud o hubo un error de conexión.")
+            
     except Exception as e:
         logger.error(f"Error en create_repair_callback: {e}")
-        await query.edit_message_text(f"❌ Error: {e}")
-    
-    return ConversationHandler.END
+        await query.edit_message_text(f"❌ Ocurrió un error inesperado: {str(e)}")
 # ============ AGREGAR CATEGORÍAS ============
 async def add_category_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Inicia el registro de una nueva categoría"""
@@ -3092,6 +3217,22 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error procesando texto: {e}")
         await update.message.reply_text(f"❌ Error al procesar tu mensaje.")
+async def handle_image_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja respuestas de texto durante captura de imágenes"""
+    response = update.message.text.strip().lower()
+    
+    if response in ['si', 'sí', 's', 'yes']:
+        await update.message.reply_text(
+            "📸 Envía la siguiente imagen del dispositivo:"
+        )
+        return ADD_REPAIR_IMAGE
+    elif response in ['no', 'n', 'ninguno']:
+        return await show_repair_summary(update, context)
+    else:
+        await update.message.reply_text(
+            "❌ Por favor, responde 'si' para agregar otra imagen o 'no' para continuar:"
+        )
+        return ADD_REPAIR_IMAGE
 
 # ============ MAIN ============
 def main():
@@ -3128,7 +3269,7 @@ def main():
             per_message=False,
             per_chat=True,
             allow_reentry=True,
-        )
+            )
         # Conversación para agregar reparaciones
         add_repair_conv = ConversationHandler(
             entry_points=[CallbackQueryHandler(add_repair_start, pattern="^add_repair$")],
@@ -3151,18 +3292,18 @@ def main():
                 ADD_REPAIR_DETAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_detail)],
                 ADD_REPAIR_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_price)],
                 ADD_REPAIR_PAY: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay)],
-                ADD_REPAIR_PAY_AMOUNT: [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay_amount),
-                    CallbackQueryHandler(create_repair_callback, pattern="^create_repair$"),
-                    CallbackQueryHandler(cancel_callback, pattern="^cancel$"),
+                ADD_REPAIR_PAY_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, add_repair_pay_amount)],
+                ADD_REPAIR_IMAGE: [
+                    CallbackQueryHandler(add_repair_image, pattern="^(add_image|skip_images|finish_images)$"),
+                    MessageHandler(filters.PHOTO, add_repair_image),
                 ],
             },
             fallbacks=[CommandHandler("cancelar", cancel_callback), CallbackQueryHandler(cancel_callback, pattern="^cancel$")],
             per_message=False,
             per_chat=True,
             allow_reentry=True,
-        )
-        
+    )
+                
         # Conversación para agregar categorías
         add_category_conv = ConversationHandler(
             entry_points=[CallbackQueryHandler(add_category_start, pattern="^add_category$")],

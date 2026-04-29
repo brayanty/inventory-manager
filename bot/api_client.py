@@ -16,47 +16,56 @@ class APIClient:
         # Deshabilitar SSL para desarrollo
         self.verify_ssl = os.getenv('VERIFY_SSL', 'False').lower() == 'true'
     
-    def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] = None, params: Dict[str, Any] = None) -> Optional[requests.Response]:
-        """Realiza una solicitud HTTP al backend"""
+    def _make_request(self, method: str, endpoint: str, data: Dict[str, Any] = None, params: Dict[str, Any] = None, files: Any = None) -> Optional[requests.Response]:
+        """Realiza una solicitud HTTP al backend (Soporta JSON y Multipart)"""
         url = f"{self.base_url}{endpoint}"
-        
+    
         try:
-            headers = {'Content-Type': 'application/json'}
-            
+            # 1. No fijamos el Content-Type si hay archivos. 
+            # Requests lo pondrá automáticamente como 'multipart/form-data'
+            headers = {}
+            if not files:
+                headers['Content-Type'] = 'application/json'
+        
+            # 2. Elegimos entre 'json=' (para texto puro) o 'data=' (para multipart)
+            # Si hay archivos, los datos deben ir en 'data', no en 'json'
+            kwargs = {
+                'headers': headers,
+                'timeout': self.timeout,
+                'verify': self.verify_ssl,
+                'params': params
+            }
+
+            if files:
+                kwargs['data'] = data  # En multipart, los campos de texto van aquí
+                kwargs['files'] = files
+            else:
+                kwargs['json'] = data  # En API normal, van aquí
+
+            # 3. Realizar la petición
             if method == 'GET':
-                response = requests.get(url, params=params, headers=headers, timeout=self.timeout, verify=self.verify_ssl)
+                response = requests.get(url, **kwargs)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=self.timeout, verify=self.verify_ssl)
+                response = requests.post(url, **kwargs)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=headers, timeout=self.timeout, verify=self.verify_ssl)
+                response = requests.put(url, **kwargs)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=self.timeout, verify=self.verify_ssl)
+                response = requests.delete(url, **kwargs)
             else:
                 logger.error(f"Método HTTP no soportado: {method}")
                 return None
-            
+        
             response.raise_for_status()
             return response
-        
-        except requests.exceptions.ConnectionError as e:
-            logger.error(f"Error de conexión a {url}: {e}")
-            return None
-        except requests.exceptions.Timeout as e:
-            logger.error(f"Timeout en {url}: {e}")
-            return None
-        except requests.exceptions.HTTPError as e:
-            logger.error(f"Error HTTP {e.response.status_code} en {url}: {e}")
-            try:
-                error_detail = e.response.text
-                logger.error(f"Detalle del error: {error_detail}")
-            except:
-                pass
-            return None
-        except Exception as e:
-            logger.error(f"Error en solicitud a {url}: {e}")
-            return None
     
-    # ============ PRODUCTOS ============
+        except requests.exceptions.RequestException as e:
+            # Agrupé las excepciones para no repetir tanto código, 
+            # pero puedes mantener tus bloques específicos si prefieres.
+            logger.error(f"Error en solicitud {method} a {url}: {e}")
+            if hasattr(e, 'response') and e.response:
+                logger.error(f"Detalle del error: {e.response.text}")
+            return None
+        # ============ PRODUCTOS ============
     def get_products(self) -> List[Dict[str, Any]]:
         """Obtiene todos los productos"""
         response = self._make_request('GET', '/products')
@@ -269,24 +278,55 @@ class APIClient:
                 logger.error(f"Error parseando dispositivo: {e}")
                 return None
         return None
-    
-    def create_device(self, client_name: str, number_phone: str, device: str, model: str,
-                     faults: List[Any], detail: str, price: float, price_pay: float = 0, imei: str = None) -> Optional[Dict[str, Any]]:
+
+    def _normalize_phone(self, number_phone: Optional[str]) -> Optional[str]:
+        if not number_phone:
+            return ""
+
+        phone_digits = ''.join(c for c in str(number_phone) if c.isdigit())
+        if phone_digits and (len(phone_digits) < 7 or len(phone_digits) > 15):
+            logger.error(f"Número de teléfono inválido: {number_phone}. Debe tener entre 7 y 15 dígitos")
+            return None
+
+        return phone_digits
+
+    def _normalize_imei(self, imei: Optional[str]) -> str:
+        if not imei:
+            return ""
+
+        imei_digits = ''.join(c for c in str(imei) if c.isdigit())
+        if len(imei_digits) != 15:
+            logger.warning(f"IMEI inválido: {imei}. Debe tener 15 dígitos. Omitiendo IMEI")
+            return ""
+
+        return imei_digits
+
+    def _normalize_faults(self, faults: Optional[List[Any]]) -> List[Dict[str, Any]]:
+        if not faults:
+            return []
+
+        return [fault if isinstance(fault, dict) else {} for fault in faults]
+
+    def create_device(self, data_device: Dict[str, Any], images: list = [] ) -> Optional[Dict[str, Any]]:
         """Crea un nuevo registro de reparación"""
         # Validar y transformar datos
+        client_name = data_device.get("client_name")
         if not client_name or len(client_name) < 3:
             logger.error("client_name debe tener al menos 3 caracteres")
             return None
         
+        device = data_device.get("device")
         if not device or len(device) < 2:
             logger.error("device debe tener al menos 2 caracteres")
             return None
-            
+
+        model = data_device.get("model")
         if not model or len(model) < 2:
             logger.error("model debe tener al menos 2 caracteres")
             return None
         
         # Validar número de teléfono (debe ser entre 7 y 15 dígitos, pero es opcional)
+        number_phone = data_device.get("number_phone")
         if number_phone:
             phone_digits = ''.join(c for c in str(number_phone) if c.isdigit())
             if phone_digits and (len(phone_digits) < 7 or len(phone_digits) > 15):
@@ -296,6 +336,7 @@ class APIClient:
             phone_digits = ""  # Teléfono opcional
         
         # Validar IMEI (debe ser 15 dígitos si se proporciona)
+        imei = data_device.get("imei")
         if imei:
             imei_digits = ''.join(c for c in str(imei) if c.isdigit())
             if len(imei_digits) != 15:
@@ -305,8 +346,9 @@ class APIClient:
         # Transformar faults de strings a objetos con id
         # Si son strings, creamos objetos vacíos (sin id)
         transformed_faults = []
-        if faults:
-            for fault in faults:
+        data_faults = data_device.get("faults", [])
+        if data_faults:
+            for fault in data_faults:
                 if isinstance(fault, dict):
                     # Ya es un diccionario, usarlo tal cual
                     transformed_faults.append(fault)
@@ -315,21 +357,23 @@ class APIClient:
                     transformed_faults.append({})
                 else:
                     transformed_faults.append({})
-        
-        data = {
+        # ✅ CORREGIDO: Usar el parámetro 'images' que se pasa como argumento
+        # No intentar obtenerlo de data_device
+        images = images or []
+        payload = {
             'client_name': client_name,
-            'number_phone': phone_digits,  # Solo dígitos
+            'number_phone': phone_digits,
             'device': device,
             'model': model,
-            'faults': transformed_faults or [],  # Array de objetos
-            'detail': detail,
-            'price': float(price),
-            'price_pay': float(price_pay),  # Campo requerido
-            'imei': imei or ""  # String vacío si no se proporciona
+            'faults': json.dumps(transformed_faults), # Los arrays deben ir como string en multipart
+            'detail': data_device.get("detail") or "",
+            'price': float(data_device.get("price") or 0),
+            'price_pay': float(data_device.get("price_pay") or 0),
+            'imei': imei or ""
         }
         
         
-        response = self._make_request('POST', '/devices', data=data)
+        response = self._make_request('POST', '/devices', data=payload,files=images)
         if response and response.status_code == 201:
             try:
                 full_response = response.json()
