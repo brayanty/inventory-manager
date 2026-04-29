@@ -4,10 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "docker compose up --build"
+    "dev": "docker compose up --build",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "npm@10.9.4"
+  "packageManager": "npm@10.9.4",
+  "devDependencies": {
+    "wrangler": "^4.86.0"
+  }
 }

@@ -34,3 +34,9 @@ backend/.env
 backend/data.json
 backend/data.json
 .env
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
