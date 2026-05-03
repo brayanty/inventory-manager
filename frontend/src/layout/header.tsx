@@ -1,7 +1,7 @@
 import { Menu, Search } from "lucide-react";
-import { useCategoryListStore } from "../store/category.tsx";
-import { useSearchStore } from "../store/filters.tsx";
-import { useOpenSidebar } from "../hooks/openSidebar.tsx";
+import { useCategoryListStore } from "../components/store/category.tsx";
+import { useSearchStore } from "../components/store/filters.tsx";
+import { useOpenSidebar } from "../components/hooks/openSidebar.tsx";
 
 function Header() {
   const { categorySelect, setCategorySelect, categoryList } =

@@ -1,8 +1,8 @@
-import Layout from "@/components/layout/Layout";
-import ProductsInventory from "@/pages/inventory";
-import TechnicalService from "@/pages/technicalService";
-import SalesStatistics from "@/pages/SalesStatistics";
-import NotFound from "@/pages/notFound.tsx"
+import Layout from "@/layout/Layout";
+import ProductsInventory from "@/layout/pages/inventory";
+import TechnicalService from "@/layout/pages/technicalService";
+import SalesStatistics from "@/layout/pages/SalesStatistics";
+import NotFound from "@/layout/pages/notFound"
 import { Route, Routes } from "react-router";
 
 export default function AppRoutes() {

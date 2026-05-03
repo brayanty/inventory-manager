@@ -4,11 +4,11 @@ import Sidebar from "./Sidebar";
 
 export default function Layout() {
   return (
-    <div className="h-screen max-h-screen flex flex-row">
+    <div className="h-screen max-h-screen flex flex-row bg-white dark:bg-[#1f232b] dark:text-white">
       {/* Navegation */}
       <div
         id={"navegation"}
-        className="h-screen max-h-screen absolute z-20 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none bg-[#1e1e1e] "
+        className="h-screen max-h-screen absolute z-20 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none bg-white dark:bg-[#1f232b] dark:text-white "
       >
         <Sidebar />
       </div>
@@ -18,7 +18,7 @@ export default function Layout() {
           <Header />
         </div>
         {/* Main */}
-        <main className="">
+        <main className="bg-white dark:bg-[#1f232b] dark:text-white">
           {/* Aquí se renderiza la página actual */}
           <div className="col-span-3 row-span-5">
             <Outlet />
