@@ -1,4 +1,4 @@
-import { IconVoid } from "@/components/layout/ui/imgs";
+import { IconVoid } from "@/layout/ui/imgs";
 import { formatCOP } from "@/components/utils/format";
 
 import useProductsStore from "@/components/store/products";

@@ -1,5 +1,4 @@
 import {
-  DeviceEntry,
   TechnicalServiceEntry,
   TechnicalServiceEntryNoID,
 } from "../types/technicalService";
@@ -15,36 +14,24 @@ export async function getDevice(id: string) {
     return data.data;
   }
 }
-export async function createDevice(device: DeviceEntry) {
-  const deviceToSend = {
-    ...device,
-    faults: device.faults.map(f => ({ id: parseInt(f.id) })),
-  };
+export async function createDevice(formDevice: FormData) {
   const response = await fetch(DEVICE_ENDPOINT, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(deviceToSend),
+    body: formDevice,
   });
   const data = await response.json();
   return data;
 }
 export async function updateDevice(
   id: string | number,
-  deviceStatus: DeviceEntry,
+  formDevice: FormData,
 ) {
-  const deviceToSend = {
-    ...deviceStatus,
-    faults: deviceStatus.faults.map(f => ({ id: parseInt(f.id) })),
-  };
+
   const response = await fetch(DEVICE_ENDPOINT + "/" + id, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(deviceToSend),
+    body: formDevice,
   });
+  
   const { success, status, data, message } = await response.json();
   if (!success || !status || status !== 201) {
     return { success: false, message };

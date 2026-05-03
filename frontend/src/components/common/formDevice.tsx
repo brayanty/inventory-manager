@@ -5,14 +5,26 @@ import { formatCOP } from "../utils/format";
 import Checkbox from "./checkbox";
 import FaultsInput from "./FaultsInput";
 import ContactPhone from "./contactPhone";
+import Button from "./button";
+import { SliceIMG } from "./sliceIMG";
+import Modal from "./Modal";
+import { useState } from "react";
 
 interface DeviceFormEntry {
   onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => void;
   isEditing: boolean;
+  imgs: File[] | null;
+  openTakePhoto: () => void;
 }
 
-const DeviceForm = ({ onSubmit, isEditing = false }: DeviceFormEntry) => {
+const DeviceForm = ({
+  onSubmit,
+  isEditing = false,
+  imgs,
+  openTakePhoto,
+}: DeviceFormEntry) => {
   const { deviceForm, updateField } = useDeviceFormStore();
+  const [viewImages, setViewImages] = useState(false);
 
   return (
     <form
@@ -148,6 +160,35 @@ const DeviceForm = ({ onSubmit, isEditing = false }: DeviceFormEntry) => {
           aria-label="Observaciones del dispositivo"
         ></textarea>
       </label>
+      {/* Imágenes del dispositivo */}
+      <div className="flex justify-between items-center w-full max-w-md">
+        <Modal
+          isOpen={viewImages}
+          onClose={() => setViewImages(false)}
+          title="Imágenes del dispositivo"
+        >
+          <SliceIMG images={imgs?.map((i) => URL.createObjectURL(i)) || []} />
+        </Modal>
+
+        {/* Botón para abrir la cámara */}
+        <label
+          className="w-full flex justify-between items-center cursor-pointer transition"
+          htmlFor="images"
+        >
+          <Button
+            className="bg-gray-300 px-4 py-2 rounded hover:bg-green-700 transition text-black"
+            onClick={() => setViewImages(true)}
+          >
+            Ver imagenes
+          </Button>
+          <Button
+            onClick={openTakePhoto}
+            className="bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition text-white"
+          >
+            Agregar imágenes
+          </Button>
+        </label>
+      </div>
       {/* Botón de envío */}
       <button
         type="submit"
