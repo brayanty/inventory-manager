@@ -1,13 +1,11 @@
 import multer from "multer";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { v7 } from "uuid";
 const uploadPath = path.join(process.cwd(), "/public/img/devices/");
 
 const generateNameFile = () => {
-  return new Date()
-    .toLocaleString("es-CO", { hour12: true })
-    .replaceAll(/[\/\s,.:]|( \. )/g, "")
-    .toLowerCase();
+  return v7();
 };
 
 const storage = multer.diskStorage({
@@ -16,6 +14,7 @@ const storage = multer.diskStorage({
       await fs.mkdir(uploadPath, { recursive: true });
       cb(null, uploadPath);
     } catch (err) {
+      throw new Error("Error creating upload directory: " + err.message);
       cb(err, uploadPath);
     }
   },
