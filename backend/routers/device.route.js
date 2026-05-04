@@ -5,8 +5,8 @@ import getDevice from "../controllers/deviceRepair/getDevice.js";
 import deleteDevice from "../controllers/deviceRepair/deleteDevice.js";
 import getRepairs from "../controllers/deviceRepair/getRepairs.js";
 import {
-  validateDevice,
-  validateUpdateDevice,
+    validateDevice,
+    validateUpdateDevice,
 } from "../middleware/device.middleware.js";
 import updateDevice from "../controllers/deviceRepair/updateDevice.controller.js";
 import { updateStatusDevice } from "../controllers/deviceRepair/updateStatusDevice.controller.js";
@@ -16,7 +16,12 @@ import { upload } from "../config/uploadImage.js";
 const router = Router();
 
 //Create new device
-router.post("/devices", upload.array("images"), validateDevice, createDevice);
+router.post(
+    "/devices",
+    upload.array("images"),
+    validateDevice,
+    createDevice,
+);
 //Get all device
 router.get("/devices", getAllDevice);
 //Get one device
