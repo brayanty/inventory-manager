@@ -38,6 +38,8 @@ services:
     volumes:
       - ./backend:/app:Z
       - public:/app/public:Z
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=4000
