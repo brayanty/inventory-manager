@@ -4,7 +4,6 @@
 }
 
 @import "tailwindcss";
-@plugin "daisyui";
 
 body {
   font-family: Roboto;
