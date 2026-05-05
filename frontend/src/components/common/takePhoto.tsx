@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
+import Button from "./button";
 
 interface TakePhotoProps {
   addImage: (image: File) => void;
@@ -115,7 +116,7 @@ function TakePhoto({ addImage }: TakePhotoProps) {
   //     }) as unknown as Blob;
   //   }, []);
 
-  // Reiniciar la cámara (tomar otra foto)
+  // tomar otra foto
   const restartCamera = useCallback(() => {
     // Limpiar la URL de previsualización
     if (imagePreview) {
@@ -313,32 +314,14 @@ function TakePhoto({ addImage }: TakePhotoProps) {
 
       {image && (
         <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <h3 className="font-semibold mb-2">Información de la foto:</h3>
-          <div className="text-sm text-gray-600">
-            <p>
-              <strong>Nombre:</strong> {image.name}
-            </p>
-            <p>
-              <strong>Tipo:</strong> {image.type}
-            </p>
-            <p>
-              <strong>Tamaño:</strong> {(image.size / 1024).toFixed(2)} KB
-            </p>
-            <p>
-              <strong>Última modificación:</strong>{" "}
-              {new Date(image.lastModified).toLocaleString()}
-            </p>
-          </div>
-
-          {/* Ejemplo de cómo enviar el archivo a un servidor */}
-          <button
+          <Button
             onClick={() => {
               addImage(image);
             }}
             className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
           >
-            Subir foto (ejemplo)
-          </button>
+            Subir foto
+          </Button>
         </div>
       )}
 

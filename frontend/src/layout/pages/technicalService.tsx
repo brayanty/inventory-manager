@@ -33,6 +33,7 @@ import TakePhoto from "@/components/common/takePhoto";
 import { SliceIMG } from "@/components/common/sliceIMG";
 import { BACKEND_URL } from "@/components/constants/endpoint";
 import { convertToWebp } from "@/components/utils/convertToWebp";
+import useDeviceFormImgStore from "@/components/store/useDeviceFormImgStore";
 const TechnicalService = () => {
   // devices data
   const { devices, setDevices, isLoading, handleGetDevices } =
@@ -45,7 +46,7 @@ const TechnicalService = () => {
 
   // Device form state management
   const { deviceForm, setDeviceFormEdit } = useDeviceFormStore();
-  const [deviceImgs, setDeviceImgs] = useState<File[]>([]);
+  const { deviceImgs, setDeviceImgs } = useDeviceFormImgStore();
   // Modal states
   const [isOpenQR, setOpenQR] = useState(false);
   const [isOpenTakePhoto, setOpenTakePhoto] = useState(false);
@@ -412,6 +413,10 @@ const TechnicalService = () => {
         <div className="rounded-lg shadow-lg overflow-hidden shadow-gray-300 mt-4">
           <div className="p-2 text-black">Imágenes del dispositivo:</div>
           <SliceIMG
+            removeImage={(name) => {
+              const newImgs = deviceImgs.filter((img) => img.name !== name);
+              setDeviceImgs(newImgs);
+            }}
             images={deviceDetail?.images?.map((img) => BACKEND_URL + img) || []}
           />
         </div>
@@ -427,7 +432,6 @@ const TechnicalService = () => {
         }}
       >
         <DeviceForm
-          imgs={deviceImgs}
           openTakePhoto={() => setOpenTakePhoto(true)}
           onSubmit={handleFormSubmit}
           isEditing={isEditing}
@@ -440,7 +444,7 @@ const TechnicalService = () => {
       >
         <TakePhoto
           addImage={(image) => {
-            setDeviceImgs((prev) => (prev ? [...prev, image] : [image]));
+            setDeviceImgs([...deviceImgs, image]);
           }}
         />
       </Modal>

@@ -9,21 +9,21 @@ import Button from "./button";
 import { SliceIMG } from "./sliceIMG";
 import Modal from "./Modal";
 import { useState } from "react";
+import useDeviceFormImgStore from "../store/useDeviceFormImgStore";
 
 interface DeviceFormEntry {
   onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => void;
   isEditing: boolean;
-  imgs: File[] | null;
   openTakePhoto: () => void;
 }
 
 const DeviceForm = ({
   onSubmit,
   isEditing = false,
-  imgs,
   openTakePhoto,
 }: DeviceFormEntry) => {
   const { deviceForm, updateField } = useDeviceFormStore();
+  const { deviceImgs, removeDeviceImg } = useDeviceFormImgStore();
   const [viewImages, setViewImages] = useState(false);
 
   return (
@@ -167,7 +167,12 @@ const DeviceForm = ({
           onClose={() => setViewImages(false)}
           title="Imágenes del dispositivo"
         >
-          <SliceIMG images={imgs?.map((i) => URL.createObjectURL(i)) || []} />
+          <SliceIMG
+            removeImage={(name) => {
+              removeDeviceImg(name);
+            }}
+            images={deviceImgs}
+          />
         </Modal>
 
         {/* Botón para abrir la cámara */}
