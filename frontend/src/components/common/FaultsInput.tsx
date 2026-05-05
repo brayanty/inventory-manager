@@ -110,7 +110,7 @@ const FaultsInput: React.FC<FaultsInputProps> = ({ onChange }) => {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="Escribe una falla o servicio..."
-        className="outline-none bg-transparent text-sm"
+        className="outline-none border-0 w-[60%] bg-transparent text-sm"
       />
 
       {replacement.length > 0 && (
