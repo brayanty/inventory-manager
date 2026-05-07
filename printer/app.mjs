@@ -5,7 +5,9 @@ import fs from "fs";
 const app = express();
 app.use(express.json());
 
-const DEVICE = process.env.DEVICE_PRINTER || "/dev/usb/lp0";
+const DEVICE_PRINTER = process.env.DEVICE_PRINTER || "/dev/usb/lp0";
+const PRINTER_PORT = process.env.PRINTER_PORT || "8000";
+const IP_LOCALHOST = process.env.IP_LOCALHOST || "http://localhost";
 
 // Comandos ESC/POS
 const ESC = "\x1B";
@@ -137,7 +139,6 @@ function procesarOperaciones(ops) {
   }
 
   output += "\n\n" + COMMANDS.CUT;
-  console.log(output);
 
   try {
     // Enviar los datos a imprimir
@@ -153,7 +154,7 @@ app.post("/imprimir", (req, res) => {
 
     const buffer = procesarOperaciones(operaciones);
 
-    fs.writeFileSync(DEVICE, buffer);
+    fs.writeFileSync(DEVICE_PRINTER, buffer);
 
     res.json({ ok: true });
   } catch (err) {
@@ -162,6 +163,6 @@ app.post("/imprimir", (req, res) => {
   }
 });
 
-app.listen(8000, () => {
-  console.log("Printer corriendo en puerto 8000");
+app.listen(PRINTER_PORT, () => {
+  console.log(`Printer corriendo en puerto ${IP_LOCALHOST}:${PRINTER_PORT}`);
 });
