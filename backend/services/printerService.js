@@ -1,9 +1,12 @@
 import "dotenv/config";
 import { formatCOP } from "../utils/formatMoney.js";
+import loadConfig from "../config/env.js";
+
+const { PRINTER_URL,PRINTER_PORT } = loadConfig();
 
 // Constantes y configuración
 const PRINTER_CONFIG = {
-  baseUrl: process.env.PRINTER_URL || "http://localhost:8000/imprimir",
+  baseUrl: `${PRINTER_URL}:${PRINTER_PORT}/imprimir` || "http://localhost:8000/imprimir",
   headers: { "Content-Type": "application/json" },
   lineWidth: 32,
 };

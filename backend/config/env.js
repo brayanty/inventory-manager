@@ -5,19 +5,20 @@ const envSchema = z.object({
   VITE_API_URL: z.string().url(),
   PRINTER_URL: z.string().url(),
   BACKEND_URL: z.string().url(),
-
+  BACKEND_PORT: z.coerce.number().default(4000),
+  PRINTER_PORT: z.coerce.number().default(8000),
+  NODE_ENV: z.enum(["development", "production", "test","info","debug"]).default("development"),
+  IP_LOCALHOST: z.string().default("127.0.0.1"),
 });
 
 export default function loadConfig() {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    const errors = result.error.issues
-      .map((e) => `${e.path[0]}: ${e.message}`)
-      .join("\n");
+    console.error("Environment validation error:", z.prettifyError(result.error));
+    process.exit(1);
 
-    throw new Error("Env validation error:\n" + errors);
   }
 
-  return result.data;
+  return { ...result.data };
 }
