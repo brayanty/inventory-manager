@@ -7,11 +7,15 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# Enviroment variables:
+BACKEND_URL = os.getenv('BACKEND_URL')
+BACKEND_PORT = os.getenv('BACKEND_PORT', '3000')
+
 class APIClient:
     """Cliente para interactuar con el backend API"""
     
     def __init__(self, base_url: str = None):
-        self.base_url = base_url or os.getenv('BACKEND_URL', 'https://localhost:3000/api')
+        self.base_url = base_url or f"{BACKEND_URL}:{BACKEND_PORT}/api"
         self.timeout = 10
         # Deshabilitar SSL para desarrollo
         self.verify_ssl = os.getenv('VERIFY_SSL', 'False').lower() == 'true'

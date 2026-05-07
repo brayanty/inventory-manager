@@ -20,7 +20,8 @@ load_dotenv()
 TOKEN = os.getenv('TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 ZONA_HORARIA_STR = os.getenv('ZONA_HORARIA', 'America/Bogota')
-PRINTER_URL = os.getenv('PRINTER_URL', 'http://localhost:8000/imprimir')
+PRINTER_PORT = os.getenv('PRINTER_PORT', '8000')
+PRINTER_URL = os.getenv('PRINTER_URL', 'http://localhost')
 ZONA_HORARIA = pytz.timezone(ZONA_HORARIA_STR)
 
 # Estados para conversación de productos
@@ -175,7 +176,7 @@ def enviar_a_impresora(operaciones, reintentos=2):
     """Envía operaciones al servicio de impresión con reintentos"""
     for intento in range(reintentos):
         try:
-            response = requests.post(PRINTER_URL, json={"operaciones": operaciones}, timeout=10)
+            response = requests.post(f"{PRINTER_URL}:{PRINTER_PORT}/imprimir", json={"operaciones": operaciones}, timeout=10)
             if response.status_code == 200:
                 return True, "✅ Ticket enviado a impresora"
             else:
