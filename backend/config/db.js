@@ -1,5 +1,5 @@
 import pkg from "pg";
-import loadConfig from "./env";
+import loadConfig from "./env.js";
 const { Pool } = pkg;
 
 const { DATABASE_URL } = loadConfig();
