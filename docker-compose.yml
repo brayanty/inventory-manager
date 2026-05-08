@@ -4,20 +4,16 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_BACKEND_PORT: ${BACKEND_PORT}
     ports:
       - "5173:80"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
       - /etc/localtime:/etc/localtime:ro
       - ./frontend/certs/nginx.crt:/etc/nginx/certs/nginx.crt:ro
       - ./frontend/certs/nginx.key:/etc/nginx/certs/nginx.key:ro
-    environment:
-      - NODE_ENV=${NODE_ENV}
     depends_on:
       - backend
     restart: unless-stopped
-
   printer:
     build: ./printer
     ports:
@@ -25,8 +21,6 @@ services:
     environment:
       - DEVICE_PRINTER=/dev/usb/lp0
     restart: unless-stopped
-    volumes:
-      - ./printer:/app
     privileged: true
 
   backend:
@@ -34,7 +28,6 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - ./backend:/app:Z
       - public:/app/public:Z
     env_file:
       - .env
