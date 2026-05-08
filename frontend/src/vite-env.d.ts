@@ -1,3 +1,10 @@
 /// <reference types="vite/client" />
 
-const VITE_API_URL = import.meta.env.VITE_API_URL as string;
+interface ImportMetaEnv {
+  readonly VITE_API_URL: string;
+  readonly VITE_BACKEND_PORT: number;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
