@@ -1,7 +1,8 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 # Exponer url del backend
+ARG VITE_BACKEND_PORT
 ARG VITE_API_URL
 
 COPY package*.json ./
