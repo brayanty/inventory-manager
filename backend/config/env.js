@@ -5,6 +5,7 @@ const envSchema = z.object({
   VITE_API_URL: z.string().url(),
   PRINTER_URL: z.string().url(),
   BACKEND_URL: z.string().url(),
+  FRONTEND_PORT: z.coerce.number().default(5173),
   BACKEND_PORT: z.coerce.number().default(4000),
   PRINTER_PORT: z.coerce.number().default(8000),
   NODE_ENV: z.enum(["development", "production", "test","info","debug"]).default("development"),
