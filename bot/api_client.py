@@ -365,19 +365,20 @@ class APIClient:
         # No intentar obtenerlo de data_device
         images = images or []
         payload = {
-            'client_name': client_name,
-            'number_phone': phone_digits,
-            'device': device,
-            'model': model,
-            'faults': json.dumps(transformed_faults), # Los arrays deben ir como string en multipart
-            'detail': data_device.get("detail") or "",
-            'price': float(data_device.get("price") or 0),
-            'price_pay': float(data_device.get("price_pay") or 0),
-            'imei': imei or ""
+            'device': json.dumps({
+                'client_name': client_name,
+                'number_phone': phone_digits,
+                'device': device,
+                'model': model,
+                'faults': transformed_faults,
+                'detail': data_device.get("detail") or "",
+                'price': float(data_device.get("price") or 0),
+                'price_pay': float(data_device.get("price_pay") or 0),
+                'imei': imei or ""
+            })
         }
         
-        
-        response = self._make_request('POST', '/devices', data=payload,files=images)
+        response = self._make_request('POST', '/devices', data=payload, files=images if images else None)
         if response and response.status_code == 201:
             try:
                 full_response = response.json()
