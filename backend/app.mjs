@@ -14,7 +14,7 @@ import logger from "./config/logger.js";
 import loadConfig from "./config/env.js";
 
 // Variables de entorno
-const {BACKEND_PORT,IP_LOCALHOST} = loadConfig();
+const {BACKEND_PORT,FRONTEND_PORT,IP_LOCALHOST,VITE_API_URL} = loadConfig();
 const options = {
     key: await fs.readFile(SSL_CONFIG.keyPath),
     cert: await fs.readFile(SSL_CONFIG.certPath),
@@ -22,10 +22,14 @@ const options = {
 
 const app = express();
 
+const corsOptions = {
+  origin: `${VITE_API_URL}:${FRONTEND_PORT}`,
+  optionsSuccessStatus: 200 
+};
 // Middlewares
 app.use(json());
 app.use(morgan("dev"));
-app.use(cors());
+app.use(cors(corsOptions));
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
