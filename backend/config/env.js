@@ -9,6 +9,7 @@ const envSchema = z.object({
   PRINTER_PORT: z.coerce.number().default(8000),
   NODE_ENV: z.enum(["development", "production", "test","info","debug"]).default("development"),
   IP_LOCALHOST: z.string().default("127.0.0.1"),
+  DATABASE_URL: z.string().url(),
 });
 
 export default function loadConfig() {

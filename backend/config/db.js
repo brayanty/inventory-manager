@@ -1,8 +1,10 @@
 import pkg from "pg";
+import loadConfig from "./env";
 const { Pool } = pkg;
 
+const { DATABASE_URL } = loadConfig();
 const pool = new Pool({
-  connectionString:process.env.DATABASE_URL
+  connectionString: DATABASE_URL
 });
 
 export default pool;
