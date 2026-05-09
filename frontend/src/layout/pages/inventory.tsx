@@ -1,4 +1,3 @@
-import FormRender from "@/components/common/formProduct";
 import RenderProducts from "@/components/inventory/components/renderProducts";
 import Paginator from "@/components/common/paginator";
 import {
@@ -15,6 +14,8 @@ import { TableTitleHead } from "@/components/common/tableComponets";
 import { INVENTORY_TABLE_HEADERS } from "@/components/constants/inventory.const";
 import ShoppingCart from "@/components/common/shoppingCart";
 import { ShoppingCartIcon, X } from "lucide-react";
+import FormProduct from "@/components/common/formProduct";
+import FormCategory from "@/components/common/formCategory";
 
 function ProductsInventory() {
   const [isOpenAddProduct, setOpenAddProduct] = useState(false);
@@ -27,7 +28,13 @@ function ProductsInventory() {
 
   const handlerEditableProduct = (product: ProductBase) => {
     setIsFormEdit(true);
-    setEditFormProduct(product);
+    setEditFormProduct({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+    });
     setOpenAddProduct(true);
   };
 
@@ -100,22 +107,14 @@ function ProductsInventory() {
         </div>
         <Paginator />
         {/* Formulario para agregar categoria */}
-        <FormRender
+        <FormCategory
           title="Agregar Categoría"
           isForm={isOpenAddCategory}
           closeForm={() => setOpenAddCategory(false)}
-          onSubmit={(data) => handleSubmitCategory(data.name)}
-          fields={[
-            {
-              label: "Categoría",
-              name: "name",
-              type: "text",
-              placeholder: "Perifericos...",
-            },
-          ]}
+          onSubmit={(categoryData) => handleSubmitCategory(categoryData.name)}
         />
         {/* Formulario para agregar productos */}
-        <FormRender
+        <FormProduct
           title={
             isFormEdit
               ? "Formulario para editar producto"
@@ -133,31 +132,12 @@ function ProductsInventory() {
               stock: 0,
             });
           }}
-          dataEdit={editFormProduct}
-          onSubmit={(data) =>
-            isFormEdit ? handleUpdateProduct(data) : handleCreateProduct(data)
+          formProduct={editFormProduct}
+          onSubmit={(product) =>
+            isFormEdit
+              ? handleUpdateProduct(product)
+              : handleCreateProduct(product)
           }
-          fields={[
-            {
-              label: "Producto",
-              name: "name",
-              type: "text",
-              placeholder: "Audifonos KJS 34",
-            },
-            {
-              label: "Categoria",
-              name: "category",
-              type: "select",
-              items: categoryList,
-            },
-            { label: "Stock", name: "stock", type: "numeric" },
-            {
-              label: "Precio",
-              name: "price",
-              type: "price",
-              placeholder: "40.000",
-            },
-          ]}
         />
       </div>
       <div

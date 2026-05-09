@@ -1,26 +1,14 @@
 import { NumericFormat } from "react-number-format";
 import Modal from "./Modal";
-import { useState } from "react";
-import { CategoryList, ProductForm } from "../types/product";
+import { useEffect, useState } from "react";
+import { ProductForm } from "../types/product";
+import { useCategoryListStore } from "../store/category";
 
-type FieldType = "text" | "number" | "price" | "select" | "numeric";
-
-type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-
-interface FormFieldProps {
-  items?: CategoryList[];
-  label: string;
-  name: keyof ProductForm;
-  placeholder?: string;
-  type: FieldType;
-}
-
-interface FormRenderProps {
-  dataEdit?: ProductForm;
+interface FormProductRenderProps {
+  formProduct?: ProductForm;
   title: string;
   isForm: boolean;
   closeForm: () => void;
-  fields: FormFieldProps[];
   onSubmit: (formData: ProductForm) => void;
 }
 
@@ -33,20 +21,24 @@ const getEmptyForm = (): ProductForm => ({
 });
 
 function FormRender({
-  dataEdit = getEmptyForm(),
+  formProduct,
   title,
   isForm,
   closeForm,
-  fields,
   onSubmit,
-}: FormRenderProps) {
-  const [dataForm, setDataForm] = useState<ProductForm>(dataEdit);
+}: FormProductRenderProps) {
+  const [dataForm, setDataForm] = useState<ProductForm>(getEmptyForm());
+  const { categoryList } = useCategoryListStore();
 
-  const handleInputChange = (e: React.ChangeEvent<FormElement>) => {
-    const { name, value, type } = e.target;
+  useEffect(() => {
+    const newDataForm = formProduct != undefined ? formProduct : getEmptyForm();
+    setDataForm(newDataForm);
+  }, [formProduct]);
+
+  const handleInputChange = (name: string, value: string) => {
     setDataForm((prev: ProductForm) => ({
       ...prev,
-      [name]: type === "number" ? parseInt(value) : value,
+      [name]: value,
     }));
   };
 
@@ -74,84 +66,75 @@ function FormRender({
         onSubmit={handlerSubmit}
       >
         <div className="flex flex-wrap gap-2">
-          {fields.map((field) => (
-            <label
-              key={field.name}
-              className="flex flex-col w-full max-w-md gap-1"
-              htmlFor={field.name}
+          <label
+            htmlFor="product"
+            className="flex flex-col w-full max-w-md gap-1"
+          >
+            <span>Producto:</span>
+            <input
+              name="product"
+              type="text"
+              value={dataForm.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="p-2 rounded border"
+            />
+          </label>
+          <label htmlFor="" className="flex flex-col w-full max-w-md gap-1">
+            <span>Categoria</span>
+            <select
+              name="category"
+              className="w-full p-2 rounded border capitalize"
+              required
+              value={dataForm.category}
+              onChange={(e) => handleInputChange("category", e.target.value)}
             >
-              <span>{field.label}:</span>
-              {field.type === "select" ? (
-                <select
-                  name={field.name}
-                  id={field.name}
-                  className="w-full p-2 rounded border capitalize"
-                  required
-                  value={dataForm[field.name]}
-                  onChange={(e) => handleInputChange(e)}
-                >
-                  <option value="">Selecciona una categoria...</option>
-                  {field.items?.map((option) => {
-                    return (
-                      <option
-                        className="capitalize"
-                        value={option.name}
-                        key={option.name}
-                      >
-                        {option.name}
-                      </option>
-                    );
-                  })}
-                </select>
-              ) : field.type === "numeric" ? (
-                <NumericFormat
-                  id={field.name}
-                  className="p-2 rounded border"
-                  min={1}
-                  onChange={(e) =>
-                    handleNumericChange(field.name, e.target.value)
-                  }
-                  value={dataForm[field.name]}
-                />
-              ) : field.type === "price" ? (
-                <NumericFormat
-                  id={field.name}
-                  name={field.name}
-                  value={dataForm[field.name]}
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  decimalScale={2}
-                  fixedDecimalScale
-                  allowNegative={false}
-                  prefix="$ "
-                  onValueChange={(values) =>
-                    handleNumericChange(field.name, values.value)
-                  }
-                  className="p-2 rounded border"
-                  placeholder={field.placeholder}
-                />
-              ) : (
-                <input
-                  type={field.type}
-                  id={field.name}
-                  name={field.name}
-                  inputMode={field.type === "number" ? "numeric" : "text"}
-                  value={dataForm[field.name]}
-                  onChange={handleInputChange}
-                  placeholder={field.placeholder}
-                  className="p-2 rounded border"
-                  onKeyDown={(e) => {
-                    if (
-                      field.type === "number" &&
-                      ["e", "E", "+", "-"].includes(e.key)
-                    ) {
-                      e.preventDefault();
-                    }
-                  }}
-                />
-              )}
-            </label>
-          ))}
+              <option value="">Selecciona una categoria...</option>
+              {categoryList.map((option) => {
+                return (
+                  <option
+                    className="capitalize"
+                    value={option.name}
+                    key={option.name}
+                  >
+                    {option.name}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <label
+            htmlFor="stock"
+            className="flex flex-col w-full max-w-md gap-1"
+          >
+            <span>Stock</span>
+            <NumericFormat
+              name="stock"
+              className="p-2 rounded border"
+              min={1}
+              onChange={(e) => handleNumericChange("stock", e.target.value)}
+              value={dataForm.stock}
+            />
+          </label>
+          <label
+            htmlFor="price"
+            className="flex flex-col w-full max-w-md gap-1"
+          >
+            <NumericFormat
+              name="price"
+              value={dataForm.price}
+              thousandSeparator="."
+              decimalSeparator=","
+              decimalScale={2}
+              fixedDecimalScale
+              allowNegative={false}
+              prefix="$ "
+              onValueChange={(values) =>
+                handleNumericChange("price", values.value)
+              }
+              className="p-2 rounded border"
+              placeholder="40.000"
+            />
+          </label>
         </div>
 
         <button
