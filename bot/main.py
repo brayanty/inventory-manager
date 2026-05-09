@@ -511,6 +511,8 @@ async def menu_productos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = [
         [InlineKeyboardButton("➕ Agregar producto", callback_data="add_product")],
+        [InlineKeyboardButton("✏️ Editar producto", callback_data="edit_product_start")],
+        [InlineKeyboardButton("🗑️ Borrar producto", callback_data="delete_product_start")],
         [InlineKeyboardButton("➕ Agregar categoría", callback_data="add_category")],
         [InlineKeyboardButton("📋 Listar productos", callback_data="list_products")],
         [InlineKeyboardButton("📦 Actualizar stock", callback_data="update_stock")],
@@ -627,7 +629,315 @@ async def handle_update_stock(update: Update, context: ContextTypes.DEFAULT_TYPE
     finally:
         context.user_data.pop('action', None)
 
-# funciones para ver repuestos usados
+# ============ EDITAR PRODUCTOS ============
+async def edit_product_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Inicia el proceso de editar un producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    context.user_data['action'] = 'edit_product_id'
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_productos")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        "✏️ *Editar producto*\n\n"
+        "Envía el ID del producto que deseas editar:",
+        parse_mode='Markdown',
+        reply_markup=reply_markup
+    )
+
+async def handle_edit_product_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Recibe el ID del producto a editar"""
+    if context.user_data.get('action') != 'edit_product_id':
+        return
+    
+    try:
+        product_id = safe_int_convert(update.message.text)
+        if product_id is None:
+            await update.message.reply_text("❌ ID inválido. Envía un número válido")
+            return
+        
+        # Obtener el producto
+        product = api_client.get_product_by_id(product_id)
+        
+        if not product:
+            await update.message.reply_text(f"❌ Producto con ID {product_id} no encontrado")
+            return
+        
+        # Guardar en contexto
+        context.user_data['edit_product_id'] = product_id
+        context.user_data['edit_product_data'] = product
+        context.user_data['action'] = 'edit_product_menu'
+        
+        # Mostrar opciones de edición
+        keyboard = [
+            [InlineKeyboardButton("📝 Editar nombre", callback_data="edit_product_field_name")],
+            [InlineKeyboardButton("💰 Editar precio", callback_data="edit_product_field_price")],
+            [InlineKeyboardButton("📦 Editar stock", callback_data="edit_product_field_stock")],
+            [InlineKeyboardButton("🏷️ Editar categoría", callback_data="edit_product_field_category")],
+            [InlineKeyboardButton("✅ Guardar cambios", callback_data="save_product_changes")],
+            [InlineKeyboardButton("❌ Cancelar", callback_data="menu_productos")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        product_info = (
+            f"✏️ *Producto encontrado:*\n\n"
+            f"📝 Nombre: {product.get('name', 'N/A')}\n"
+            f"💰 Precio: {format_currency(product.get('price', 0))}\n"
+            f"📦 Stock: {product.get('stock', 0)}\n"
+            f"🏷️ Categoría: {product.get('category', 'N/A')}\n\n"
+            f"¿Qué deseas editar?"
+        )
+        
+        await update.message.reply_text(
+            product_info,
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )
+        
+    except Exception as e:
+        logger.error(f"Error en handle_edit_product_id: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
+
+async def handle_edit_product_field(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Maneja la edición de campos del producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    field_map = {
+        'edit_product_field_name': 'name',
+        'edit_product_field_price': 'price',
+        'edit_product_field_stock': 'stock',
+        'edit_product_field_category': 'category'
+    }
+    
+    field = field_map.get(query.data)
+    if not field:
+        return
+    
+    context.user_data['editing_field'] = field
+    context.user_data['action'] = f'edit_product_value_{field}'
+    
+    prompts = {
+        'name': '📝 Envía el nuevo nombre del producto:',
+        'price': '💰 Envía el nuevo precio (solo número):',
+        'stock': '📦 Envía el nuevo stock (solo número):',
+        'category': '🏷️ Envía la nueva categoría:'
+    }
+    
+    await query.edit_message_text(
+        prompts.get(field, 'Envía el nuevo valor:'),
+        parse_mode='Markdown'
+    )
+
+async def handle_edit_product_value(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Recibe el nuevo valor del campo"""
+    action = context.user_data.get('action', '')
+    if not action.startswith('edit_product_value_'):
+        return
+    
+    try:
+        field = action.replace('edit_product_value_', '')
+        new_value = update.message.text.strip()
+        
+        # Validaciones
+        if field == 'price':
+            try:
+                new_value = float(new_value)
+                if new_value < 0:
+                    await update.message.reply_text("❌ El precio no puede ser negativo")
+                    return
+            except ValueError:
+                await update.message.reply_text("❌ Ingresa un número válido para el precio")
+                return
+        
+        elif field == 'stock':
+            try:
+                new_value = int(new_value)
+                if new_value < 0:
+                    await update.message.reply_text("❌ El stock no puede ser negativo")
+                    return
+            except ValueError:
+                await update.message.reply_text("❌ Ingresa un número válido para el stock")
+                return
+        
+        elif field == 'name':
+            if len(new_value) < 3:
+                await update.message.reply_text("❌ El nombre debe tener al menos 3 caracteres")
+                return
+        
+        # Guardar el cambio en el contexto
+        edit_data = context.user_data.get('edit_product_data', {})
+        edit_data[field] = new_value
+        context.user_data['edit_product_data'] = edit_data
+        
+        # Confirmar cambio
+        field_names = {'name': 'nombre', 'price': 'precio', 'stock': 'stock', 'category': 'categoría'}
+        await update.message.reply_text(
+            f"✅ {field_names.get(field, field).title()} actualizado a: {new_value}\n\n"
+            f"¿Qué deseas hacer ahora?",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("✏️ Editar otro campo", callback_data="edit_product_id")],
+                [InlineKeyboardButton("✅ Guardar todos los cambios", callback_data="save_product_changes")],
+                [InlineKeyboardButton("❌ Cancelar", callback_data="menu_productos")]
+            ])
+        )
+        
+        context.user_data['action'] = 'edit_product_menu'
+        
+    except Exception as e:
+        logger.error(f"Error en handle_edit_product_value: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
+
+async def save_product_changes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Guarda los cambios del producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        product_id = context.user_data.get('edit_product_id')
+        product_data = context.user_data.get('edit_product_data', {})
+        
+        if not product_id or not product_data:
+            await query.edit_message_text("❌ Error: No hay datos de producto")
+            return
+        
+        # Preparar datos para enviar (sin incluir 'id' en kwargs)
+        update_data = {k: v for k, v in product_data.items() if k != 'id'}
+        
+        # Actualizar producto
+        result = api_client.update_product(product_id, **update_data)
+        
+        if not result:
+            await query.edit_message_text("❌ Error al actualizar el producto")
+            return
+        
+        # Limpiar contexto
+        context.user_data.pop('edit_product_id', None)
+        context.user_data.pop('edit_product_data', None)
+        context.user_data.pop('editing_field', None)
+        context.user_data.pop('action', None)
+        
+        await query.edit_message_text(
+            f"✅ *Producto actualizado exitosamente*\n\n"
+            f"📝 {result.get('name', 'Producto')} (ID: {result.get('id')})",
+            parse_mode='Markdown',
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("◀️ Volver", callback_data="menu_productos")
+            ]])
+        )
+        
+    except Exception as e:
+        logger.error(f"Error en save_product_changes: {e}")
+        await query.edit_message_text(f"❌ Error: {e}")
+
+# ============ BORRAR PRODUCTOS ============
+async def delete_product_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Inicia el proceso de borrar un producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    context.user_data['action'] = 'delete_product_id'
+    keyboard = [[InlineKeyboardButton("◀️ Cancelar", callback_data="menu_productos")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await query.edit_message_text(
+        "🗑️ *Borrar producto*\n\n"
+        "Envía el ID del producto que deseas borrar:\n\n"
+        "⚠️ Esta acción no se puede deshacer",
+        parse_mode='Markdown',
+        reply_markup=reply_markup
+    )
+
+async def handle_delete_product_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Recibe el ID del producto a borrar"""
+    if context.user_data.get('action') != 'delete_product_id':
+        return
+    
+    try:
+        product_id = safe_int_convert(update.message.text)
+        if product_id is None:
+            await update.message.reply_text("❌ ID inválido. Envía un número válido")
+            return
+        
+        # Obtener el producto
+        product = api_client.get_product_by_id(product_id)
+        
+        if not product:
+            await update.message.reply_text(f"❌ Producto con ID {product_id} no encontrado")
+            return
+        
+        # Guardar en contexto y pedir confirmación
+        context.user_data['delete_product_id'] = product_id
+        context.user_data['delete_product_data'] = product
+        context.user_data['action'] = 'confirm_delete_product'
+        
+        keyboard = [
+            [InlineKeyboardButton("✅ Sí, borrar", callback_data="confirm_delete_product")],
+            [InlineKeyboardButton("❌ Cancelar", callback_data="menu_productos")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        product_info = (
+            f"🗑️ *¿Confirmas que deseas borrar este producto?*\n\n"
+            f"📝 Nombre: {product.get('name', 'N/A')}\n"
+            f"💰 Precio: {format_currency(product.get('price', 0))}\n"
+            f"📦 Stock: {product.get('stock', 0)}\n\n"
+            f"⚠️ Esta acción no se puede deshacer"
+        )
+        
+        await update.message.reply_text(
+            product_info,
+            parse_mode='Markdown',
+            reply_markup=reply_markup
+        )
+        
+    except Exception as e:
+        logger.error(f"Error en handle_delete_product_id: {e}")
+        await update.message.reply_text(f"❌ Error: {e}")
+
+async def confirm_delete_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Confirma y ejecuta el borrado del producto"""
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        product_id = context.user_data.get('delete_product_id')
+        product_data = context.user_data.get('delete_product_data', {})
+        
+        if not product_id:
+            await query.edit_message_text("❌ Error: No hay producto seleccionado")
+            return
+        
+        # Borrar producto
+        success = api_client.delete_product(product_id)
+        
+        # Limpiar contexto
+        context.user_data.pop('delete_product_id', None)
+        context.user_data.pop('delete_product_data', None)
+        context.user_data.pop('action', None)
+        
+        if success:
+            await query.edit_message_text(
+                f"✅ *Producto borrado exitosamente*\n\n"
+                f"📝 {product_data.get('name', 'Producto')} ha sido eliminado del inventario",
+                parse_mode='Markdown',
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("◀️ Volver", callback_data="menu_productos")
+                ]])
+            )
+        else:
+            await query.edit_message_text(
+                "❌ Error al borrar el producto",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("◀️ Volver", callback_data="menu_productos")
+                ]])
+            )
+        
+    except Exception as e:
+        logger.error(f"Error en confirm_delete_product: {e}")
+        await query.edit_message_text(f"❌ Error: {e}")
+
 async def view_spare_parts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra los repuestos usados en una reparación"""
     query = update.callback_query
@@ -3194,6 +3504,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if action == 'update_stock':
             await handle_update_stock(update, context)
+        elif action == 'edit_product_id':
+            await handle_edit_product_id(update, context)
+        elif action and action.startswith('edit_product_value_'):
+            await handle_edit_product_value(update, context)
+        elif action == 'delete_product_id':
+            await handle_delete_product_id(update, context)
         elif action == 'print_repair_ticket':
             await handle_print_repair_ticket(update, context)
         elif action == 'register_payment':
@@ -3341,6 +3657,11 @@ def main():
         # Productos
         application.add_handler(CallbackQueryHandler(list_products, pattern="^list_products$"))
         application.add_handler(CallbackQueryHandler(update_stock_start, pattern="^update_stock$"))
+        application.add_handler(CallbackQueryHandler(edit_product_start, pattern="^edit_product_start$"))
+        application.add_handler(CallbackQueryHandler(delete_product_start, pattern="^delete_product_start$"))
+        application.add_handler(CallbackQueryHandler(handle_edit_product_field, pattern="^edit_product_field_"))
+        application.add_handler(CallbackQueryHandler(save_product_changes, pattern="^save_product_changes$"))
+        application.add_handler(CallbackQueryHandler(confirm_delete_product, pattern="^confirm_delete_product$"))
         
         # Reparaciones
         application.add_handler(CallbackQueryHandler(list_repairs, pattern="^list_repairs$"))
